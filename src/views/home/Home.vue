@@ -46,6 +46,11 @@
           </v-avatar><!--+'?$'+Date.now()-->
           {{ item.name }}
         </template>
+        <template v-slot:item.percent="{ item }">
+          <v-rating :model-value="item.percent" color="orange-darken-2" density="compact" size="small"
+            readonly></v-rating>
+        </template>
+
         <template v-slot:item.people="{ item }">
           <div class="avatar-row">
             <!-- Mostrar los avatares de las personas con tooltip -->
@@ -59,6 +64,11 @@
               <span>{{ person.name }}</span>
               <v-spacer></v-spacer>
               <span class="text-secondary">{{ person.roleName }}</span> <!-- Segundo dato -->
+              <!-- Componente de estrellas -->
+              <div class="star-rating">
+                <v-rating :model-value="person.percent" color="orange-darken-2" density="compact" size="small"
+                  readonly></v-rating>
+              </div>
             </v-tooltip>
             <!-- Ícono de "más" para agregar una nueva persona -->
             <v-tooltip bottom content-class="custom-tooltip">
@@ -389,7 +399,8 @@ export default {
     selectedHome: null,   // Rol seleccionado en el formulario
     headers: [
       { title: 'Nombre', value: 'name', width: '20%' },
-      { title: 'Dirección', value: 'address', width: '30%' },
+      { title: 'Dirección', value: 'address', width: '25%' },
+      { title: 'Ranking', value: 'percent', width: '5%' },
       { title: 'Personas', value: 'people', width: '15%' },
       { title: 'Tipo', value: 'nameHomeType', width: '10%' },
       { title: 'Estado', value: 'nameStatus', width: '10%' },
@@ -1095,5 +1106,12 @@ export default {
   /* Texto blanco */
   border-radius: 4px;
   /* Esquinas redondeadas, opcional */
+}
+
+.star-rating {
+  display: flex;
+  align-items: center;
+  margin-top: 4px;
+  /* Espacio entre el rol y las estrellas */
 }
 </style>

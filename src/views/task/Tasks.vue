@@ -146,10 +146,10 @@
                     variant="underlined" :rules="nameRules"></v-text-field>
                 </v-col>
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="editedItem.estimated_time" clearable label="Tiempo estimado(hrs)"
-                    prepend-icon="mdi-timer-outline" variant="underlined"></v-text-field>
+                  <v-text-field type="number" v-model="editedItem.estimated_time" clearable label="Tiempo estimado(hrs)"
+                    prepend-icon="mdi-timer-outline" variant="underlined" :rules="[(v) => v > 0 || 'Debe ser un número válido']"></v-text-field>
                 </v-col>
-                <v-col cols="12" md="6">
+                <!--<v-col cols="12" md="6">
                   <v-autocomplete :no-data-text="'No hay datos disponibles'" v-model="editedItem.status_id"
                     :items="status" label="Estado" prepend-icon="mdi-lock-outline" item-title="nameStatus"
                     item-value="id" variant="underlined" density="compact" :rules="selectRules">
@@ -166,7 +166,7 @@
                       </v-list-item>
                     </template>
                   </v-autocomplete>
-                </v-col>
+                </v-col>-->
                 <v-col cols="12" md="6">
                   <v-autocomplete :no-data-text="'No hay datos disponibles'" v-model="editedItem.category_id"
                     :items="categories" label="Categoría" prepend-icon="mdi-tag-outline" item-title="nameCategory"
@@ -209,14 +209,14 @@
                   </v-select>
                 </v-col>
                 <v-col cols="12" md="6">
-                  <v-textarea v-model="editedItem.description" clearable label="Descripción" prepend-icon="mdi-note"
-                    variant="underlined" density="compact"></v-textarea>
-                </v-col>
-                <v-col cols="12" md="6">
                   <v-select v-model="editedItem.type" :items="typetasks" item-title="name" item-value="id"
                     label="Tipo de Tarea" variant="underlined" density="compact" :rules="selectRules"
                     prepend-icon="mdi-format-list-bulleted">
                   </v-select>
+                </v-col>
+                <v-col cols="12" md="12">
+                  <v-textarea v-model="editedItem.description" clearable label="Descripción" prepend-icon="mdi-note"
+                    variant="underlined" density="compact"></v-textarea>
                 </v-col>
               </v-row>
             </v-window-item>
@@ -233,7 +233,7 @@
                     </template>
                     <v-locale-provider locale="es">
                       <v-date-picker header="Calendario" title="Seleccione la fecha" color="#03626C" :modelValue="input"
-                        @update:model-value="updateDate" format="yyyy-MM-dd" :max="dateFormatted2"></v-date-picker>
+                        @update:model-value="updateDate" format="yyyy-MM-dd" :min="dateFormatted2"></v-date-picker>
                     </v-locale-provider>
                   </v-menu>
                 </v-col>
@@ -479,6 +479,7 @@ export default {
     selectedRole: null,   // Rol seleccionado en el formulario
     headers: [
       { title: 'Título', value: 'title', width: '20%' },
+      { title: 'Fecha', value: 'start_date', width: '5%' },
       { title: 'Descripción', value: 'description', width: '30%' },
       { title: 'Personas', value: 'people', width: '30%' },
       { title: 'Acciones', value: 'actions', sortable: false, width: '20%' },
@@ -854,7 +855,7 @@ export default {
       try {
         this.loading = true;
         const result = await handleRequest({
-          endpoint: 'task-date-apk',
+          endpoint: 'task-date-web',
           method: 'POST',
           data: this.data
         });

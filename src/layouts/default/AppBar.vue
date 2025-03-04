@@ -40,145 +40,157 @@
           </v-badge>
         </v-btn>-->
 
-        
+
       </div>
-      
+
       <v-btn icon variant="text" class="mr-2" style="color: #FFC0CB; border: 2px solid #FFF;">
-          <v-badge color="#FFC0CB" :content="cantHome" overlap>
-            <v-icon size="x-large" style="color: #FFC0CB;" icon="mdi-home-outline" @click="openMenu"></v-icon>
-          </v-badge>
+        <v-badge color="#FFC0CB" :content="cantHome" overlap>
+          <v-icon size="x-large" style="color: #FFC0CB;" icon="mdi-home-outline" @click="openMenu"></v-icon>
+        </v-badge>
 
-          <!-- Menú desplegable -->
-          <v-menu v-model="menu" :close-on-content-click="false" offset-y max-height="300" min-width="auto"
-            content-class="rounded-menu">
-            <template v-slot:activator="{ props }">
-              <!-- Este div vacío es necesario para activar el menú -->
-              <div v-bind="props"></div>
-            </template>
-
-            <!-- Contenido del menú con scroll -->
-            <v-list style="max-height: 300px; overflow-y: auto;">
-              <v-list-item v-for="(home, index) in homes" :key="index" @click="selectHome(home)"
-                :class="{ 'selected-home': home.id === this.home_id }">
-                <v-row align="center" no-gutters>
-                  <!-- Avatar con efecto de superposición y ampliación -->
-                  <v-col cols="auto" class="pr-2">
-                    <div class="avatar-container" @mouseover="isHovered = home.id" @mouseleave="isHovered = null">
-                      <v-avatar size="40" class="avatar">
-                        <v-img :src="`${this.$axios.defaults.baseURL}images/${home.image}`" alt="Avatar"></v-img>
-                      </v-avatar>
-                    </div>
-                  </v-col>
-
-                  <!-- Nombre y rol con tooltip -->
-                  <v-col style="min-width: 0;">
-                    <v-tooltip top>
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-list-item-title v-bind="attrs" v-on="on" class="text-truncate">{{ home.name
-                          }}</v-list-item-title>
-                      </template>
-                      <span>{{ home.name }}</span>
-                    </v-tooltip>
-                    <v-tooltip top>
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-list-item-subtitle v-bind="attrs" v-on="on" class="text-truncate">{{ home.nameRole
-                          }}</v-list-item-subtitle>
-                      </template>
-                      <span>{{ home.nameRole }}</span>
-                    </v-tooltip>
-                  </v-col>
-                </v-row>
-              </v-list-item>
-            </v-list>
-          </v-menu>
-        </v-btn>
-        <!-- Campanita de notificaciones -->
-        <v-btn icon variant="text" class="mr-2" style="color: #FFC0CB; border: 2px solid #FFF;" @click="notifications.length ? openNoti() : ''">
-          <template v-if="countNoti">
-            <!-- Mostrar badge solo si hay notificaciones -->
-            <v-badge color="#FFC0CB" :content="countNoti" overlap>
-              <v-icon size="x-large" style="color: #FFC0CB;" icon="mdi-bell-badge-outline"></v-icon>
-            </v-badge>
-          </template>
-
-          <template v-else>
-            <!-- Mostrar solo el icono (sin badge) -->
-            <v-icon size="x-large" style="color: #FFC0CB;" icon="mdi-bell-outline"></v-icon>
-          </template>
-
-          <!-- Componente de menú de notificaciones -->
-          <v-menu v-model="menuNoti" :close-on-content-click="false" offset-y max-height="300" min-width="350px" max-width="350px"
-            content-class="rounded-menu">
-            <template v-slot:activator="{ props }">
-              <div v-bind="props"></div>
-            </template>
-
-            <v-list style="max-height: 300px; overflow-y: auto;" class="notification-list">
-              <!-- Items de notificaciones -->
-              <v-list-item v-for="(notification, index) in notifications" :key="index"
-                :class="{ 'notification-unread': notification.status === 0 }" class="notification-item" @click="handleItemClickNotif(notification)">
-                <v-row align="center" no-gutters>
-                  <!-- Imagen -->
-                  <v-col cols="auto" class="pr-1">
-                    <v-avatar size="45" class="notification-image">
-                      <v-img :src="`${this.$axios.defaults.baseURL}images/${notification.image}`" alt="Avatar"></v-img>
-                    </v-avatar>
-                  </v-col>
-
-                  <!-- Contenido textual -->
-                  <v-col style="min-width: 0;">
-                    <!-- Título con tooltip -->
-                    <v-tooltip top>
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-list-item-title v-bind="attrs" v-on="on"
-                          :class="{ 'unread-title': notification.status === 0 }" class="text-truncate title-text">
-                          {{ notification.title }}
-                        </v-list-item-title>
-                      </template>
-                      <span>{{ notification.title }}</span>
-                    </v-tooltip>
-
-                    <!-- Descripción con tooltip -->
-                    <v-tooltip top>
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-list-item-subtitle v-bind="attrs" v-on="on" class="text-truncate description-text">
-                          {{ notification.description }}
-                        </v-list-item-subtitle>
-                      </template>
-                      <span>{{ notification.description }}</span>
-                    </v-tooltip>
-                  </v-col>
-                </v-row>
-              </v-list-item>
-
-              <!-- Botón de carga adicional -->
-              <v-list-item v-if="hasMore" @click="getNotifications" class="load-more-item">
-                <v-btn variant="text" color="primary" block class="load-more-btn">
-                  Ver más
-                  <v-icon right>mdi-chevron-down</v-icon>
-                </v-btn>
-              </v-list-item>
-            </v-list>
-          </v-menu>
-        </v-btn>
-        <!-- Menú desplegable activado por avatar -->
-        <v-menu>
+        <!-- Menú desplegable -->
+        <v-menu v-model="menu" :close-on-content-click="false" offset-y max-height="300" min-width="auto"
+          content-class="rounded-menu">
           <template v-slot:activator="{ props }">
-            <v-avatar v-bind="props" class="mr-2">
-              <v-img :src="`${this.$axios.defaults.baseURL}images/${imageUrl}`" alt="Avatar del profesional"></v-img>
-            </v-avatar>
+            <!-- Este div vacío es necesario para activar el menú -->
+            <div v-bind="props"></div>
           </template>
 
-          <!-- Lista del menú -->
-          <v-list>
-            <v-list-item v-for="(item, i) in items" :key="i" @click="handleItemClick(item)">
-              <template v-slot:prepend>
-                <v-icon :icon="item.icon"></v-icon>
-              </template>
-              <v-list-item-title>{{ item.title }}</v-list-item-title>
+          <!-- Contenido del menú con scroll -->
+          <v-list style="max-height: 300px; overflow-y: auto;">
+            <v-list-item v-for="(home, index) in homes" :key="index" @click="selectHome(home)"
+              :class="{ 'selected-home': home.id === this.home_id }">
+              <v-row align="center" no-gutters>
+                <!-- Avatar con efecto de superposición y ampliación -->
+                <v-col cols="auto" class="pr-2">
+                  <div class="avatar-container" @mouseover="isHovered = home.id" @mouseleave="isHovered = null">
+                    <v-avatar size="40" class="avatar">
+                      <v-img :src="`${this.$axios.defaults.baseURL}images/${home.image}`" alt="Avatar"></v-img>
+                    </v-avatar>
+                  </div>
+                </v-col>
+
+                <!-- Nombre y rol con tooltip -->
+                <v-col style="min-width: 0;">
+                  <v-tooltip top>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-list-item-title v-bind="attrs" v-on="on" class="text-truncate">{{ home.name
+                      }}</v-list-item-title>
+                    </template>
+                    <span>{{ home.name }}</span>
+                  </v-tooltip>
+                  <v-tooltip top>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-list-item-subtitle v-bind="attrs" v-on="on" class="text-truncate">{{ home.nameRole
+                      }}</v-list-item-subtitle>
+                    </template>
+                    <span>{{ home.nameRole }}</span>
+                  </v-tooltip>
+                </v-col>
+              </v-row>
+              <!-- Nueva fila para el sistema de estrellas con v-rating -->
+              <v-row no-gutters>
+                <!-- Sistema de estrellas -->
+                <v-col cols="auto" class="pl-2">
+                  <div class="star-rating">
+                    <v-rating :model-value="home.percent" color="orange-darken-2" density="compact" size="small"
+                      readonly></v-rating>
+                  </div>
+                </v-col>
+              </v-row>
             </v-list-item>
           </v-list>
         </v-menu>
+      </v-btn>
+      <!-- Campanita de notificaciones -->
+      <v-btn icon variant="text" class="mr-2" style="color: #FFC0CB; border: 2px solid #FFF;"
+        @click="notifications.length ? openNoti() : ''">
+        <template v-if="countNoti">
+          <!-- Mostrar badge solo si hay notificaciones -->
+          <v-badge color="#FFC0CB" :content="countNoti" overlap>
+            <v-icon size="x-large" style="color: #FFC0CB;" icon="mdi-bell-badge-outline"></v-icon>
+          </v-badge>
+        </template>
+
+        <template v-else>
+          <!-- Mostrar solo el icono (sin badge) -->
+          <v-icon size="x-large" style="color: #FFC0CB;" icon="mdi-bell-outline"></v-icon>
+        </template>
+
+        <!-- Componente de menú de notificaciones -->
+        <v-menu v-model="menuNoti" :close-on-content-click="false" offset-y max-height="300" min-width="350px"
+          max-width="350px" content-class="rounded-menu">
+          <template v-slot:activator="{ props }">
+            <div v-bind="props"></div>
+          </template>
+
+          <v-list style="max-height: 300px; overflow-y: auto;" class="notification-list">
+            <!-- Items de notificaciones -->
+            <v-list-item v-for="(notification, index) in notifications" :key="index"
+              :class="{ 'notification-unread': notification.status === 0 }" class="notification-item"
+              @click="handleItemClickNotif(notification)">
+              <v-row align="center" no-gutters>
+                <!-- Imagen -->
+                <v-col cols="auto" class="pr-1">
+                  <v-avatar size="45" class="notification-image">
+                    <v-img :src="`${this.$axios.defaults.baseURL}images/${notification.image}`" alt="Avatar"></v-img>
+                  </v-avatar>
+                </v-col>
+
+                <!-- Contenido textual -->
+                <v-col style="min-width: 0;">
+                  <!-- Título con tooltip -->
+                  <v-tooltip top>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-list-item-title v-bind="attrs" v-on="on" :class="{ 'unread-title': notification.status === 0 }"
+                        class="text-truncate title-text">
+                        {{ notification.title }}
+                      </v-list-item-title>
+                    </template>
+                    <span>{{ notification.title }}</span>
+                  </v-tooltip>
+
+                  <!-- Descripción con tooltip -->
+                  <v-tooltip top>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-list-item-subtitle v-bind="attrs" v-on="on" class="text-truncate description-text">
+                        {{ notification.description }}
+                      </v-list-item-subtitle>
+                    </template>
+                    <span>{{ notification.description }}</span>
+                  </v-tooltip>
+                </v-col>
+              </v-row>
+            </v-list-item>
+
+            <!-- Botón de carga adicional -->
+            <v-list-item v-if="hasMore" @click="getNotifications" class="load-more-item">
+              <v-btn variant="text" color="primary" block class="load-more-btn">
+                Ver más
+                <v-icon right>mdi-chevron-down</v-icon>
+              </v-btn>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </v-btn>
+      <!-- Menú desplegable activado por avatar -->
+      <v-menu>
+        <template v-slot:activator="{ props }">
+          <v-avatar v-bind="props" class="mr-2">
+            <v-img :src="`${this.$axios.defaults.baseURL}images/${imageUrl}`" alt="Avatar del profesional"></v-img>
+          </v-avatar>
+        </template>
+
+        <!-- Lista del menú -->
+        <v-list>
+          <v-list-item v-for="(item, i) in items" :key="i" @click="handleItemClick(item)">
+            <template v-slot:prepend>
+              <v-icon :icon="item.icon"></v-icon>
+            </template>
+            <v-list-item-title>{{ item.title }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </div>
   </v-card>
   <!--<v-app-bar scroll-threshold="0">
@@ -618,7 +630,7 @@ export default {
       router.push({ name: 'Home' });
     },
     handleItemClickNotif(item) {
-     //alert(item.id);
+      //alert(item.id);
     },
   }
 }

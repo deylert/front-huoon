@@ -91,58 +91,95 @@
         <!-- Campos principales -->
         <v-card-text>
           <v-container>
-            <v-row>
-              <v-col cols="12" md="12">
-                <v-text-field v-model="editedItem.familyBackground" label="Antecedentes Familiares"
-                  prepend-icon="mdi-account-group-outline" variant="underlined"></v-text-field>
-              </v-col>
-              <v-col cols="12" md="12">
-                <v-text-field v-model="editedItem.personalBackground" label="Antecedentes Personales"
-                  prepend-icon="mdi-account-outline" variant="underlined"></v-text-field>
-              </v-col>
-              <v-col cols="12" md="12">
-                <v-text-field v-model="editedItem.bloodType" label="Tipo de Sangre" prepend-icon="mdi-blood-bag"
-                  variant="underlined"></v-text-field>
-              </v-col>
-            </v-row>
+            <v-tabs v-model="tab" vertical>
+              <v-tab value="general" :class="tab === 'general' ? 'selected-tab' : ''">Datos Generales</v-tab>
+              <v-tab value="vaccine" :class="tab === 'vaccine' ? 'selected-tab' : ''">Vacunas</v-tab>
+              <v-tab value="medication" :class="tab === 'medication' ? 'selected-tab' : ''">Medicamentos</v-tab>
+            </v-tabs>
+            <v-window v-model="tab" min-height="50vh" class="mt-2">
+              <v-window-item value="general">
 
-            <!-- Tabla de Vacunas -->
-            <v-row>
-              <v-col cols="12">
-                <v-card class="mb-4">
-                  <v-card-title>Vacunas</v-card-title>
-                  <v-data-table :headers="vaccineHeaders" :items="editedItem.vaccines"
-                    no-data-text="No hay vacunas registradas">
-                    <template v-slot:item.actions="{ item }">
-                      <v-btn icon="mdi-pencil" @click="editVaccine(item)" color="primary" variant="tonal"></v-btn>
-                      <v-btn icon="mdi-delete" @click="deleteVaccine(item)" color="error" variant="tonal"></v-btn>
-                    </template>
-                  </v-data-table>
-                  <v-card-actions>
-                    <v-btn @click="addVaccine" color="primary">Agregar Vacuna</v-btn>
-                  </v-card-actions>
-                </v-card>
-              </v-col>
-            </v-row>
+                <v-row>
+                  <v-col cols="12" md="12">
+                    <v-text-field v-model="editedItem.familyBackground" label="Antecedentes Familiares"
+                      prepend-icon="mdi-account-group-outline" variant="underlined" :rules="nameRules"></v-text-field>
+                  </v-col>
+                  <v-col cols="12" md="12">
+                    <v-text-field v-model="editedItem.personalBackground" label="Antecedentes Personales"
+                      prepend-icon="mdi-account-outline" variant="underlined" :rules="nameRules"></v-text-field>
+                  </v-col>
+                  <v-col cols="12" md="12">
+                    <v-text-field v-model="editedItem.bloodType" label="Tipo de Sangre" prepend-icon="mdi-blood-bag"
+                      variant="underlined" :rules="nameRules"></v-text-field>
+                  </v-col>
+                </v-row>
+              </v-window-item>
+              <v-window-item value="vaccine">
 
-            <!-- Tabla de Medicamentos -->
-            <v-row>
-              <v-col cols="12">
-                <v-card class="mb-4">
-                  <v-card-title>Medicamentos Actuales</v-card-title>
-                  <v-data-table :headers="medicationHeaders" :items="editedItem.currentMedications"
-                    no-data-text="No hay medicamentos registrados">
-                    <template v-slot:item.actions="{ item }">
-                      <v-btn icon="mdi-pencil" @click="editMedication(item)" color="primary" variant="tonal"></v-btn>
-                      <v-btn icon="mdi-delete" @click="deleteMedication(item)" color="error" variant="tonal"></v-btn>
-                    </template>
-                  </v-data-table>
-                  <v-card-actions>
-                    <v-btn @click="addMedication" color="primary">Agregar Medicamento</v-btn>
-                  </v-card-actions>
-                </v-card>
-              </v-col>
-            </v-row>
+                <!-- Tabla de Vacunas -->
+                <v-row>
+                  <v-col cols="12">
+                    <v-card class="mb-4">
+                      <v-toolbar color="#03626C">
+                        <v-row align="center">
+                          <v-col cols="12" md="8" class="grow ml-4">
+                            <span class="text-subtitle-1"><strong>Vacunas</strong></span>
+                          </v-col>
+                          <v-col cols="12" md="3" class="text-right">
+                            <v-btn class="text-subtitle-1 mr-2" color="white" variant="tonal" elevation="2"
+                              prepend-icon="mdi-plus-circle" @click="addVaccine">
+                              Agregar Vacuna
+                            </v-btn>
+                          </v-col>
+                        </v-row>
+                      </v-toolbar>
+                      <v-data-table :headers="vaccineHeaders" :items="editedItem.vaccines"
+                        no-data-text="No hay vacunas registradas" style="max-height: 40vh; overflow-y: auto;" :items-per-page-text="'Elementos por páginas'" dense>
+                        <template v-slot:item.actions="{ item }">
+                          <v-btn density="comfortable" icon="mdi-pencil" @click="editVaccine(item)" color="primary"
+                            variant="tonal"></v-btn>
+                          <v-btn density="comfortable" icon="mdi-delete" @click="deleteVaccine(item)" color="error"
+                            variant="tonal"></v-btn>
+                        </template>
+                      </v-data-table>
+                    </v-card>
+                  </v-col>
+                </v-row>
+              </v-window-item>
+              <v-window-item value="medication">
+
+                <!-- Tabla de Medicamentos -->
+                <v-row>
+                  <v-col cols="12">
+                    <v-card class="mb-4">
+                      <v-toolbar color="#03626C">
+                        <v-row align="center">
+                          <v-col cols="12" md="5" class="grow ml-4">
+                            <span class="text-subtitle-1"><strong>Medicamentos Actuales</strong></span>
+                          </v-col>
+                          <v-col cols="12" md="6" class="text-right">
+                            <v-btn class="text-subtitle-1 mr-2" color="white" variant="tonal" elevation="2"
+                              prepend-icon="mdi-plus-circle" @click="addMedication">
+                              Agregar Medicamento
+                            </v-btn>
+                          </v-col>
+                        </v-row>
+                      </v-toolbar>
+                      <v-data-table :headers="medicationHeaders" :items="editedItem.currentMedications"
+                        no-data-text="No hay medicamentos registrados" style="max-height: 40vh; overflow-y: auto;" :items-per-page-text="'Elementos por páginas'"
+                        dense>
+                        <template v-slot:item.actions="{ item }">
+                          <v-btn density="comfortable" icon="mdi-pencil" @click="editMedication(item)" color="primary"
+                            variant="tonal"></v-btn>
+                          <v-btn density="comfortable" icon="mdi-delete" @click="deleteMedication(item)" color="error"
+                            variant="tonal"></v-btn>
+                        </template>
+                      </v-data-table>
+                    </v-card>
+                  </v-col>
+                </v-row>
+              </v-window-item>
+            </v-window>
           </v-container>
         </v-card-text>
 
@@ -160,18 +197,30 @@
   <!-- Diálogo para agregar/editar vacuna -->
   <v-dialog v-model="vaccineDialog" max-width="500px">
     <v-card>
-      <v-card-title>{{ vaccineFormTitle }}</v-card-title>
+      <v-toolbar color="#03626C">
+        <span class="text-subtitle-2 ml-4">{{ vaccineFormTitle }}</span>
+      </v-toolbar>
       <v-card-text>
         <v-text-field v-model="editedVaccine.name" label="Nombre de la Vacuna" variant="underlined"
           prepend-icon="mdi-needle"></v-text-field>
-        <v-text-field v-model="editedVaccine.date" label="Fecha" type="date" variant="underlined"
-          prepend-icon="mdi-calendar"></v-text-field>
+        <v-menu v-model="menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition" offset-y
+          min-width="290px">
+          <template v-slot:activator="{ props }">
+            <v-text-field v-bind="props" :modelValue="dateFormatted" variant="underlined" prepend-icon="mdi-calendar"
+              label="Fecha" density="compact"></v-text-field>
+          </template>
+          <v-locale-provider locale="es">
+            <v-date-picker header="Calendario" title="Seleccione la fecha" color="#03626C" :modelValue="input"
+              @update:model-value="updateDate" format="yyyy-MM-dd"
+              :min="new Date().toISOString().split('T')[0]"></v-date-picker>
+          </v-locale-provider>
+        </v-menu>
         <v-text-field v-model="editedVaccine.lot" label="Lote" variant="underlined"
           prepend-icon="mdi-barcode"></v-text-field>
       </v-card-text>
       <v-card-actions>
-        <v-btn @click="saveVaccine" color="primary">Guardar</v-btn>
-        <v-btn @click="closeVaccineDialog" color="secondary">Cancelar</v-btn>
+        <v-btn color="#DA7171" variant="flat" @click="closeVaccineDialog">Cancelar</v-btn>
+        <v-btn color="#03626C" variant="flat" @click="saveVaccine">Guardar</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -179,7 +228,9 @@
   <!-- Diálogo para agregar/editar medicamento -->
   <v-dialog v-model="medicationDialog" max-width="500px">
     <v-card>
-      <v-card-title>{{ medicationFormTitle }}</v-card-title>
+      <v-toolbar color="#03626C">
+        <span class="text-subtitle-2 ml-4">{{ medicationFormTitle }}</span>
+      </v-toolbar>
       <v-card-text>
         <v-text-field v-model="editedMedication.name" label="Nombre del Medicamento" variant="underlined"
           prepend-icon="mdi-pill"></v-text-field>
@@ -189,8 +240,8 @@
           prepend-icon="mdi-clock-outline"></v-text-field>
       </v-card-text>
       <v-card-actions>
-        <v-btn @click="saveMedication" color="primary">Guardar</v-btn>
-        <v-btn @click="closeMedicationDialog" color="secondary">Cancelar</v-btn>
+        <v-btn color="#DA7171" variant="flat" @click="closeMedicationDialog">Cancelar</v-btn>
+        <v-btn color="#03626C" variant="flat" @click="saveMedication">Guardar</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -222,6 +273,7 @@ export default {
     sb_title: '',
     sb_icon: '',
     valid: true,
+    tab: null,
     loading: false,
     dialog: false,
     dialogDelete: false,
@@ -283,6 +335,8 @@ export default {
     medicationFormTitle: 'Agregar Medicamento', // Título del diálogo de medicamentos
     editedIndex: -1,
     search: '',
+    menu: false,
+    input: null,
     nameRules: [
       (v) => !!v || "El campo es requerido",
       (v) => (v && v.length <= 50) ||
@@ -294,8 +348,19 @@ export default {
   }),
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? 'Agregar Nuevo Almacén' : 'Editar Almacén';
-    }
+      return this.editedIndex === -1 ? 'Agregar Historia Clínica' : 'Editar Historia Clínica';
+    },
+
+    dateFormatted() {
+      const date = this.input ? new Date(this.input) : new Date();
+      const day = date.getDate().toString().padStart(2, "0");
+      const month = (date.getMonth() + 1).toString().padStart(2, "0");
+      const year = date.getFullYear();
+      return `${year}-${month}-${day}`;
+    },
+    getDate() {
+      return this.input ? new Date(this.input) : new Date();
+    },
   },
   mounted() {
     this.initialize();
@@ -307,6 +372,11 @@ export default {
       this.initialize();  // Recarga los almacenes con la nueva página
     },
 
+    updateDate(val) {
+      this.input = val;
+      this.editedVaccine.date = this.dateFormatted;
+      this.menu = false;
+    },
     // Método para manejar el cambio de elementos por página
     updateItemsPerPage(itemsPerPage) {
       this.itemsPerPage = itemsPerPage;
@@ -340,6 +410,7 @@ export default {
     saveVaccine() {
       if (this.editedVaccine.id === null) {
         this.editedVaccine.id = this.editedItem.vaccines.length + 1;
+        this.editedVaccine.date = this.editedVaccine.date ? this.editedVaccine.date : new Date().toISOString().split('T')[0];
         this.editedItem.vaccines.push(this.editedVaccine);
       } else {
         const index = this.editedItem.vaccines.findIndex(v => v.id === this.editedVaccine.id);
@@ -560,6 +631,15 @@ export default {
   /* Para navegadores que soportan scrollbar-width */
   scrollbar-color: #888 #f1f1f1;
   /* Color del scroll */
+}
+
+.selected-tab {
+  background-color: #03626C;
+  /* Fondo del tab seleccionado */
+  color: white;
+  /* Texto blanco */
+  border-radius: 4px;
+  /* Esquinas redondeadas, opcional */
 }
 
 .v-list::-webkit-scrollbar {

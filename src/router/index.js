@@ -1,22 +1,21 @@
 // Composables
 import { createRouter, createWebHistory } from "vue-router";
 
-const routes = [  
+const routes = [
   {
-    path: "/", 
-    component: () =>
-      import( "@/views/Login.vue"),
+    path: "/",
+    component: () => import("@/views/Login.vue"),
   },
   {
     path: "/login",
     name: "Login",
-    component: () =>
-      import(/* webpackChunkName: "home" */ "@/views/Login.vue"),
+    component: () => import(/* webpackChunkName: "home" */ "@/views/Login.vue"),
   },
   {
-     path: "/dashboard",
+    path: "/dashboard",
     name: "Dashboard",
-    component: () =>   import(/* webpackChunkName: "home" */ "@/views/DashboardView.vue"),
+    component: () =>
+      import(/* webpackChunkName: "home" */ "@/views/DashboardView.vue"),
     children: [
       {
         path: "/home",
@@ -31,7 +30,7 @@ const routes = [
           import(
             /* webpackChunkName: "home" */ "@/views/category/Categories.vue"
           ),
-      },   
+      },
       {
         path: "/priority",
         name: "Priority",
@@ -44,10 +43,9 @@ const routes = [
         path: "/role",
         name: "Role",
         component: () =>
-          import(
-            /* webpackChunkName: "home" */ "@/views/role/Role.vue"
-          ),
-      },{
+          import(/* webpackChunkName: "home" */ "@/views/role/Role.vue"),
+      },
+      {
         path: "/warehouse",
         name: "WareHouse",
         component: () =>
@@ -59,15 +57,15 @@ const routes = [
         path: "/status",
         name: "Status",
         component: () =>
-          import(
-            /* webpackChunkName: "home" */ "@/views/status/Statuses.vue"
-          ),
+          import(/* webpackChunkName: "home" */ "@/views/status/Statuses.vue"),
       },
       {
         path: "/personwarehouse",
         name: "PersonWareHouse",
         component: () =>
-          import(/* webpackChunkName: "home" */ "@/views/personwarehouse/PersonWareHouse.vue"),
+          import(
+            /* webpackChunkName: "home" */ "@/views/personwarehouse/PersonWareHouse.vue"
+          ),
       },
       {
         path: "/product",
@@ -82,17 +80,41 @@ const routes = [
           import(/* webpackChunkName: "home" */ "@/views/task/Tasks.vue"),
       },
       {
-        path: "/salud",
-        name: "Salud",
+        path: "/history",
+        name: "Historia",
         component: () =>
-          import(/* webpackChunkName: "home" */ "@/views/salud/Salud.vue"),
-      }, 
+          import(/* webpackChunkName: "home" */ "@/views/salud/History.vue"),
+      },
+      {
+        path: "/consultation",
+        name: "Consultas",
+        component: () =>
+          import(
+            /* webpackChunkName: "home" */ "@/views/salud/Consultation.vue"
+          ),
+      },
+      {
+        path: "/exam",
+        name: "Examenes",
+        component: () =>
+          import(
+            /* webpackChunkName: "home" */ "@/views/salud/Exams.vue"
+          ),
+      },
+      {
+        path: "/emergency",
+        name: "Emergencias",
+        component: () =>
+          import(
+            /* webpackChunkName: "home" */ "@/views/salud/Emergency.vue"
+          ),
+      },
       {
         path: "/finance",
         name: "Finance",
         component: () =>
           import(/* webpackChunkName: "home" */ "@/views/finance/Finance.vue"),
-      },   
+      },
       {
         path: "/desire",
         name: "Desire",
@@ -109,17 +131,13 @@ const routes = [
         path: "/chat",
         name: "Chat",
         component: () =>
-          import(
-            /* webpackChunkName: "home" */ "@/views/chat/Chat.vue"
-          ),
+          import(/* webpackChunkName: "home" */ "@/views/chat/Chat.vue"),
       },
       {
         path: "/homes",
         name: "Homes",
         component: () =>
-          import(
-            /* webpackChunkName: "home" */ "@/views/home/Home.vue"
-          ),
+          import(/* webpackChunkName: "home" */ "@/views/home/Home.vue"),
       },
       {
         path: "/hometype",
@@ -128,7 +146,13 @@ const routes = [
           import(
             /* webpackChunkName: "home" */ "@/views/hometype/HomeType.vue"
           ),
-      }  
+      },
+      {
+        path: "/type",
+        name: "Type",
+        component: () =>
+          import(/* webpackChunkName: "home" */ "@/views/type/Types.vue"),
+      },
     ],
   },
 ];

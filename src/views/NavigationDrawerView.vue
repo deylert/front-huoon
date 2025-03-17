@@ -21,8 +21,15 @@
             class="list-item"></v-list-item>
           <v-list-item prepend-icon="mdi-finance" title="Finanzas" to="finance" value="finance"
             class="list-item"></v-list-item>
-          <v-list-item prepend-icon="mdi-hospital-box-outline" title="Salud" to="salud" value="salud"
-            class="list-item"></v-list-item>
+            <v-list-group value="Salud">
+            <template v-slot:activator="{ props }">
+              <v-list-item v-bind="props" prepend-icon="mdi-hospital-box-outline" title="Salud"></v-list-item>
+            </template>
+
+
+            <v-list-item v-for="([title, icon, to], i) in salud" :key="i" :title="title" :prepend-icon="icon"
+              :value="title" :to="to" style="padding-left: 20px !important"></v-list-item>
+          </v-list-group>
           <v-list-item prepend-icon="mdi-calendar-weekend-outline" title="Tareas" to="task" value="task"
             class="list-item"></v-list-item>
           <v-list-item prepend-icon="mdi-store-outline" title="Almacenes" to="personwarehouse" value="personwarehouse"
@@ -76,7 +83,15 @@ export default {
       ['Roles', 'mdi-account-cog-outline', '/role'],
       ['Estados', 'mdi-check-circle-outline', '/status'],
       ['Tipos de Hogar', 'mdi-home-group', '/hometype'],
+      ['Tipos de Salud', 'mdi-heart-pulse', '/type'],
     ],
+
+    salud : [
+      ['Historias Clínicas', 'mdi-clipboard-text-outline', '/history'],
+      ['Consultas Médicas', 'mdi-stethoscope', '/consultation'],
+      ['Exámenes Médicos', 'mdi-microscope', '/exam'],
+      ['Emergencias Médicas', 'mdi-alert-circle-outline', '/emergency'],
+    ]
 
   }),
   watch: {

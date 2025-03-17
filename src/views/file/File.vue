@@ -151,8 +151,8 @@
                 </v-menu>
               </v-col>
               <v-col cols="12" md="6">
-                <v-select v-model="editedItem.personal" :items="Options" item-value="value"
-                  label="Tipo" prepend-icon="mdi-check-circle" variant="underlined" density="compact">
+                <v-select v-model="editedItem.personal" :items="Options" item-value="id" item-title="name" label="Tipo"
+                  prepend-icon="mdi-check-circle" variant="underlined" density="compact">
                   <template v-slot:item="{ props, item }">
                     <v-list-item v-bind="props">
                       <template v-slot:prepend>
@@ -160,7 +160,6 @@
                           <v-icon>{{ item.raw.icon }}</v-icon>
                         </v-avatar>
                       </template>
-                      <v-list-item-title>{{ item.raw.text }}</v-list-item-title>
                     </v-list-item>
                   </template>
                 </v-select>
@@ -201,17 +200,17 @@
     <v-card>
 
       <v-toolbar color="#DA7171">
-        <span class="text-subtitle-2 ml-4"> Eliminar Finanza</span>
+        <span class="text-subtitle-2 ml-4"> Eliminar Archivo</span>
       </v-toolbar>
 
-      <v-card-text class="mt-2 mb-2"> ¿Desea eliminar la finanza?</v-card-text>
+      <v-card-text class="mt-2 mb-2"> ¿Desea eliminar el archivo seleccionado?</v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn color="#DA7171" variant="flat" @click="closeDelete">
           Cancelar
         </v-btn>
-        <v-btn color="#1976D2" variant="flat" @click="deleteItemConfirm">
+        <v-btn color="#03626C" variant="flat" @click="deleteItemConfirm">
           Aceptar
         </v-btn>
 
@@ -283,8 +282,8 @@ export default {
       { title: 'Acciones', value: 'actions', sortable: false, width: '15%' },
     ],
     Options: [
-      { text: 'Personal', value: 1, icon: 'mdi-account' },
-      { text: 'Hogar', value: 0, icon: 'mdi-home' },
+      { name: 'Personal', id: 1, icon: 'mdi-account' },
+      { name: 'Hogar', id: 0, icon: 'mdi-home' },
     ],
     editedItem: {
       id: '',
@@ -510,7 +509,7 @@ export default {
             return obj;
           }, {});
         if (Object.keys(updatedFields).length > 0) {
-          updatedFields.id = this.editedItem.id;
+          updatedFields.id = Number(this.editedItem.id);
           if (this.file) {
             updatedFields.archive = this.editedItem.archive;
           }

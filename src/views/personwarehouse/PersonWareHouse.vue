@@ -290,7 +290,7 @@ export default {
                 } else {
                     // Si no hay datos, asignamos un array vacío
                     this.personwarehouses = [];
-                    this.showAlert('success', result.message || 'No hay almacénes disponibles.', 3000);
+                    //this.showAlert('success', result.message || 'No hay almacénes disponibles.', 3000);
                 }
             } catch (error) {
                 this.loading = false;

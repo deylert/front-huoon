@@ -526,7 +526,7 @@ export default {
         } else {
           // Si no hay datos, asignamos un array vacío
           this.stores = [];
-          this.showAlert('success', result.message || 'No hay almacénes disponibles.', 3000);
+          //this.showAlert('success', result.message || 'No hay almacénes disponibles.', 3000);
         }
       } catch (error) {
         this.loading = false;
@@ -557,7 +557,7 @@ export default {
         } else {
           // Si no hay datos, asignamos un array vacío
           this.products = [];
-          this.showAlert('success', 'No hay productos disponibles.', 3000);
+          //this.showAlert('success', 'No hay productos disponibles.', 3000);
         }
       } catch (error) {
         this.loading = false;

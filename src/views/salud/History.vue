@@ -341,8 +341,8 @@ export default {
       (v) => !!v || "El campo es requerido",
       (v) => (v && v.length <= 50) ||
         "El campo debe tener menos de 51 caracteres",
-      (v) => (v && v.length >= 3) ||
-        "El campo debe tener al menos de 3 caracteres",
+      (v) => (v && v.length >= 2) ||
+        "El campo debe tener al menos de 2 caracteres",
     ],
     selectRules: [(v) => !!v || "Seleccionar al menos un elemento"],
   }),

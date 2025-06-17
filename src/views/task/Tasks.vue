@@ -851,7 +851,13 @@ export default {
     async initialize() {
       this.data = {};
       this.data.home_id = this.home_id;
-      this.data.start_date = "2025-01-11";
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0'); // Meses son 0-11
+      const day = String(today.getDate()).padStart(2, '0');
+
+      const formattedDate = `${year}-${month}-${day}`; // Formato "YYYY-MM-DD"
+      this.data.start_date = formattedDate;
       try {
         this.loading = true;
         const result = await handleRequest({
@@ -866,7 +872,7 @@ export default {
         } else {
           // Si no hay datos, asignamos un array vacío
           this.tasks = [];
-          this.showAlert('success', result.message || 'No hay tareas disponibles.', 3000);
+          //this.showAlert('success', result.message || 'No hay tareas disponibles.', 3000);
         }
       } catch (error) {
         this.loading = false;
@@ -941,7 +947,7 @@ export default {
         // Agregar campos adicionales si es necesario
         if (Object.keys(updatedFields).length > 0) {
           updatedFields.home_id = this.editedItem.home_id;
-          updatedFields.start_date = this.editedItem.start_date ? this.editedItem.start_date : new Date().toISOString();
+          updatedFields.start_date = this.editedItem.start_date ? this.editedItem.start_date : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
 
           if (this.file) {
             updatedFields.attachments = this.editedItem.attachments;

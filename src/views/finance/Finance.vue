@@ -465,7 +465,7 @@ export default {
         } else {
           // Si no hay datos, asignamos un array vacío
           this.finances = [];
-          this.showAlert('info', 'No hay finanzas disponibles.', 3000);
+          //this.showAlert('info', 'No hay finanzas disponibles.', 3000);
         }
       } catch (error) {
         this.loading = false;

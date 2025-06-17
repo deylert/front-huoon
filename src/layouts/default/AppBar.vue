@@ -15,33 +15,38 @@
   </v-snackbar>
   <v-card class="mx-auto pa-3" flat style="background: transparent;">
     <div class="d-flex align-center justify-space-between" min-wdth="600">
-      <!-- Título con imagen -->
-      <v-img src="#" max-height="100" max-width="174" class="justify-center" style="display: block; border: 1px;"
-        size="x-large"></v-img>
+   <!-- Icono a la izquierda -->
+    <div class="d-flex align-center">
+      <v-avatar size="large" class="mr-3" :style="{ backgroundColor: 'rgba(3, 98, 108, 0.1)' }" @click="$router.push('/home')"
+  style="cursor: pointer;">
+        <v-img src="@/assets/logo-verde.png" alt="Imagen de perfil"></v-img>
+      </v-avatar>
+      <span style="font-size: 1.25rem; font-weight: bold; color: #03626C;">huoon</span>
+    </div>
 
       <!-- Espaciador -->
       <v-spacer></v-spacer>
 
-      <!-- Menú desplegable activado por avatar con campanita -->
+      <!-- Menú desplegable activado por avatar con campanita 
       <div class="d-flex align-center">
         <v-text-field :loading="loading" :placeholder="'Bienvenido(a) ' + this.user + '. ¿En qué podemos ayudarte?'"
           density="compact" variant="outlined" hide-details single-line rounded @keydown.enter="onClick"
           class="custom-text-field" style="width: 100%; min-width: 50vh;" clearable>
-          <!-- Avatar a la izquierda del campo de búsqueda -->
+
           <template v-slot:prepend-inner>
             <v-avatar size="24" class="mr-2" @click="onClick">
               <v-img src="@/assets/logo-verde.png" alt="Avatar" />
             </v-avatar>
           </template>
-        </v-text-field>
+        </v-text-field>-->
         <!--<v-btn icon variant="text" class="mr-2" style="color: #FFC0CB; border: 2px solid #FFF;">
           <v-badge color="#FFC0CB" :content="this.cantHome" overlap>
             <v-icon size="x-large" style="color: #FFC0CB;" icon="mdi-home-outline" @click="openDialog"></v-icon>
           </v-badge>
-        </v-btn>-->
+        </v-btn>
 
 
-      </div>
+      </div>-->
 
       <v-btn icon variant="text" class="mr-2" style="color: #FFC0CB; border: 2px solid #FFF;">
         <v-badge color="#FFC0CB" :content="cantHome" overlap>
@@ -193,43 +198,6 @@
       </v-menu>
     </div>
   </v-card>
-  <!--<v-app-bar scroll-threshold="0">
-    <v-app-bar-title>
-
-      <v-img src="#" class="justify-center" max-height="100" max-width="174" style="display:block;">
-      </v-img>
-    </v-app-bar-title>
-    <v-spacer></v-spacer>
-    <v-menu>
-      <template v-slot:activator="{ props }">
-
-        <v-list-item v-bind="props" variant="tonal" class="mr-4" lines="two" :title="this.name" :subtitle="this.user"
-          :style="{ color: '#03626C' }">
-          <template v-slot:prepend>
-            <v-avatar class="mr-2">
-              <v-img :src="`${this.$axios.defaults.baseURL}images/${imageUrl}`" alt="Avatar del profesional"></v-img>
-            </v-avatar>
-          </template>
-          <template v-slot:append>
-            <v-btn size="small" variant="text" icon="mdi-menu-down"></v-btn>
-          </template></v-list-item>
-
-      </template>
-
-      <v-list>
-        <v-list-item v-for="(item, i) in items" :key="i" @click="handleItemClick(item)">
-
-          <template v-slot:prepend>
-            <v-icon :icon="item.icon"></v-icon>
-          </template>
-
-
-          <v-list-item-title> {{ item.title }}</v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-menu>
-
-  </v-app-bar>-->
   <v-dialog v-model="dialogChangePass" max-width="400px">
     <v-form ref="form" v-model="valid" enctype="multipart/form-data">
       <v-card>
@@ -779,4 +747,5 @@ export default {
 .notification-list::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+
 </style>

@@ -455,7 +455,7 @@ export default {
       console.log('currentRoute:', currentRoute);
       this.home_id = home.id;
       // Redirige a la ruta 'Home'
-      this.$router.push({ name: 'Home' });
+      this.$router.push({ path: 'home' });
       this.menu = false; // Cierra el menú después de seleccionar
     },
     onClick() {

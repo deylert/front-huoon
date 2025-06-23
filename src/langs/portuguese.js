@@ -46,7 +46,49 @@ const portuguese = {
     status: "Estados",
     hometype: "Tipos de Casa",
     type: "Tipos de Saúde"
-  }
+  },
+  taskForm: {
+      dialogTitle: "Detalhes da Tarefa",
+      fields: {
+        title: "Título",
+        date: "Data",
+        time: "Hora",
+        priority: "Prioridade",
+        type: {
+          label: "Tipo",
+          task: "Tarefa",
+          event: "Evento"
+        },
+        category: "Categoria",
+        recurrence: "Recorrência",
+        description: "Descrição",
+        comments: "Comentários",
+        participants: "Participantes",
+        estimatedTime: "Tempo estimado (hrs)",
+        location: "Localização",
+        endDate: "Data de término",
+        endTime: "Hora de término"
+      },
+      buttons: {
+        addDetails: "Adicionar detalhes",
+        hideDetails: "Ocultar detalhes",
+        cancel: "Cancelar",
+        save: "Salvar"
+      },
+      validation: {
+        required: "Este campo é obrigatório",
+        positiveNumber: "Deve ser um número positivo válido"
+      },
+      today: "Hoje",
+      titles: {
+      "new": "Adicionar Nova Tarefa",
+      "edit": "Editar Tarefa"
+    }
+    },
+    taskTypes: {
+    "Tarea": "Tarefa",
+    "Evento": "Evento"
+  },
   },
 };
 

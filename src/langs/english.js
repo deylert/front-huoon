@@ -47,7 +47,49 @@ const english = {
     status: "Statuses",
     hometype: "Home Types",
     type: "Health Types"
-  }
+  },
+   taskForm: {
+      dialogTitle: "Task Details",
+      fields: {
+        title: "Title",
+        date: "Date",
+        time: "Time",
+        priority: "Priority",
+        type: {
+          label: "Type",
+          task: "Task",
+          event: "Event"
+        },
+        category: "Category",
+        recurrence: "Recurrence",
+        description: "Description",
+        comments: "Comments",
+        participants: "Participants",
+        estimatedTime: "Estimated time (hrs)",
+        location: "Location",
+        endDate: "End date",
+        endTime: "End time"
+      },
+      buttons: {
+        addDetails: "Add details",
+        hideDetails: "Hide details",
+        cancel: "Cancel",
+        save: "Save"
+      },
+      validation: {
+        required: "This field is required",
+        positiveNumber: "Must be a valid positive number"
+      },
+      today: "Today",
+      titles: {
+      "new": "Add New Task",
+      "edit": "Edit Task"
+    }
+    },
+    taskTypes: {
+    "Tarea": "Task",
+    "Evento": "Event"
+  },
   },
 };
 

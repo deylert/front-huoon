@@ -191,6 +191,7 @@ export default {
       LocalStorageService.setItem('name', user.personName);
       LocalStorageService.setItem('person_id', user.personId);
       LocalStorageService.setItem('home_id', user.home);
+      LocalStorageService.setItem('userLocale', user.language);
 
       // Reiniciar el formulario
       this.editedItem = Object.assign({}, this.defaultItem);
@@ -242,6 +243,7 @@ export default {
             //LocalStorageService.setItem('role', user.nameRole);
             LocalStorageService.setItem('person_id', user.personId);
             LocalStorageService.setItem('home_id', user.home);
+            LocalStorageService.setItem('userLocale', user.language);
             // Puedes descomentar los siguientes si son necesarios
             // LocalStorageService.setItem('branch_id', user.branch_id);
             // LocalStorageService.setItem('charge', user.charge);
@@ -298,6 +300,7 @@ export default {
             //LocalStorageService.setItem('role', user.nameRole);
             LocalStorageService.setItem('person_id', user.personId);
             LocalStorageService.setItem('home_id', user.home);
+            LocalStorageService.setItem('userLocale', user.language);
             // Puedes descomentar los siguientes si son necesarios
             // LocalStorageService.setItem('branch_id', user.branch_id);
             // LocalStorageService.setItem('charge', user.charge);

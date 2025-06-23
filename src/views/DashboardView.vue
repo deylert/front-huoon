@@ -3,7 +3,7 @@
     <!--<NavigationDrawerView app style="flex-shrink: 0;"></NavigationDrawerView>background-color: #03626C;-->
 
     <v-main style="flex-grow: 1; overflow-y: auto;">
-      <v-container class="pa-0" style="background-color: #fff; border-radius: 4px; min-width: 100%; min-height: 100%;">
+      <v-container class="pa-0 bg-grey-lighten-4" style="border-radius: 4px; min-width: 100%; min-height: 100%;">
         <AppBarView app style="flex-shrink: 0;"></AppBarView>
         <router-view />
       </v-container>

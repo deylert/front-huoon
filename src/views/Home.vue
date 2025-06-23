@@ -12,7 +12,7 @@
     </v-row>
   </v-snackbar>
 
-  <v-container class=" bg-grey-lighten-4">
+  <v-container class="bg-grey-lighten-4">
     <v-row no-gutters class="ma-0">
     <v-col cols="12" class="px-0 mb-6">      
     <v-card class="pt-4 mb-8"  elevation="2">    
@@ -27,7 +27,7 @@
             </v-avatar>
             <div class="chat-bubble px-8 py-3 rounded-xl"
               :class="msg.from === 'user' ? 'bg-primary text-white' : 'bg-grey-lighten-2 text-black'">
-              {{ msg.text }}
+              {{ $t('chat.initialMessage', { name: name }) }}
             </div>
           </div>
         </div>
@@ -59,14 +59,16 @@
                 <div class="dynamic-circle" v-if="getDynamicValue(card.to) > 0">
                   {{ getDynamicValue(card.to) }}
                 </div>
-                <v-card-item>
+                <v-card-item class="pa-3">
                   <template v-slot:prepend>
                     <div class="icono-concavo">
                       <v-icon :icon="card.icon" :color="card.color" size="x-large"></v-icon>
                     </div>
                   </template>
-                  <v-card-title class="text-body-2">{{ card.title }}</v-card-title>
-                  <v-card-subtitle class="text-body-2">{{ card.title }}</v-card-subtitle>
+                  <v-card-title class="text-body-2">{{ $t(`menu.${card.to.replace('/', '')}.title`) || card.title }}</v-card-title>
+                  <v-card-subtitle class="pt-0">
+                    <span class="text-body-2">{{ $t(`menu.${card.to.replace('/', '')}.description`) || card.description }}</span>
+                  </v-card-subtitle>
                 </v-card-item>
               </v-card>
             </v-col>
@@ -79,13 +81,13 @@
                     <div class="dynamic-circle" v-if="getDynamicValue(card.to) > 0">
                       {{ getDynamicValue(card.to) }}
                     </div>
-                    <v-card-item>
+                    <v-card-item class="pa-2">
                       <template v-slot:prepend>
                         <div class="icono-concavo" :class="card.color" style="margin-inline-end: 8px; padding: 8px;">
                           <v-icon :icon="card.icon" size="large"></v-icon>
                         </div>
                       </template>
-                      <v-card-title class="text-body-2">{{ card.title }}</v-card-title>
+                      <v-card-title class="text-body-2">{{ $t(`menu.${card.to.replace('/', '')}.title`) || card.title }}</v-card-title>
                       <template v-slot:append>
                         <v-icon icon="mdi-chevron-down" size="small"></v-icon>
                       </template>
@@ -118,121 +120,121 @@
             </template>
 
             <template v-else>
-  <v-card
-    v-for="(task, index) in tasks"
-    :key="index"
-    class="mb-4 px-4 py-4"
-    elevation="1"
-    rounded="xl"
-    color="white"
-  >
-    <v-row align="start" no-gutters>
-      <!-- Columna izquierda - Contenido principal -->
-      <v-col cols="12" sm="8" md="9" class="pe-4">
-        <!-- Hora y título en misma línea -->
-        <v-row align="center" class="mb-2">
-          <v-col cols="4" sm="3">
-            <div class="text-grey text-xs mb-1">Hora</div>
-            <div class="text-base font-medium">{{ task.startTime }}</div>
-          </v-col>
-          <v-col cols="8" sm="9">
-            <div class="text-grey text-xs mb-1">Título</div>
-            <div class="text-base font-medium">{{ task.title }}</div>
-          </v-col>
-        </v-row>
+              <v-card
+                v-for="(task, index) in tasks"
+                :key="index"
+                class="mb-4 px-4 py-4"
+                elevation="1"
+                rounded="xl"
+                color="white"
+              >
+                <v-row align="start" no-gutters>
+                  <!-- Columna izquierda - Contenido principal -->
+                  <v-col cols="12" sm="8" md="9" class="pe-4">
+                    <!-- Hora y título en misma línea -->
+                    <v-row align="center" class="mb-2">
+                      <v-col cols="4" sm="3">
+                        <div class="text-grey text-xs mb-1">Hora</div>
+                        <div class="text-base font-medium">{{ task.startTime }}</div>
+                      </v-col>
+                      <v-col cols="8" sm="9">
+                        <div class="text-grey text-xs mb-1">Título</div>
+                        <div class="text-base font-medium">{{ task.title }}</div>
+                      </v-col>
+                    </v-row>
 
-        <!-- Descripción -->
-        <div class="text-grey text-xs mb-1">Descripción</div>
-        <div class="text-sm text-grey-darken-2 mb-3">{{ task.description }}</div>
-      </v-col>
+                    <!-- Descripción -->
+                    <div class="text-grey text-xs mb-1">Descripción</div>
+                    <div class="text-sm text-grey-darken-2 mb-3">{{ task.description }}</div>
+                  </v-col>
 
-      <!-- Columna derecha - Personas y estado -->
-      <v-col cols="12" sm="4" md="3" class="d-flex flex-column align-end">
-        <!-- Personas -->
-        <div class="mb-3">
-          <div class="text-grey text-xs mb-1">Personas</div>
-          <div class="avatar-row d-flex flex-wrap justify-end gap-1">
-            <v-tooltip v-for="person in task.people" :key="person.id" bottom>
-              <template v-slot:activator="{ props }">
-                <v-avatar class="avatar-item hover-expand" size="32" v-bind="props">
-                  <v-img :src="`${this.$axios.defaults.baseURL}images/${person.image}?t=${Date.now()}`" alt="avatar" />
-                </v-avatar>
-              </template>
-              <span>{{ person.name }}<br>{{ person.roleName }}</span>
-            </v-tooltip>
-          </div>
-        </div>
-
-        <!-- Estado -->
-        <div class="text-grey text-xs mb-1">Estado</div>
-        <v-dialog v-model="task.statusDialog" width="400">
-          <template v-slot:activator="{ props }">
-            <v-btn 
-              v-bind="props" 
-              :color="'#' + getStatusById(task.status_id)?.colorStatus || 'grey'"
-              variant="flat" 
-              size="small"
-              :prepend-icon="getStatusById(task.status_id)?.iconStatus || 'mdi-help-circle'"
-              class="mb-2"
-            >
-              {{ getStatusById(task.status_id)?.nameStatus || 'Desconocido' }}
-            </v-btn>
-          </template>
-          <v-card>
-            <v-card-title class="pa-4 text-center">
-              Actualizar Estado
-            </v-card-title>
-            <v-divider></v-divider>
-            <v-card-text class="pa-0">
-              <v-row class="px-2 pb-1" dense>
-                <v-col cols="12" v-for="(statusOption, i) in statuses" :key="i" class="py-1">
-                  <v-card 
-                    @click="changeTaskStatus(task, statusOption.id)" 
-                    :class="['status-option mx-1', {'current-status': task.status_id === statusOption.id}]" 
-                    :style="task.status_id === statusOption.id ? {
-                      'background-color': `#${statusOption.colorStatus}`,
-                      'border-color': `#${statusOption.colorStatus}`,
-                      'color': 'white'
-                    } : {}" 
-                    variant="outlined"
-                    :elevation="task.status_id === statusOption.id ? 2 : 0"
-                    style="border-radius: 12px; cursor: pointer;"
-                  >
-                    <v-card-item class="pa-2">
-                      <div class="d-flex align-center">
-                        <v-icon
-                          :color="task.status_id === statusOption.id ? 'white' : '#' + statusOption.colorStatus"
-                          :icon="statusOption.iconStatus" 
-                          size="large" 
-                          class="mr-3"
-                        ></v-icon>
-                        <v-card-title :style="{
-                          'color': task.status_id === statusOption.id ? 'white' : 'inherit',
-                          'font-size': '1rem'
-                        }">
-                          {{ statusOption.nameStatus }}
-                        </v-card-title>
-                        <v-spacer></v-spacer>
-                        <v-icon v-if="task.status_id === statusOption.id" color="white" icon="mdi-check-circle"></v-icon>
+                  <!-- Columna derecha - Personas y estado -->
+                  <v-col cols="12" sm="4" md="3" class="d-flex flex-column align-end">
+                    <!-- Personas -->
+                    <div class="mb-3">
+                      <div class="text-grey text-xs mb-1">Personas</div>
+                      <div class="avatar-row d-flex flex-wrap justify-end gap-1">
+                        <v-tooltip v-for="person in task.people" :key="person.id" bottom>
+                          <template v-slot:activator="{ props }">
+                            <v-avatar class="avatar-item hover-expand" size="32" v-bind="props">
+                              <v-img :src="`${this.$axios.defaults.baseURL}images/${person.image}?t=${Date.now()}`" alt="avatar" />
+                            </v-avatar>
+                          </template>
+                          <span>{{ person.name }}<br>{{ person.roleName }}</span>
+                        </v-tooltip>
                       </div>
-                    </v-card-item>
-                  </v-card>
-                </v-col>
-              </v-row>
-            </v-card-text>
-            <v-divider></v-divider>
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn variant="flat" color="#03626C" @click="task.statusDialog = false">
-                Cancelar
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-      </v-col>
-    </v-row>
-  </v-card>
-</template>
+                    </div>
+
+                    <!-- Estado -->
+                    <div class="text-grey text-xs mb-1">Estado</div>
+                    <v-dialog v-model="task.statusDialog" width="400">
+                      <template v-slot:activator="{ props }">
+                        <v-btn 
+                          v-bind="props" 
+                          :color="'#' + getStatusById(task.status_id)?.colorStatus || 'grey'"
+                          variant="flat" 
+                          size="small"
+                          :prepend-icon="getStatusById(task.status_id)?.iconStatus || 'mdi-help-circle'"
+                          class="mb-2"
+                        >
+                          {{ getStatusById(task.status_id)?.nameStatus || 'Desconocido' }}
+                        </v-btn>
+                      </template>
+                      <v-card>
+                        <v-card-title class="pa-4 text-center">
+                          Actualizar Estado
+                        </v-card-title>
+                        <v-divider></v-divider>
+                        <v-card-text class="pa-0">
+                          <v-row class="px-2 pb-1" dense>
+                            <v-col cols="12" v-for="(statusOption, i) in statuses" :key="i" class="py-1">
+                              <v-card 
+                                @click="changeTaskStatus(task, statusOption.id)" 
+                                :class="['status-option mx-1', {'current-status': task.status_id === statusOption.id}]" 
+                                :style="task.status_id === statusOption.id ? {
+                                  'background-color': `#${statusOption.colorStatus}`,
+                                  'border-color': `#${statusOption.colorStatus}`,
+                                  'color': 'white'
+                                } : {}" 
+                                variant="outlined"
+                                :elevation="task.status_id === statusOption.id ? 2 : 0"
+                                style="border-radius: 12px; cursor: pointer;"
+                              >
+                                <v-card-item class="pa-2">
+                                  <div class="d-flex align-center">
+                                    <v-icon
+                                      :color="task.status_id === statusOption.id ? 'white' : '#' + statusOption.colorStatus"
+                                      :icon="statusOption.iconStatus" 
+                                      size="large" 
+                                      class="mr-3"
+                                    ></v-icon>
+                                    <v-card-title :style="{
+                                      'color': task.status_id === statusOption.id ? 'white' : 'inherit',
+                                      'font-size': '1rem'
+                                    }">
+                                      {{ statusOption.nameStatus }}
+                                    </v-card-title>
+                                    <v-spacer></v-spacer>
+                                    <v-icon v-if="task.status_id === statusOption.id" color="white" icon="mdi-check-circle"></v-icon>
+                                  </div>
+                                </v-card-item>
+                              </v-card>
+                            </v-col>
+                          </v-row>
+                        </v-card-text>
+                        <v-divider></v-divider>
+                        <v-card-actions>
+                          <v-spacer></v-spacer>
+                          <v-btn variant="flat" color="#03626C" @click="task.statusDialog = false">
+                            Cancelar
+                          </v-btn>
+                        </v-card-actions>
+                      </v-card>
+                    </v-dialog>
+                  </v-col>
+                </v-row>
+              </v-card>
+            </template>
           </v-col>
         </v-row>
       </v-col>
@@ -247,6 +249,8 @@
 import LocalStorageService from "@/LocalStorageService";
 import { handleRequest } from "@/utils/api"; // Ruta al archivo
 import router from '@/router/index';
+
+
 /*import { Line as LineChart } from 'vue-chartjs'
 
 import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, PointElement, LineElement } from 'chart.js'
@@ -272,59 +276,7 @@ export default {
         { name: 'Finanzas', count: 3, color: 'green-lighten-3', icon: 'mdi-calendar', to: 'finance' },
       ],
      
-      tasks: [/*
-        {
-          hour: '08:00',
-          title: 'Revisar gastos familiares',
-          description: 'Analizar el estado de cuentas y actualizar presupuesto.',
-          participants: [
-            { name: 'Ana', avatar: 'https://randomuser.me/api/portraits/women/1.jpg' },
-            { name: 'Luis', avatar: 'https://randomuser.me/api/portraits/men/2.jpg' },
-          ],
-          module: 'Finanzas',
-          status: 'pendiente',
-        },
-        {
-          hour: '10:30',
-          title: 'Control pediátrico',
-          description: 'Llevar a Camila al centro médico.',
-          participants: [
-            { name: 'Camila', avatar: 'https://randomuser.me/api/portraits/women/3.jpg' },
-          ],
-          module: 'Salud',
-          status: 'pendiente',
-        },
-        {
-          hour: '13:00',
-          title: 'Preparar almuerzo',
-          description: 'Almuerzo vegetariano con ingredientes disponibles.',
-          participants: [
-            { name: 'Pedro', avatar: 'https://randomuser.me/api/portraits/men/4.jpg' },
-          ],
-          module: 'Nutrición',
-          status: 'pendiente',
-        },
-        {
-          hour: '15:00',
-          title: 'Reunión planificación tareas',
-          description: 'Organizar responsabilidades semanales en casa.',
-          participants: [
-            { name: 'Familia Pérez', avatar: 'https://randomuser.me/api/portraits/men/5.jpg' },
-          ],
-          module: 'Tareas',
-          status: 'pendiente',
-        },
-        {
-          hour: '18:00',
-          title: 'Paseo con mascota',
-          description: 'Llevar a Lolo a caminar al parque.',
-          participants: [
-            { name: 'Lolo', avatar: 'https://cdn-icons-png.flaticon.com/512/616/616408.png' },
-          ],
-          module: 'Mascotas',
-          status: 'pendiente',
-        },*/
-      ],
+      tasks: [],
 
 
       /*mainteiners: [
@@ -437,74 +389,63 @@ export default {
       tools: [],
 
       cards: [
-        /*{
-          title: 'Dashboard',
-          icon: 'mdi-view-dashboard-outline',
-          to: '/home',
-          color: 'bg-primary'
-        },*/
-        {
-          title: 'Deseos',
-          icon: 'mdi-creation',
-          to: '/desire',
-          color: 'secondary'
-        },
-        {
-          title: 'Finanzas',
-          icon: 'mdi-finance',
-          to: '/finance',
-          color: 'success'
-        },
-      /*  {
-          title: 'Salud',
-          icon: 'mdi-hospital-box-outline',
-          color: 'light-blue-darken-2',
-          to: '/saludMenu',
-          menu: true,
-          items: [
-            { title: 'Historias Clínicas', icon: 'mdi-clipboard-text-outline', to: '/history' },
-            { title: 'Consultas Médicas', icon: 'mdi-stethoscope', to: '/consultation' },
-            { title: 'Exámenes Médicos', icon: 'mdi-microscope', to: '/exam' },
-            { title: 'Emergencias Médicas', icon: 'mdi-alert-circle-outline', to: '/emergency' }
-          ]
-        },*/
-        {
-          title: 'Tareas',
-          icon: 'mdi-calendar-weekend-outline',
-          to: '/task',
-          color: 'warning'
-        },
-        {
-          title: 'Almacenes',
-          icon: 'mdi-store-outline',
-          to: '/personwarehouse',
-          color: 'error'
-        },
-        {
-          title: 'Productos',
-          icon: 'mdi-package-variant',
-          to: '/product',
-          color: 'purple'
-        },
-        {
-          title: 'Archivos',
-          icon: 'mdi-folder-star-outline',
-          to: '/file',
-          color: 'indigo'
-        },
-        {
-          title: 'Chat',
-          icon: 'mdi-chat',
-          to: '/chat',
-          color: 'teal'
-        },
-        {
-          title: 'Hogar',
-          icon: 'mdi-home',
-          to: '/homes',
-          color: 'brown'
-        },
-     /*   {
+            {
+              title: 'Deseos',
+              description: 'Listas de deseos y compras',
+              icon: 'mdi-creation',
+              to: '/desire',
+              color: 'secondary'
+            },
+            {
+              title: 'Finanzas',
+              description: 'Ingresos, gastos y presupuestos',
+              icon: 'mdi-finance',
+              to: '/finance',
+              color: 'success'
+            },
+            {
+              title: 'Tareas',
+              description: 'Organiza actividades pendientes',
+              icon: 'mdi-calendar-weekend-outline',
+              to: '/task',
+              color: 'warning'
+            },
+            {
+              title: 'Almacenes',
+              description: 'Gestiona inventarios',
+              icon: 'mdi-store-outline',
+              to: '/personwarehouse',
+              color: 'error'
+            },
+            {
+              title: 'Productos',
+              description: 'Catálogo de productos',
+              icon: 'mdi-package-variant',
+              to: '/product',
+              color: 'purple'
+            },
+            {
+              title: 'Archivos',
+              description: 'Documentos importantes',
+              icon: 'mdi-folder-star-outline',
+              to: '/file',
+              color: 'indigo'
+            },
+            {
+              title: 'Chat',
+              description: 'Comunicación con contactos',
+              icon: 'mdi-chat',
+              to: '/chat',
+              color: 'teal'
+            },
+            {
+              title: 'Hogar',
+              description: 'Gestión del hogar',
+              icon: 'mdi-home',
+              to: '/homes',
+              color: 'brown'
+            }
+          ], /*   {
           title: 'Mantenedores',
           icon: 'mdi-progress-wrench',
           color: 'deep-orange',
@@ -520,7 +461,6 @@ export default {
             { title: 'Tipos de Salud', icon: 'mdi-heart-pulse', to: '/type' }
           ]
         }*/
-      ],
       taskCount: '',
       whishCount: '',
       financeCount: '',
@@ -737,7 +677,7 @@ export default {
         } else {
           // Si no hay datos, asignamos un array vacío
           this.tasks = [];
-          this.showAlert('success', result.message || 'No hay tareas disponibles.', 3000);
+          //this.showAlert('success', result.message || 'No hay tareas disponibles.', 3000);
         }
       } catch (error) {
         this.loading = false;
@@ -803,7 +743,7 @@ export default {
   align-items: center;
   justify-content: center;
   border-radius: 10px;
-  margin-right: 10px;
+  margin-right: 5px;
   color: white;
   /* Mantenemos solo el efecto cóncavo en el ícono 
   box-shadow: inset;*/
@@ -854,15 +794,6 @@ export default {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
-
-/*.icono-concavo {
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-}*/
 
 .v-card-title {
   white-space: nowrap;

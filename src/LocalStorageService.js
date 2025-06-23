@@ -29,6 +29,7 @@ const LocalStorageService = {
     LocalStorageService.removeItem("name");
     LocalStorageService.removeItem("image");
     LocalStorageService.removeItem("person_id");
+    LocalStorageService.removeItem("userLocale");
     //LocalStorageService.removeItem("role_id");
   },
 

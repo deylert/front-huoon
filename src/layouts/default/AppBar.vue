@@ -178,6 +178,27 @@
           </v-list>
         </v-menu>
       </v-btn>
+      <!-- Botón de Configuración -->
+<v-btn icon variant="text" class="mr-2" style="color: #FFC0CB; border: 2px solid #FFF;">
+  <v-menu v-model="menuSettings" :close-on-content-click="false" offset-y min-width="200px" content-class="rounded-menu">
+    <template v-slot:activator="{ props }">
+      <v-icon 
+        size="x-large" 
+        style="color: #FFC0CB;" 
+        icon="mdi-cog-outline"
+        v-bind="props"
+      ></v-icon>
+    </template>
+    <v-list density="compact">
+      <v-list-item v-for="(item, i) in settingsItems" :key="i" @click="$router.push(item.to)">
+        <template v-slot:prepend>
+          <v-icon :icon="item.icon" size="small"></v-icon>
+        </template>
+        <v-list-item-title class="text-body-1">{{ $t(`settings.${item.to.replace('/', '')}`) }}</v-list-item-title>
+      </v-list-item>
+    </v-list>
+  </v-menu>
+</v-btn>
       <!-- Menú desplegable activado por avatar -->
       <v-menu>
         <template v-slot:activator="{ props }">
@@ -303,6 +324,16 @@ export default {
       { title: "Inicio", icon: "mdi-home" },
       { title: "Configuración", icon: "mdi-cog" },
       { title: "Ayuda", icon: "mdi-help-circle" },
+    ],
+     menuSettings: false,
+      settingsItems: [
+      { title: 'Categorías', icon: 'mdi-text-box-outline', to: '/category' },
+      { title: 'Almacénes', icon: 'mdi-warehouse', to: '/warehouse' },
+      { title: 'Prioridades', icon: 'mdi-star-circle-outline', to: '/priority' },
+      { title: 'Roles', icon: 'mdi-account-cog-outline', to: '/role' },
+      { title: 'Estados', icon: 'mdi-check-circle-outline', to: '/status' },
+      { title: 'Tipos de Hogar', icon: 'mdi-home-group', to: '/hometype' },
+      { title: 'Tipos de Salud', icon: 'mdi-heart-pulse', to: '/type' }
     ],
     visible: false,
     visible1: false,

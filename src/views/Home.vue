@@ -55,7 +55,7 @@
           <template v-for="(card, index) in cards" :key="index">
             <v-col cols="12" sm="6" md="3" v-if="!card.menu">
               <!-- Tarjetas normales -->
-              <v-card elevation="2" density="comfortable" @click="$router.push(card.to)">
+              <v-card elevation="2" density="comfortable" @click="$router.push(card.to)" class="rounded-lg">
                 <div class="dynamic-circle" v-if="getDynamicValue(card.to) > 0">
                   {{ getDynamicValue(card.to) }}
                 </div>
@@ -121,101 +121,105 @@
 
             <template v-else>
               <v-card
-                v-for="(task, index) in tasks"
-                :key="index"
-                class="mb-4 px-4 py-4"
-                elevation="1"
-                rounded="xl"
-                color="white"
-              >
-                <v-row align="start" no-gutters>
-                  <!-- Columna izquierda - Contenido principal -->
-                  <v-col cols="12" sm="8" md="9" class="pe-4">
-                    <!-- Hora y título en misma línea -->
-                    <v-row align="center" class="mb-2">
-                      <v-col cols="4" sm="3">
-                        <div class="text-grey text-xs mb-1">Hora</div>
-                        <div class="text-base font-medium">{{ task.startTime }}</div>
-                      </v-col>
-                      <v-col cols="8" sm="9">
-                        <div class="text-grey text-xs mb-1">Título</div>
-                        <div class="text-base font-medium">{{ task.title }}</div>
-                      </v-col>
-                    </v-row>
+      v-for="(meeting, index) in tasks"
+      :key="index"
+      class="mb-3 rounded-lg"
+      elevation="2"
+    >
+      <v-row no-gutters>
+        <!-- Barra lateral de color e info -->
+        <v-col cols="1"  class="pa-4 d-flex flex-column align-center" >
+          <div class=" text-body-2 font-weight-medium">{{ meeting.start_date }}</div>
+          <div class="mt-2 text-body-2 font-weight-medium">{{ meeting.start_time }}</div>
+        </v-col>
 
-                    <!-- Descripción -->
-                    <div class="text-grey text-xs mb-1">Descripción</div>
-                    <div class="text-sm text-grey-darken-2 mb-3">{{ task.description }}</div>
-                  </v-col>
+        <!-- Contenido principal -->
+        <v-col cols="5" class="d-flex align-center pe-4 gap-2">
+          <v-row align="center" justify="space-between" no-gutters>
 
-                  <!-- Columna derecha - Personas y estado -->
-                  <v-col cols="12" sm="4" md="3" class="d-flex flex-column align-end">
-                    <!-- Personas -->
-                    <div class="mb-3">
-                      <div class="text-grey text-xs mb-1">Personas</div>
-                      <div class="avatar-row d-flex flex-wrap justify-end gap-1">
-                        <v-tooltip v-for="person in task.people" :key="person.id" bottom>
-                          <template v-slot:activator="{ props }">
-                            <v-avatar class="avatar-item hover-expand" size="32" v-bind="props">
-                              <v-img :src="`${this.$axios.defaults.baseURL}images/${person.image}?t=${Date.now()}`" alt="avatar" />
-                            </v-avatar>
-                          </template>
-                          <span>{{ person.name }}<br>{{ person.roleName }}</span>
-                        </v-tooltip>
-                      </div>
-                    </div>
-
-                    <!-- Estado -->
-                    <div class="text-grey text-xs mb-1">Estado</div>
-                    <v-dialog v-model="task.statusDialog" width="400">
+            <v-row align="center" class="gap-3" no-gutters>
+           
+              <div>
+                <div class="font-weight-semibold text-body-1">{{ meeting.title }}</div>
+                <div class="text-caption d-flex align-center text-grey-darken-1">
+                  
+                  {{ meeting.description }}
+                </div>
+                <div class="text-caption d-flex align-center text-grey-darken-1">
+                  
+                {{ meeting.geo_location }}
+                </div>
+              </div>
+            </v-row>
+            </v-row>
+        </v-col>
+        <v-col cols="4" class="d-flex align-center pe-4 gap-2">
+            <!-- Info usuario -->
+            <v-row align="center" class="gap-3" no-gutters>
+                  <div class="avatar-row d-flex flex-wrap justify-end gap-1">
+                    <v-tooltip v-for="person in meeting.people" :key="person.id" bottom>
                       <template v-slot:activator="{ props }">
-                        <v-btn 
-                          v-bind="props" 
-                          :color="'#' + getStatusById(task.status_id)?.colorStatus || 'grey'"
-                          variant="flat" 
-                          size="small"
-                          :prepend-icon="getStatusById(task.status_id)?.iconStatus || 'mdi-help-circle'"
-                          class="mb-2"
-                        >
-                          {{ getStatusById(task.status_id)?.nameStatus || 'Desconocido' }}
-                        </v-btn>
+                        <v-avatar class="avatar-item hover-expand" size="32" v-bind="props">
+                          <v-img :src="`${this.$axios.defaults.baseURL}images/${person.image}?t=${Date.now()}`" alt="avatar" />
+                        </v-avatar>
                       </template>
-                      <v-card>
+                      <span>{{ person.name }}<br>{{ person.roleName }}</span>
+                    </v-tooltip>
+                  </div>
+            </v-row>
+        </v-col>
+        <v-col cols="2" class="d-flex align-center pe-4 gap-2">
+        <v-row>
+            <!-- Fecha y estado -->
+            <div class="text-end">
+                <v-dialog v-model="meeting.statusDialog" width="400">
+                  <template v-slot:activator="{ props }">
+                    <v-btn 
+                      v-bind="props" 
+                      :color="'#' + (getStatusById(meeting.status_id)?.colorStatus || 'grey')"
+                      variant="text" 
+                      size="small"
+                      :prepend-icon="getStatusById(meeting.status_id)?.iconStatus || 'mdi-help-circle'"
+                    >
+                      {{ getStatusById(meeting.status_id)?.nameStatus || 'Desconocido' }}
+                    </v-btn>
+                  </template>
+                  <v-card>
                         <v-card-title class="pa-4 text-center">
                           Actualizar Estado
                         </v-card-title>
                         <v-divider></v-divider>
                         <v-card-text class="pa-0">
                           <v-row class="px-2 pb-1" dense>
-                            <v-col cols="12" v-for="(statusOption, i) in statuses" :key="i" class="py-1">
+                            <v-col cols="12" v-for="(statusOption, i) in status" :key="i" class="py-1">
                               <v-card 
-                                @click="changeTaskStatus(task, statusOption.id)" 
-                                :class="['status-option mx-1', {'current-status': task.status_id === statusOption.id}]" 
-                                :style="task.status_id === statusOption.id ? {
+                                @click="changeTaskStatus(meeting, statusOption.id)" 
+                                :class="['status-option mx-1', {'current-status': meeting.status_id === statusOption.id}]" 
+                                :style="meeting.status_id === statusOption.id ? {
                                   'background-color': `#${statusOption.colorStatus}`,
                                   'border-color': `#${statusOption.colorStatus}`,
                                   'color': 'white'
                                 } : {}" 
                                 variant="outlined"
-                                :elevation="task.status_id === statusOption.id ? 2 : 0"
+                                :elevation="meeting.status_id === statusOption.id ? 2 : 0"
                                 style="border-radius: 12px; cursor: pointer;"
                               >
                                 <v-card-item class="pa-2">
                                   <div class="d-flex align-center">
                                     <v-icon
-                                      :color="task.status_id === statusOption.id ? 'white' : '#' + statusOption.colorStatus"
+                                      :color="meeting.status_id === statusOption.id ? 'white' : '#' + statusOption.colorStatus"
                                       :icon="statusOption.iconStatus" 
                                       size="large" 
                                       class="mr-3"
                                     ></v-icon>
                                     <v-card-title :style="{
-                                      'color': task.status_id === statusOption.id ? 'white' : 'inherit',
+                                      'color': meeting.status_id === statusOption.id ? 'white' : 'inherit',
                                       'font-size': '1rem'
                                     }">
                                       {{ statusOption.nameStatus }}
                                     </v-card-title>
                                     <v-spacer></v-spacer>
-                                    <v-icon v-if="task.status_id === statusOption.id" color="white" icon="mdi-check-circle"></v-icon>
+                                    <v-icon v-if="meeting.status_id === statusOption.id" color="white" icon="mdi-check-circle"></v-icon>
                                   </div>
                                 </v-card-item>
                               </v-card>
@@ -225,15 +229,17 @@
                         <v-divider></v-divider>
                         <v-card-actions>
                           <v-spacer></v-spacer>
-                          <v-btn variant="flat" color="#03626C" @click="task.statusDialog = false">
+                          <v-btn variant="flat" color="#03626C" @click="meeting.statusDialog = false">
                             Cancelar
                           </v-btn>
                         </v-card-actions>
                       </v-card>
-                    </v-dialog>
-                  </v-col>
-                </v-row>
-              </v-card>
+                </v-dialog>
+            </div>
+          </v-row>
+        </v-col>
+      </v-row>
+    </v-card>
             </template>
           </v-col>
         </v-row>
@@ -385,7 +391,7 @@ export default {
         { text: 'Hola 👋 ¿En qué te puedo ayudar hoy?', from: 'bot' },
       ],
       home_id: '',
-      statuses: [],
+      status: [],
       tools: [],
 
       cards: [
@@ -577,7 +583,7 @@ export default {
       return colorMap[type] || 'grey-lighten-1'; // Color por defecto
     },
     getStatusById(statusId) {
-      return this.statuses.find(status => status.id === statusId);
+      return this.status.find(status => status.id === statusId);
     },
     async changeTaskStatus(task, newStatusId) {
       console.log('tarea y estado');
@@ -630,7 +636,7 @@ export default {
 
         if (result.success) {
           // Si la solicitud es exitosa, asignamos las sucursales
-          this.statuses = result.data?.status || [];
+          this.status = result.data?.status || [];
           this.taskCount = result.data?.task || 0;
           this.whishCount = result.data?.whish || 0;
           this.financeCount = result.data?.finance || 0;
@@ -640,7 +646,7 @@ export default {
           this.productCount = result.data?.product || 0;
         } else {
           // Si no hay datos, asignamos un array vacío
-          this.statuses = [];
+          this.status = [];
         }
       } catch (error) {
         // Captura de errores no controlados

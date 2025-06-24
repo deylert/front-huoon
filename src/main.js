@@ -6,7 +6,9 @@
 
 // Components
 import App from "./App.vue";
+import { createVuetify } from 'vuetify';
 import { createI18n } from "vue-i18n";
+import { en, es, pt } from 'vuetify/locale'
 // Composables
 import { createApp } from "vue";
 import snotify from "vue3-snotify";
@@ -39,15 +41,25 @@ const getInitialLocale = () => {
   }
 };
 
+const userLocale = getInitialLocale();
+
 // Configura i18n con el idioma inicial dinámico
 const i18n = createI18n({
   legacy: false,
-  locale: getInitialLocale(), // Usamos la función aquí
-  fallbackLocale: getInitialLocale(),
+  locale: userLocale,
+  fallbackLocale: "es",
   messages: {
     es: spanish.messages,
     en: english.messages,
     pt: portuguese.messages,
+  },
+});
+
+const vuetify = createVuetify({
+  locale: {
+    locale: userLocale, // Sincronizado con i18n
+    fallback: 'es',
+    messages: { en, es, pt }, // Importa los locales de Vuetify
   },
 });
 const app = createApp(App);
@@ -58,5 +70,6 @@ app.config.globalProperties.$axios = axios;
 app.use(snotify);
 
 registerPlugins(app);
+app.use(vuetify)  // Usa la instancia de Vuetify
 app.use(i18n);
 app.mount("#app");

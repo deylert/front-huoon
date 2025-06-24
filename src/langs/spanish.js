@@ -49,7 +49,7 @@ const spanish = {
   taskForm: {
       dialogTitle: "Detalles de la Tarea",
       fields: {
-        title: "Título",
+        title: "Título de la tarea",
         date: "Fecha",
         time: "Hora",
         priority: "Prioridad",
@@ -58,6 +58,7 @@ const spanish = {
           task: "Tarea",
           event: "Evento"
         },
+        status: "Estado",
         category: "Categoría",
         recurrence: "Recurrencia",
         description: "Descripción",
@@ -72,7 +73,12 @@ const spanish = {
         addDetails: "Agregar detalles",
         hideDetails: "Ocultar detalles",
         cancel: "Cancelar",
-        save: "Guardar"
+        save: "Guardar",
+        confirmDelete: "Aceptar",
+        "close": "Cerrar",
+        "previous": "Anterior",
+        "next": "Siguiente",
+        "saveAndClose": "Guardar y Cerrar"
       },
       validation: {
         required: "Este campo es requerido",
@@ -88,6 +94,43 @@ const spanish = {
     "Tarea": "Tarea",
     "Evento": "Evento"
   },
+  formInstructions: "Introduce los datos solicitados a continuación",
+    "steps": {
+      "Información Básica": {
+        "title": "Información Básica",
+        "subtitle": "Ingresa el título y descripción"
+      },
+      "Asignación": {
+        "title": "Asignación",
+        "subtitle": "Selecciona responsables y participantes"
+      },
+      "Programación": {
+        "title": "Programación",
+        "subtitle": "Elige fecha y hora de la tarea"
+      }
+    },
+    buttons: {
+        addDetails: "Agregar detalles",
+        hideDetails: "Ocultar detalles",
+        cancel: "Cancelar",
+        save: "Guardar",
+        confirmDelete: "Aceptar",
+        "close": "Cerrar",
+        "previous": "Anterior",
+        "next": "Siguiente",
+        "saveAndClose": "Guardar y Cerrar"
+      },
+      "deleteDialog": {
+    "title": "Eliminar {item}",
+    "message": "¿Desea eliminar este(a) {item}?",
+    "confirm": "Confirmar eliminación",
+    "items": {
+      "task": "tarea",
+      "user": "usuario",
+      "event": "evento",
+      "default": "elemento"
+    }
+  }
   },
   
 };

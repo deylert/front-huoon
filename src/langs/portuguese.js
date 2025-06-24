@@ -50,7 +50,7 @@ const portuguese = {
   taskForm: {
       dialogTitle: "Detalhes da Tarefa",
       fields: {
-        title: "Título",
+        title: "Título da tarefa",
         date: "Data",
         time: "Hora",
         priority: "Prioridade",
@@ -59,6 +59,7 @@ const portuguese = {
           task: "Tarefa",
           event: "Evento"
         },
+        status: "Estado",
         category: "Categoria",
         recurrence: "Recorrência",
         description: "Descrição",
@@ -73,7 +74,12 @@ const portuguese = {
         addDetails: "Adicionar detalhes",
         hideDetails: "Ocultar detalhes",
         cancel: "Cancelar",
-        save: "Salvar"
+        save: "Salvar",
+        confirmDelete: "Aceitar",
+        "close": "Fechar",
+      "previous": "Anterior",
+      "next": "Próximo",
+      "saveAndClose": "Salvar e Fechar"
       },
       validation: {
         required: "Este campo é obrigatório",
@@ -89,6 +95,43 @@ const portuguese = {
     "Tarea": "Tarefa",
     "Evento": "Evento"
   },
+  formInstructions: "Introduza os dados solicitados abaixo",
+   "steps": {
+      "Información Básica": {
+        "title": "Informação Básica",
+        "subtitle": "Insira o título e descrição"
+      },
+      "Asignación": {
+        "title": "Atribuição",
+        "subtitle": "Selecione responsáveis"
+      },
+      "Programación": {
+        "title": "Agendamento",
+        "subtitle": "Escolha data e hora"
+      }
+    },
+    buttons: {
+        addDetails: "Adicionar detalhes",
+        hideDetails: "Ocultar detalhes",
+        cancel: "Cancelar",
+        save: "Salvar",
+        confirmDelete: "Aceitar",
+        "close": "Fechar",
+      "previous": "Anterior",
+      "next": "Próximo",
+      "saveAndClose": "Salvar e Fechar"
+      },
+      "deleteDialog": {
+    "title": "Excluir {item}",
+    "message": "Deseja excluir este(a) {item}?",
+    "confirm": "Confirmar exclusão",
+    "items": {
+      "task": "tarefa",
+      "user": "usuário",
+      "event": "evento",
+      "default": "item"
+    }
+  }
   },
 };
 

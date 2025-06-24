@@ -1,14 +1,6 @@
 <template>
-  <v-snackbar
-    class="mt-12"
-    location="right top"
-    :timeout="sb_timeout"
-    :color="sb_type"
-    elevation="24"
-    :multi-line="true"
-    vertical
-    v-model="snackbar"
-  >
+  <v-snackbar class="mt-12" location="right top" :timeout="sb_timeout" :color="sb_type" elevation="24"
+    :multi-line="true" vertical v-model="snackbar">
     <v-row>
       <v-col md="2">
         <v-avatar :icon="sb_icon" color="sb_type" size="40"></v-avatar>
@@ -19,449 +11,356 @@
       </v-col>
     </v-row>
   </v-snackbar>
-  <!--<v-container fluid fill-height>-->
-  <v-card elevation="6" class="mx-2">
-    <v-toolbar color="#03626C">
-      <v-row align="center">
-        <v-col cols="12" md="8" class="grow ml-4">
-          <span class="text-subtitle-1"><strong>Listado de Tareas</strong></span>
-        </v-col>
-        <v-col cols="12" md="3" class="text-right">
-          <v-btn
-            class="text-subtitle-1 ml-12"
-            color="white"
-            variant="tonal"
-            elevation="2"
-            prepend-icon="mdi-plus-circle"
-            @click="showAdd"
-          >
-            Agregar Nueva Tarea
-          </v-btn>
-        </v-col>
-      </v-row>
-    </v-toolbar>
+  <v-container class="pa-4">
+    <!-- Encabezado -->
+    <v-row justify="space-between" align="center" class="mb-6">
+      <h2 class="text-h5 font-weight-bold">Tareas</h2>
+      <v-btn icon color="deep-purple-accent-4" variant="flat" class="elevation-3" @click="showAdd">
+        <v-icon>mdi-plus</v-icon>
+      </v-btn>
+    </v-row>
+    <template v-if="tasks.length > 0">
+      <!-- Tarjetas de reuniones -->
+      <v-card v-for="(meeting, index) in tasks" :key="index" class="mb-3 rounded-lg" elevation="2">
+        <v-row no-gutters>
+          <!-- Barra lateral de color e info -->
+          <v-col cols="1" class="pa-4 d-flex flex-column align-center">
+            <div class=" text-body-2 font-weight-medium">{{ meeting.start_date }}</div>
+            <div class="mt-2 text-body-2 font-weight-medium">{{ meeting.start_time }}</div>
+          </v-col>
 
-    <v-card-text>
-      <v-text-field
-        class="mt-1 mb-1"
-        v-model="search"
-        append-icon="mdi-magnify"
-        label="Buscar"
-        single-line
-        hide-details
-      >
-      </v-text-field>
-      <v-data-table
-        :headers="headers"
-        :search="search"
-        :items="tasks"
-        class="elevation-1"
-        style="max-height: 68vh; overflow-y: auto"
-        :items-per-page-text="'Elementos por páginas'"
-        no-data-text="No hay datos disponibles"
-        :loading="loading"
-        loading-text="Cargando datos..."
-      >
-        <template v-slot:item.actions="{ item }">
-          <v-btn
-            density="comfortable"
-            icon="mdi-pencil"
-            @click="editItem(item)"
-            color="#1976D2"
-            variant="tonal"
-            elevation="1"
-            title="Editar Tarea"
-          ></v-btn>
-          <v-btn
-            density="comfortable"
-            icon="mdi-delete"
-            @click="deleteItem(item)"
-            color="#DA7171"
-            variant="tonal"
-            elevation="1"
-            title="Eliminar Tarea"
-          ></v-btn>
-        </template>
-        <template v-slot:item.title="{ item }">
-          <v-avatar class="mr-1" elevation="3" color="grey-lighten-4" size="large">
-            <v-img
-              :src="`${this.$axios.defaults.baseURL}images/${
-                item.attachments
-              }?t=${Date.now()}`"
-              alt="image"
-            ></v-img> </v-avatar
-          ><!--+'?$'+Date.now()-->
-          {{ item.title }}
-        </template>
-        <template v-slot:item.people="{ item }">
-          <div class="avatar-row">
-            <!-- Mostrar los avatares de las personas con tooltip -->
-            <v-tooltip
-              v-for="person in item.people"
-              :key="person.id"
-              bottom
-              content-class="custom-tooltip"
-            >
-              <template v-slot:activator="{ props }">
-                <v-avatar
-                  class="avatar-item hover-expand"
-                  size="32"
-                  elevation="3"
-                  v-bind="props"
-                >
-                  <v-img
-                    :src="`${this.$axios.defaults.baseURL}images/${
-                      person.image
-                    }?t=${Date.now()}`"
-                    alt="image"
-                  />
-                </v-avatar>
-              </template>
-              <!-- Información en el tooltip -->
-              <span>{{ person.name }}</span>
-              <v-spacer></v-spacer>
-              <span class="text-secondary">{{ person.roleName }}</span>
-              <!-- Segundo dato -->
-            </v-tooltip>
-            <!-- Ícono de "más" para agregar una nueva persona -->
-            <v-tooltip bottom content-class="custom-tooltip">
-              <template v-slot:activator="{ props }">
-                <v-btn
-                  density="comfortable"
-                  icon="mdi-plus"
-                  @click="addPeople(item)"
-                  bg-color="white"
-                  color="#03626C"
-                  size="32"
-                  elevation="3"
-                  v-bind="props"
-                ></v-btn>
-              </template>
-              <span class="text-secondary">Agregar persona</span>
-            </v-tooltip>
-          </div>
-        </template>
-      </v-data-table>
-    </v-card-text>
-  </v-card>
-   <v-dialog v-model="dialog" fullscreen transition="dialog-bottom-transition">
-    <v-form ref="form" v-model="valid">
-      <v-card>
-        <v-toolbar color="#03626C">
-          <span class="text-subtitle-2 ml-4">{{ formTitle }}</span>
-        </v-toolbar>
+          <!-- Contenido principal -->
+          <v-col cols="5" class="d-flex align-center pe-4 gap-2">
+            <v-row align="center" justify="space-between" no-gutters>
 
-        <v-card-text>
-          <!-- Formulario minimalista inicial -->
-          <v-row class="mt-0" dense>
-            <v-col cols="12" md="12">
-              <v-text-field
-                prepend-icon="mdi-format-title"
-                v-model="editedItem.title"
-                :label="$t('taskForm.fields.title')"
-                variant="underlined"
-                :rules="nameRules"
-                clearable
-              ></v-text-field>
-            </v-col>
+              <v-row align="center" class="gap-3" no-gutters>
 
-            <v-col cols="12" md="6">
-              <v-menu
-                v-model="menu"
-                :close-on-content-click="false"
-                offset-y
-                min-width="auto"
-              >
-                <template v-slot:activator="{ props }">
-                  <v-text-field
-                    v-bind="props"
-                    :model-value="dateFormatted"
-                    :label="$t('taskForm.today')"
-                    variant="underlined"
-                    prepend-icon="mdi-calendar"
-                    readonly
-                  ></v-text-field>
-                </template>
-                <v-date-picker
-                  v-model="editedItem.start_date"
-                  color="#03626C"
-                  :min="new Date().toISOString().substr(0, 10)"
-                  :locale="language"
-                ></v-date-picker>
-              </v-menu>
-            </v-col>
+                <div>
+                  <div class="font-weight-semibold text-body-1">{{ meeting.title }}</div>
+                  <div class="text-caption d-flex align-center text-grey-darken-1">
 
-            <v-col cols="12" md="6">
-              <v-select
-                v-model="editedItem.start_time"
-                :items="timeSlots"
-                :label="$t('taskForm.fields.time')"
-                variant="underlined"
-                :rules="selectRules"
-                prepend-icon="mdi-clock-outline"
-              ></v-select>
-            </v-col>
-
-            <v-col cols="12" md="6">
-              <v-select
-                v-model="editedItem.priority_id"
-                :items="priorities"
-                item-title="namePriority"
-                item-value="id"
-                :label="$t('taskForm.fields.priority')"
-                variant="underlined"
-                prepend-icon="mdi-priority-high"
-              ></v-select>
-            </v-col>
-
-            <v-col cols="12" md="6" class="py-1 d-flex align-center">
-              <v-switch
-                v-model="editedItem.type"
-                :true-value="typetasks[1].id"
-                :false-value="typetasks[0].id"
-                :label="$t(`taskTypes.${editedItem.type}`)"
-                color="primary"
-                inset
-              ></v-switch>
-            </v-col>
-            <v-col cols="12" md="6">
-              <v-autocomplete
-                :no-data-text="'No hay datos disponibles'"
-                v-model="editedItem.category_id"
-                :items="categories"
-                :label="$t('taskForm.fields.category')"
-                prepend-icon="mdi-tag-outline"
-                item-title="nameCategory"
-                item-value="id"
-                variant="underlined"
-                density="compact"
-                :rules="selectRules"
-              >
-                <template v-slot:item="{ props, item }">
-                  <v-list-item v-bind="props">
-                    <template v-slot:prepend>
-                      <v-avatar size="24">
-                        <template v-if="isImage(item.raw.iconCategory)">
-                          <img
-                            :src="`${this.$axios.defaults.baseURL}images/${
-                              item.raw.iconCategory
-                            }?t=${Date.now()}`"
-                            alt="icon"
-                          />
-                        </template>
-                        <template v-else>
-                          <v-icon>{{ getIconName(item.raw.iconCategory) }}</v-icon>
-                        </template>
-                      </v-avatar>
-                    </template>
-                    <v-list-item-subtitle class="d-flex flex-column">
-                      <div>Descripción: {{ item.raw.descriptionCategory }}</div>
-                    </v-list-item-subtitle>
-                  </v-list-item>
-                </template>
-              </v-autocomplete>
-            </v-col>
-            <v-col cols="12" md="6">
-              <v-select
-                v-model="editedItem.recurrence"
-                :items="recurrences"
-                item-title="name"
-                item-value="id"
-                :label="$t('taskForm.fields.recurrence')"
-                variant="underlined"
-                density="compact"
-                :rules="selectRules"
-                prepend-icon="mdi-timetable"
-              >
-              </v-select>
-            </v-col>
-          </v-row>
-
-          <!-- Botón para mostrar detalles adicionales -->
-          <v-row dense>
-            <v-col cols="12" class="py-1">
-              <v-btn
-                variant="text"
-                color="#03626C"
-                prepend-icon="mdi-plus"
-                @click="showDetails = !showDetails"
-              >
-                {{ showDetails ? $t('taskForm.buttons.hideDetails') : $t('taskForm.buttons.addDetails') }}
-              </v-btn>
-            </v-col>
-          </v-row>
-
-          <!-- Sección de detalles (oculta inicialmente) -->
-          <v-expand-transition>
-            <div v-show="showDetails" class="mt-0">
-              <v-row dense>
-                <v-col cols="12" md="12">
-                  <v-textarea
-                    v-model="editedItem.description"
-                    :label="$t('taskForm.fields.description')"
-                    variant="underlined"
-                    rows="2"
-                    prepend-icon="mdi-text"
-                  ></v-textarea>
-                </v-col>
-
-                <v-col cols="12" md="12">
-                  <v-textarea
-                    v-model="editedItem.comments"
-                    :label="$t('taskForm.fields.comments')"
-                    prepend-icon="mdi-comment-text-outline"
-                    variant="underlined"
-                    rows="2"
-                  ></v-textarea>
-                </v-col>
-
-                <v-col cols="12" md="12">
-                  <div class="people-scroll-container">
-                    <div class="people-scroll-wrapper">
-                      <v-card
-                        v-for="person in people"
-                        :key="person.id"
-                        :class="{
-                          'selected-person': isPersonSelected(person.id),
-                          'current-user': person.id === person_id,
-                        }"
-                        @click="togglePersonSelection(person.id)"
-                        hover
-                        class="person-card"
-                      >
-                        <v-card-item class="pa-1">
-                          <div class="d-flex align-center" style="height: 40px">
-                            <v-avatar size="40" class="mr-3">
-                              <v-img
-                                :src="`${$axios.defaults.baseURL}images/${person.imagePerson}`"
-                              ></v-img>
-                            </v-avatar>
-
-                            <div class="person-info">
-                              <v-card-title class="text-body-1 pa-0 text-truncate">
-                                {{ person.namePerson }}
-                                <v-icon
-                                  v-if="person.id === person_id"
-                                  small
-                                  color="primary"
-                                  class="ml-1"
-                                  >mdi-account</v-icon
-                                >
-                              </v-card-title>
-                              <v-card-subtitle class="pa-0 mt-1 text-truncate">
-                                {{ person.roleName }}
-                              </v-card-subtitle>
-                            </div>
-                          </div>
-                        </v-card-item>
-                      </v-card>
-                    </div>
+                    {{ meeting.description }}
                   </div>
-                </v-col>
-              </v-row>
+                  <div class="text-caption d-flex align-center text-grey-darken-1">
 
-              <v-row>
-                <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="editedItem.estimated_time"
-                    type="number"
-                    :label="$t('taskForm.fields.estimatedTime')"
-                    variant="underlined"
-                    :rules="[(v) => v > 0 || 'Debe ser un número válido']"
-                    prepend-icon="mdi-timer-outline"
-                  ></v-text-field>
-                </v-col>
-
-                <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="editedItem.geo_location"
-                    :label="$t('taskForm.fields.location')"
-                    prepend-icon="mdi-map-marker"
-                    variant="underlined"
-                  ></v-text-field>
-                </v-col>
-              </v-row>
-
-              <!-- Sección para eventos -->
-              <v-expand-transition>
-                <div v-if="editedItem.type === 'Evento'">
-                  <v-row>
-                    <v-col cols="12" md="6">
-                      <v-menu
-                        v-model="menu2"
-                        :close-on-content-click="false"
-                        offset-y
-                        min-width="auto"
-                      >
-                        <template v-slot:activator="{ props }">
-                          <v-text-field
-                            v-bind="props"
-                            :model-value="dateFormatted2"
-                            :label="$t('taskForm.fields.endDate')"
-                            variant="underlined"
-                            prepend-icon="mdi-calendar"
-                            readonly
-                          ></v-text-field>
-                        </template>
-                        <v-date-picker
-                          v-model="editedItem.end_date"
-                          color="#03626C"
-                          :min="editedItem.start_date"
-                        ></v-date-picker>
-                      </v-menu>
-                    </v-col>
-
-                    <v-col cols="12" md="6">
-                      <v-select
-                        v-model="editedItem.end_time"
-                        :items="timeSlots"
-                        :label="$t('taskForm.fields.endTime')"
-                        variant="underlined"
-                        prepend-icon="mdi-clock-outline"
-                      ></v-select>
-                    </v-col>
-                  </v-row>
+                    {{ meeting.geo_location }}
+                  </div>
                 </div>
-              </v-expand-transition>
-            </div>
-          </v-expand-transition>
+              </v-row>
+            </v-row>
+          </v-col>
+          <v-col cols="3" class="d-flex align-center pe-4 gap-2">
+            <!-- Info usuario -->
+            <v-row align="center" class="gap-3" no-gutters>
+              <div class="avatar-row d-flex flex-wrap justify-end gap-1">
+                <v-tooltip v-for="person in meeting.people" :key="person.id" bottom>
+                  <template v-slot:activator="{ props }">
+                    <v-avatar class="avatar-item hover-expand" size="32" v-bind="props">
+                      <v-img :src="`${this.$axios.defaults.baseURL}images/${person.image}?t=${Date.now()}`"
+                        alt="avatar" />
+                    </v-avatar>
+                  </template>
+                  <span>{{ person.name }}<br>{{ person.roleName }}</span>
+                </v-tooltip>
+              </div>
+            </v-row>
+          </v-col>
+          <v-col cols="2" class="d-flex align-center pe-4 gap-2">
+            <v-row>
+              <!-- Fecha y estado -->
+              <div class="text-end">
+                <v-dialog v-model="meeting.statusDialog" width="400">
+                  <template v-slot:activator="{ props }">
+                    <v-btn v-bind="props" :color="'#' + (getStatusById(meeting.status_id)?.colorStatus || 'grey')"
+                      variant="text" size="small"
+                      :prepend-icon="getStatusById(meeting.status_id)?.iconStatus || 'mdi-help-circle'">
+                      {{ getStatusById(meeting.status_id)?.nameStatus || 'Desconocido' }}
+                    </v-btn>
+                  </template>
+                  <v-card>
+                    <v-card-title class="pa-4 text-center">
+                      Actualizar Estado
+                    </v-card-title>
+                    <v-divider></v-divider>
+                    <v-card-text class="pa-0">
+                      <v-row class="px-2 pb-1" dense>
+                        <v-col cols="12" v-for="(statusOption, i) in status" :key="i" class="py-1">
+                          <v-card @click="changeTaskStatus(meeting, statusOption.id)"
+                            :class="['status-option mx-1', {'current-status': meeting.status_id === statusOption.id}]"
+                            :style="meeting.status_id === statusOption.id ? {
+                                  'background-color': `#${statusOption.colorStatus}`,
+                                  'border-color': `#${statusOption.colorStatus}`,
+                                  'color': 'white'
+                                } : {}" variant="outlined" :elevation="meeting.status_id === statusOption.id ? 2 : 0"
+                            style="border-radius: 12px; cursor: pointer;">
+                            <v-card-item class="pa-2">
+                              <div class="d-flex align-center">
+                                <v-icon
+                                  :color="meeting.status_id === statusOption.id ? 'white' : '#' + statusOption.colorStatus"
+                                  :icon="statusOption.iconStatus" size="large" class="mr-3"></v-icon>
+                                <v-card-title :style="{
+                                      'color': meeting.status_id === statusOption.id ? 'white' : 'inherit',
+                                      'font-size': '1rem'
+                                    }">
+                                  {{ statusOption.nameStatus }}
+                                </v-card-title>
+                                <v-spacer></v-spacer>
+                                <v-icon v-if="meeting.status_id === statusOption.id" color="white"
+                                  icon="mdi-check-circle"></v-icon>
+                              </div>
+                            </v-card-item>
+                          </v-card>
+                        </v-col>
+                      </v-row>
+                    </v-card-text>
+                    <v-divider></v-divider>
+                    <v-card-actions>
+                      <v-spacer></v-spacer>
+                      <v-btn variant="flat" color="#03626C" @click="meeting.statusDialog = false">
+                        Cancelar
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
+              </div>
+            </v-row>
+          </v-col>
+
+          <!-- Acciones -->
+          <v-col cols="1" class="d-flex align-center pe-4 gap-2">
+            <v-btn icon variant="text" color="green-darken-2" size="small" @click="editItem(meeting)">
+              <v-icon>mdi-check</v-icon>
+            </v-btn>
+            <v-btn icon variant="text" color="red-darken-2" size="small" @click="deleteItem(meeting)">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-col>
+        </v-row>
+      </v-card>
+    </template>
+    <template v-else>
+      <v-col cols="12" class="text-center py-8 pa-0">
+        <v-icon size="64" color="grey-lighten-1">mdi-check-circle-outline</v-icon>
+        <div class="text-h6 text-grey mt-4">No tienes tareas para realizar en el día de hoy</div>
+      </v-col>
+    </template>
+  </v-container>
+  <v-dialog v-model="dialog" fullscreen persistent transition="dialog-bottom-transition">
+    <v-form ref="form" v-model="valid">
+      <v-card class="pa-10">
+        <v-card-text class="pt-12">
+
+          <!-- Pasos laterales -->
+
+          <h5 class="text-grey-darken-2 font-weight-medium"> {{ formTitle }}</h5>
+          <p class="text-grey-lighten-1">{{ $t('formInstructions') }}</p>
+          <v-row class="mt-12">
+            <v-col cols="3">
+              <v-timeline align="start" side="end" dense>
+                <v-timeline-item v-for="(s, index) in steps" :key="index"
+                  :dot-color="step > index ? 'green' : step === index ? 'deep-purple' : 'grey-lighten-1'"
+                  :icon="step >= index ? (step === index ? `mdi-numeric-${index + 1}` : 'mdi-check') : null"
+                  size="large">
+                  <template #opposite>
+                    <div class="text-end">
+                      <strong>{{ $t(`steps.${s.title}.title`) }}</strong>
+                      <div class="text-caption text-grey">{{ $t(`steps.${s.title}.subtitle`) }}</div>
+                    </div>
+                  </template>
+                </v-timeline-item>
+              </v-timeline>
+            </v-col>
+
+            <!-- Contenido dinámico según paso -->
+            <v-col cols="9">
+              <h3 class="text-deep-purple-accent-3 mb-8">{{ $t(`steps.${steps[step].title}.title`) }}</h3>
+
+              <v-row dense v-if="step === 0">
+                <v-col cols="12" sm="6">
+                  <v-text-field v-model="editedItem.title" :label="$t('taskForm.fields.title')" variant="underlined"
+                    :rules="nameRules" />
+                </v-col>
+
+                <v-col cols="12" sm="6">
+                  <v-select v-model="editedItem.priority_id" :items="priorities" item-title="namePriority"
+                    item-value="id" :label="$t('taskForm.fields.priority')" variant="underlined" required>
+                    <!-- Cómo se muestra en la lista desplegable -->
+                    <template v-slot:item="{ props, item }">
+                      <v-list-item v-bind="props" :title="item.raw.namePriority"
+                        :subtitle="item.raw.descriptionPriority">
+                        <template v-slot:prepend>
+                          <v-icon :color="'#' + item.raw.colorPriority">
+                            mdi-priority-high
+                          </v-icon>
+                        </template>
+                      </v-list-item>
+                    </template>
+                  </v-select>
+                </v-col>
+                <v-col cols="12" md="12">
+                  <v-textarea v-model="editedItem.description" :label="$t('taskForm.fields.description')"
+                    variant="underlined" rows="3"></v-textarea>
+                </v-col>
+              </v-row>
+              <v-row dense v-if="step === 1">
+                <v-col cols="6" v-for="role in roles" :key="role.id">
+                  <v-card class="mx-auto" max-width="98%">
+                    <v-list v-model:selected="selectedItems[role.id]" @update:selected="updateSelection(role, $event)"
+                      select-strategy="leaf" multiple>
+                      <v-list-subheader>{{ role.nameRol }}</v-list-subheader>
+                      <v-list-item v-for="person in filteredPeople(role.id)" :key="`${role.id}-${person.id}`"
+                        :value="person.id" active-class="text-green"
+                        :prepend-avatar="`${$axios.defaults.baseURL}images/${person.imagePerson}`" class="py-3">
+
+                        <!-- Nombre y rol -->
+                        <v-list-item-content>
+                          <v-list-item-title>{{ person.namePerson }}</v-list-item-title>
+                          <v-list-item-subtitle class="mb-1 text-high-emphasis opacity-100">
+                            {{ person.roleName }}
+                          </v-list-item-subtitle>
+                        </v-list-item-content>
+
+                        <!-- Icono de selección (estrella para responsables, círculo para otros) -->
+                        <template v-slot:append="{ isSelected }">
+                          <v-list-item-action class="flex-column align-end">
+                            <v-spacer></v-spacer>
+                            <v-icon v-if="isSelected || isPersonSelected(person.id, role.id)"
+                              :color="getRoleIcon(role.id) === 'mdi-star' ? 'green-darken-3' : 'green-darken-3'">
+                              {{ getRoleIcon(role.id) === 'mdi-star' ? 'mdi-star' : 'mdi-circle-slice-8' }}
+                            </v-icon>
+                            <v-icon v-else class="opacity-30"
+                              :color="getRoleIcon(role.id) === 'mdi-star' ? 'green-darken-3' : undefined">
+                              {{ getRoleIcon(role.id) === 'mdi-star' ? 'mdi-star-outline' :
+                              'mdi-checkbox-blank-circle-outline' }}
+                            </v-icon>
+                          </v-list-item-action>
+                        </template>
+                      </v-list-item>
+                    </v-list>
+                  </v-card>
+                </v-col>
+              </v-row>
+              <v-row dense v-if="step === 2">
+                <v-col cols="12" md="6">
+                  <v-menu v-model="menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
+                    offset-y min-width="290px">
+                    <template v-slot:activator="{ props }">
+                      <v-text-field v-bind="props" :modelValue="dateFormatted" variant="underlined"
+                        :label="$t('taskForm.today')"></v-text-field>
+                    </template>
+                    <v-locale-provider>
+                      <v-date-picker color="#03626C" :modelValue="input" @update:model-value="updateDate"
+                        format="yyyy-MM-dd"></v-date-picker>
+                    </v-locale-provider>
+                  </v-menu>
+                </v-col>
+
+                <v-col cols="12" md="6">
+                  <v-text-field v-model="editedItem.start_time" :active="timePickerDialog" :focused="timePickerDialog"
+                    :label="$t('taskForm.fields.time')" readonly variant="underlined"
+                    @click="timePickerDialog = true"></v-text-field>
+
+                  <v-dialog v-model="timePickerDialog" width="auto">
+                    <v-locale-provider>
+                      <v-time-picker v-model="editedItem.start_time" format="24hr" color="#03626C"
+                        @update:model-value="timePickerDialog = false"></v-time-picker>
+                    </v-locale-provider>
+                  </v-dialog>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-text-field v-model="editedItem.estimated_time" type="number"
+                    :label="$t('taskForm.fields.estimatedTime')" variant="underlined"
+                    :rules="[(v) => v > 0 || 'Debe ser un número válido']"></v-text-field>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-text-field v-model="editedItem.geo_location" :label="$t('taskForm.fields.location')"
+                    variant="underlined"></v-text-field>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-select v-model="editedItem.recurrence" :items="recurrences" item-title="name" item-value="id"
+                    :label="$t('taskForm.fields.recurrence')" variant="underlined" density="compact"
+                    :rules="selectRules">
+                  </v-select>
+                </v-col>
+                <v-col cols="12" md="6" v-if="editedIndex !== -1">
+                  <v-autocomplete v-model="editedItem.status_id"
+                    :items="status" :label="$t('taskForm.fields.status')" item-title="nameStatus" item-value="id"
+                    variant="underlined" density="compact" :rules="selectRules">
+                    <!-- Slot para el item seleccionado (en el input) -->
+                    <template v-slot:selection="{ item }">
+                      <div class="d-flex align-center">
+                        <v-avatar size="24" :color="'#' + item.raw.colorStatus" class="mr-2">
+                          <v-icon>{{ item.raw.iconStatus }}</v-icon>
+                        </v-avatar>
+                        <span>{{ item.raw.nameStatus }}</span>
+                      </div>
+                    </template>
+
+                    <!-- Slot para los items del dropdown -->
+                    <template v-slot:item="{ props, item }">
+                      <v-list-item v-bind="props" :style="{
+                          'background-color': item.props.value === editedItem.status_id 
+                            ? `#${item.raw.colorStatus}20`  // Aplica opacidad (20 = 12%)
+                            : 'transparent',
+                        }">
+                        <template v-slot:prepend>
+                          <v-avatar size="24" :color="'#' + item.raw.colorStatus">
+                            <v-icon>{{ item.raw.iconStatus }}</v-icon>
+                          </v-avatar>
+                        </template>
+                        <v-list-item-subtitle class="d-flex flex-column">
+                          <div>Descripción: {{ item.raw.descriptionStatus }}</div>
+                        </v-list-item-subtitle>
+                      </v-list-item>
+                    </template>
+                  </v-autocomplete>
+                </v-col>
+                <v-row v-if="editedItem.type === 'Evento'">
+                  <v-col cols="12" md="6">
+                    <v-menu v-model="menu2" :close-on-content-click="false" offset-y min-width="auto">
+                      <template v-slot:activator="{ props }">
+                        <v-text-field v-bind="props" :model-value="dateFormatted2"
+                          :label="$t('taskForm.fields.endDate')" variant="underlined" readonly></v-text-field>
+                      </template>
+                      <v-date-picker v-model="editedItem.end_date" color="#03626C"
+                        :min="editedItem.start_date"></v-date-picker>
+                    </v-menu>
+                  </v-col>
+
+                  <v-col cols="12" md="6">
+                    <v-select v-model="editedItem.end_time" :items="timeSlots" :label="$t('taskForm.fields.endTime')"
+                      variant="underlined"></v-select>
+                  </v-col>
+                </v-row>
+              </v-row>
+
+              <div class="d-flex justify-space-between mt-8">
+                <v-btn variant="text" class="text-grey-darken-1" @click="step > 0 ? step-- : this.close()">
+                  {{ step === 0 ? $t('buttons.close') : $t('buttons.previous') }}
+                </v-btn>
+
+                <v-btn variant="text" class="text-deep-purple-accent-3" @click="nextStep" :disabled="!valid">
+                  {{ step === steps.length - 1 ? $t('buttons.saveAndClose') : $t('buttons.next') }}
+                </v-btn>
+              </div>
+            </v-col>
+          </v-row>
         </v-card-text>
-
-        <v-divider></v-divider>
-
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="#DA7171" variant="flat" @click="close">{{ $t('taskForm.buttons.cancel') }}</v-btn>
-          <v-btn
-            color="#03626C"
-            variant="flat"
-            :loading="loading"
-            @click="save"
-            :disabled="!valid"
-          >
-            {{ $t('taskForm.buttons.save') }}
-          </v-btn>
-        </v-card-actions>
       </v-card>
     </v-form>
   </v-dialog>
   <v-dialog v-model="dialogDelete" max-width="500px">
     <v-card>
       <v-toolbar color="#DA7171">
-        <span class="text-subtitle-2 ml-4"> Eliminar una tarea</span>
+        <span class="text-subtitle-2 ml-4"> {{ $t('deleteDialog.title', { item: $t(`deleteDialog.items.task`) }) }}</span>
       </v-toolbar>
-      <v-card-text class="mt-2 mb-2"> ¿Desea eliminar la tarea?</v-card-text>
+      <v-card-text class="mt-2 mb-2"> ¿{{ $t('deleteDialog.message', { item: $t(`deleteDialog.items.task`) }) }}</v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="#DA7171" variant="flat" @click="closeDelete">Cancelar</v-btn>
-        <v-btn
-          color="#03626C"
-          variant="flat"
-          :loading="loading"
-          @click="deleteItemConfirm"
-          >Aceptar</v-btn
-        >
+        <v-btn color="#DA7171" variant="flat" @click="closeDelete">{{ $t('taskForm.buttons.cancel') }}</v-btn>
+        <v-btn color="#03626C" variant="flat" :loading="loading" @click="deleteItemConfirm"> {{
+          $t('taskForm.buttons.confirmDelete') }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -476,45 +375,23 @@
           <v-container>
             <v-row>
               <v-col cols="12" md="12">
-                <v-autocomplete
-                  :no-data-text="'No hay datos disponibles'"
-                  v-model="selectedPerson"
-                  :items="people"
-                  label="Personas"
-                  prepend-icon="mdi-account"
-                  item-title="namePerson"
-                  item-value="id"
-                  variant="underlined"
-                  :rules="selectRules"
-                >
+                <v-autocomplete :no-data-text="'No hay datos disponibles'" v-model="selectedPerson" :items="people"
+                  label="Personas" prepend-icon="mdi-account" item-title="namePerson" item-value="id"
+                  variant="underlined" :rules="selectRules">
                   <template v-slot:item="{ props, item }">
-                    <v-list-item
-                      v-bind="props"
+                    <v-list-item v-bind="props"
                       :prepend-avatar="`${this.$axios.defaults.baseURL}images/${item.raw.imagePerson}`"
-                      :title="item.raw.namePerson"
-                    >
+                      :title="item.raw.namePerson">
                       <v-list-item-subtitle class="d-flex flex-column">
                         <div>Rol: {{ item.raw.roleName }}</div>
                       </v-list-item-subtitle>
                     </v-list-item>
                   </template>
                 </v-autocomplete>
-                <v-select
-                  v-model="selectedRole"
-                  :items="roles"
-                  item-title="nameRol"
-                  item-value="id"
-                  label="Rol"
-                  variant="underlined"
-                  density="compact"
-                  :rules="selectRules"
-                  prepend-icon="mdi-briefcase"
-                >
+                <v-select v-model="selectedRole" :items="roles" item-title="nameRol" item-value="id" label="Rol"
+                  variant="underlined" density="compact" :rules="selectRules" prepend-icon="mdi-briefcase">
                   <template v-slot:item="{ props, item }">
-                    <v-list-item
-                      v-bind="props"
-                      :subtitle="item.raw.descriptionRol"
-                    ></v-list-item>
+                    <v-list-item v-bind="props" :subtitle="item.raw.descriptionRol"></v-list-item>
                   </template>
                 </v-select>
               </v-col>
@@ -524,16 +401,8 @@
         <v-divider></v-divider>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="#DA7171" variant="flat" @click="closeAssignedPeople"
-            >Cancelar</v-btn
-          >
-          <v-btn
-            color="#03626C"
-            variant="flat"
-            @click="saveAssignedPeople"
-            :disabled="!valid"
-            >Aceptar</v-btn
-          >
+          <v-btn color="#DA7171" variant="flat" @click="closeAssignedPeople">Cancelar</v-btn>
+          <v-btn color="#03626C" variant="flat" @click="saveAssignedPeople" :disabled="!valid">Aceptar</v-btn>
         </v-card-actions>
       </v-card>
     </v-form>
@@ -549,45 +418,23 @@
           <v-container>
             <v-row>
               <v-col cols="12" md="12">
-                <v-autocomplete
-                  :no-data-text="'No hay datos disponibles'"
-                  v-model="person_id"
-                  :items="people"
-                  label="Personas"
-                  prepend-icon="mdi-account"
-                  item-title="namePerson"
-                  item-value="id"
-                  variant="underlined"
-                  :rules="selectRules"
-                >
+                <v-autocomplete :no-data-text="'No hay datos disponibles'" v-model="person_id" :items="people"
+                  label="Personas" prepend-icon="mdi-account" item-title="namePerson" item-value="id"
+                  variant="underlined" :rules="selectRules">
                   <template v-slot:item="{ props, item }">
-                    <v-list-item
-                      v-bind="props"
+                    <v-list-item v-bind="props"
                       :prepend-avatar="`${this.$axios.defaults.baseURL}images/${item.raw.imagePerson}`"
-                      :title="item.raw.namePerson"
-                    >
+                      :title="item.raw.namePerson">
                       <v-list-item-subtitle class="d-flex flex-column">
                         <div>Rol: {{ item.raw.roleName }}</div>
                       </v-list-item-subtitle>
                     </v-list-item>
                   </template>
                 </v-autocomplete>
-                <v-select
-                  v-model="role_id"
-                  :items="roles"
-                  item-title="nameRol"
-                  item-value="id"
-                  label="Rol"
-                  variant="underlined"
-                  density="compact"
-                  :rules="selectRules"
-                  prepend-icon="mdi-briefcase"
-                >
+                <v-select v-model="role_id" :items="roles" item-title="nameRol" item-value="id" label="Rol"
+                  variant="underlined" density="compact" :rules="selectRules" prepend-icon="mdi-briefcase">
                   <template v-slot:item="{ props, item }">
-                    <v-list-item
-                      v-bind="props"
-                      :subtitle="item.raw.descriptionRol"
-                    ></v-list-item>
+                    <v-list-item v-bind="props" :subtitle="item.raw.descriptionRol"></v-list-item>
                   </template>
                 </v-select>
               </v-col>
@@ -598,14 +445,8 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="#DA7171" variant="flat" @click="closeAddPeople">Cancelar</v-btn>
-          <v-btn
-            color="#03626C"
-            variant="flat"
-            @click="saveAddPeople"
-            :disabled="!valid"
-            :loading="loading"
-            >Aceptar</v-btn
-          >
+          <v-btn color="#03626C" variant="flat" @click="saveAddPeople" :disabled="!valid"
+            :loading="loading">Aceptar</v-btn>
         </v-card-actions>
       </v-card>
     </v-form>
@@ -613,11 +454,34 @@
 </template>
 
 <script>
+import { ref } from 'vue';
 import LocalStorageService from "@/LocalStorageService";
 import { handleRequest } from "@/utils/api"; // Ruta al archivo
 import _ from "lodash";
+import { shallowRef } from 'vue'
+import { VTimePicker } from 'vuetify/labs/components';
+
+
+
 export default {
+  components: {
+    'v-time-picker': VTimePicker
+  },
   data: () => ({
+    selected: shallowRef([2]),
+    selected2: null,
+    step: 0,
+    time: null,
+      modal2: false,
+      timePickerDialog: false,
+    steps: [
+      { title: 'Información Básica', subtitle: 'Ingresa el título y descripción' },
+      { title: 'Asignación', subtitle: 'Selecciona responsables y participantes' },
+      { title: 'Programación', subtitle: 'Elige fecha y hora de la tarea' },
+      //{ title: 'Confirmación', subtitle: 'Revisa y guarda la tarea' },
+    ],
+     itemsPerPage: 6,
+     currentPage: 1,
     snackbar: false,
     sb_type: "",
     sb_message: "",
@@ -627,7 +491,6 @@ export default {
     valid: true,
     loading: false,
     showDetails: false,
-    language: "es",
     dialog: false,
     dialogAssignedPeople: false,
     dialogDelete: false,
@@ -639,6 +502,7 @@ export default {
     priorities: [],
     people: [],
     tittlePerson: -1,
+    selectedItems: {}, // Almacena las selecciones por rol
     persons: [],
     recurrences: [],
     typetasks: [],
@@ -679,7 +543,7 @@ export default {
       person_id: null,
       home_id: "",
       recurrence: "",
-      estimated_time: "1",
+      estimated_time: 1,
       attachments: null,
       comments: "",
       geo_location: "",
@@ -701,7 +565,7 @@ export default {
       person_id: null,
       home_id: "",
       recurrence: "",
-      estimated_time: "",
+      estimated_time: 1,
       attachments: null,
       comments: "",
       geo_location: "",
@@ -730,7 +594,15 @@ export default {
       people: [],
     },
 
-    tab: null,
+
+    tab: 'tab-1',
+    tabs: [
+      { text: 'General', value: 'general', icon: 'mdi-file-document-outline' },
+      { text: 'Personas', value: 'personas', icon: 'mdi-account-group-outline' },
+      { text: 'Módulo', value: 'modulo', icon: 'mdi-view-dashboard-outline' },
+      //{ text: 'Estado', value: 'estado', icon: 'mdi-progress-check' },
+    ],
+
     menu: false,
     menu2: false,
     input: null,
@@ -743,12 +615,24 @@ export default {
       (v) => (v && v.length >= 3) || "El campo debe tener al menos de 3 caracteres",
     ],
     selectRules: [(v) => !!v || "Seleccionar al menos un elemento"],
+
+    sections: [
+      { label: 'General', value: 'general', icon: 'mdi-file-document-outline' },
+      { label: 'Personas', value: 'personas', icon: 'mdi-account-group-outline' },
+      { label: 'Módulo', value: 'modulo', icon: 'mdi-view-dashboard-outline' },
+      { label: 'Estado', value: 'estado', icon: 'mdi-progress-check' },
+    ],
+
+    title: '',
+    description: '',
+    date: '',
+    module: '',
   }),
   computed: {
     formTitle() {
-      return this.editedIndex === -1 
-      ? this.$t('taskForm.titles.new') 
-      : this.$t('taskForm.titles.edit');
+      return this.editedIndex === -1
+        ? this.$t('taskForm.titles.new')
+        : this.$t('taskForm.titles.edit');
     },
     formTitlePerson() {
       return this.tittlePerson === -1
@@ -778,26 +662,172 @@ export default {
     getDate2() {
       return this.input2 ? new Date(this.input2) : new Date();
     },
+    paginatedTasks() {
+    if (!Array.isArray(this.tasks)) return []; // Verifica que tasks sea un array
+    const start = (this.currentPage - 1) * this.itemsPerPage;
+    const end = start + this.itemsPerPage;
+    return this.tasks.slice(start, end);
+  },
+  pageCount() {
+    return this.tasks?.length
+      ? Math.ceil(this.tasks.length / this.itemsPerPage)
+      : 0;
+  },
+  translatedSteps() {
+      // Fallback en caso de que la traducción no esté disponible
+      const defaultSteps = [
+        { title: 'Información Básica', subtitle: 'Ingresa el título y descripción' },
+        { title: 'Asignación', subtitle: 'Selecciona responsables y participantes' },
+        { title: 'Programación', subtitle: 'Elige fecha y hora de la tarea' }
+      ]
+      
+      return this.$t('steps') || defaultSteps
+    }
   },
   mounted() {
     this.home_id = JSON.parse(LocalStorageService.getItem("home_id"));
     this.person_id = JSON.parse(LocalStorageService.getItem("person_id"));
-    this.language = LocalStorageService.getItem("userLocale");
     this.initialize();
     this.timeSlots = this.generateTimeSlots(); // Genera los horarios al montar el componente
   },
-  watch: {
-    people(newVal) {
-      // Cuando se actualiza la lista de personas, verificar si hay que agregar al usuario actual
-      if (newVal && newVal.length > 0) {
-        this.ensureCurrentPersonIsAdded();
+  methods: {
+    getTypeColor(type) {
+      const colorMap = {
+        'Tarea': 'deep-purple-lighten-2',
+        'Evento': 'teal-lighten-2',
+        // Agrega más tipos si es necesario
+      };
+      return colorMap[type] || 'grey-lighten-1'; // Color por defecto
+    },
+    getStatusById(statusId) {
+      return this.status.find(status => status.id === statusId);
+    },
+    async changeTaskStatus(task, newStatusId) {
+      console.log('tarea y estado');
+      console.log(task.id);
+      console.log(newStatusId);
+      // Tu lógica para cambiar el estado
+      //task.status_id = newStatusId;
+      this.valid = false;
+      this.data = {};
+      this.data.id = task.id;
+      this.data.status_id = newStatusId;
+
+      try {
+        const result = await handleRequest({
+          endpoint: 'task-update',
+          method: 'POST',
+          data: this.data
+        });
+
+        // Manejo de la respuesta según el resultado
+        if (result.success) {
+          this.showAlert("success", result.message, 3000);
+          this.initialize();
+        } else {
+          this.showAlert("warning", result.message, 3000);
+        }
+      } catch (error) {
+        // Este bloque captura errores inesperados fuera del manejo estándar
+        this.showAlert("error", "Ocurrió un error inesperado al procesar la solicitud.", 3000);
+      } finally {
+        this.loading = false;
+      }
+      task.statusDialog = false;
+      // Aquí probablemente quieras hacer una llamada API para actualizar el estado en el backend
+    },
+    // Filtra las personas para mostrar en cada card según el rol
+   filteredPeople(roleId) {
+      return this.people.filter(person => {
+        const assignedPerson = this.editedItem.people.find(p => p.id === person.id);
+        return !assignedPerson || assignedPerson.roleId === roleId;
+      });
+    },
+    
+    isPersonSelected(personId, roleId) {
+      return this.editedItem.people.some(
+        p => p.id === personId && p.roleId === roleId
+      );
+    },
+    
+    
+    getRoleIcon(roleId) {
+      const role = this.roles.find(r => r.id === roleId);
+      if (!role) return 'mdi-account';
+      
+      switch(role.name.toLowerCase()) {
+        case 'responsable': return 'mdi-star';
+        case 'colaborado': return 'mdi-account-group';
+        default: return 'mdi-account';
       }
     },
-  },
-  methods: {
-    isPersonSelected(personId) {
-      return this.editedItem.people.some((p) => p.person_id === personId);
+    
+    updateSelection(role, selectedIds) {
+      console.log('Selection changed:', {role, selectedIds});
+      
+      // Eliminar personas de este rol que ya no están seleccionadas
+      this.editedItem.people = this.editedItem.people.filter(
+        p => p.roleId !== role.id || selectedIds.includes(p.id)
+      );
+      
+      // Agregar nuevas selecciones
+      selectedIds.forEach(personId => {
+        if (!this.editedItem.people.some(p => p.id === personId && p.roleId === role.id)) {
+          const person = this.people.find(p => p.id === personId);
+          if (person) {
+            this.editedItem.people.push({
+              id: person.id,
+              name: person.namePerson,
+              image: person.imagePerson,
+              roleId: role.id,
+              roleName: role.nameRol
+            });
+          }
+        }
+      });
+      
+      console.log('Updated people:', this.editedItem.people);
     },
+   initializeSelections() {
+      // Verificar si person_id no está en editedItem.people
+      if (this.person_id && !this.editedItem.people.some(p => p.id === this.person_id)) {
+        // Buscar el rol "Responsable" en los roles disponibles
+        const responsableRole = this.roles.find(role => role.name === 'Responsable');
+        // Buscar la persona correspondiente al person_id (asumiendo que tienes acceso a las personas)
+        const person = this.people.find(p => p.id === this.person_id); // Asegúrate de tener this.people disponible
+        
+        if (responsableRole && person) {
+          // Agregar la persona con el rol de Responsable y toda la estructura requerida
+          this.editedItem.people.push({
+            id: person.id,
+            name: person.namePerson,
+            image: person.imagePerson,
+            roleId: responsableRole.id,
+            roleName: responsableRole.nameRol
+          });
+        }
+      }
+
+      // Inicializar selectedItems para cada rol
+      this.roles.forEach(role => {
+        this.selectedItems[role.id] = this.editedItem.people
+          .filter(p => p.roleId === role.id)
+          .map(p => p.id);
+      });
+    },
+    nextStep() {
+      if (this.step < this.steps.length - 1) {
+        this.step++
+      } else {
+        this.dialog = false
+        this.step = 0
+        this.save();
+      }
+    },
+
+    /*isPersonSelected(personId) {
+      return this.editedItem.people.some((p) => p.person_id === personId);
+    },*/
     togglePersonSelection(personId) {
       const index = this.editedItem.people.findIndex((p) => p.person_id === personId);
 
@@ -816,24 +846,6 @@ export default {
 
       console.log("this.editedItem.people", this.editedItem.people);
       this.$emit("update:selected-people", this.editedItem.people);
-    },
-    ensureCurrentPersonIsAdded() {
-      if (!this.person_id) return;
-
-      const isCurrentPersonAdded = this.editedItem.people.some(
-        (p) => p.person_id === this.person_id
-      );
-
-      const personExists = this.people.some((p) => p.id === this.person_id);
-
-      if (!isCurrentPersonAdded && personExists) {
-        this.editedItem.people.push({
-          person_id: this.person_id,
-          home_id: this.home_id,
-        });
-        console.log("Usuario actual agregado automáticamente");
-        this.$emit("update:selected-people", this.editedItem.people);
-      }
     },
     async addPeople(item) {
       this.data = {};
@@ -968,18 +980,6 @@ export default {
 
       return orderedSlots;
     },
-    /*generateTimeSlots() {
-      const slots = [];
-      for (let hour = 0; hour < 24; hour++) {
-        for (let minute = 0; minute < 60; minute += 5) {
-          // Incrementos de 5 minutos
-          const formattedHour = String(hour).padStart(2, "0");
-          const formattedMinute = String(minute).padStart(2, "0");
-          slots.push(`${formattedHour}:${formattedMinute}`);
-        }
-      }
-      return slots;
-    },*/
     isImage(icon) {
       // Validar si el valor es una URL válida (puedes personalizar esta lógica)
       return (
@@ -1074,9 +1074,12 @@ export default {
         this.showAlert("error", "Ocurrió un error inesperado al cargar los datos.", 3000);
       } finally {
         this.dialog = true;
+        this.initializeSelections();
+        this.timeSlots = this.generateTimeSlots();
       }
     },
     close() {
+      this.step = 0;
       this.dialog = false;
       this.$nextTick(() => {
         this.editedItem = Object.assign({}, this.defaultItem);
@@ -1160,9 +1163,11 @@ export default {
         if (result.success) {
           // Si la solicitud es exitosa, asignamos las sucursales
           this.tasks = result.data?.tasks || []; // Si no hay roles, asigna un arreglo vacío
+          this.status = result.data?.status || []; // Si no hay roles, asigna un arreglo vacío
         } else {
           // Si no hay datos, asignamos un array vacío
           this.tasks = [];
+          this.status = [];
           //this.showAlert('success', result.message || 'No hay tareas disponibles.', 3000);
         }
       } catch (error) {
@@ -1201,18 +1206,6 @@ export default {
           return { icon: "mdi-help-circle", name: "Desconocido" }; // Ícono y nombre por defecto
       }
     },
-    getTypeColor(type) {
-      switch (type) {
-        case "Task":
-          return "#FFB300"; // Color sugerente para tareas (amarillo)
-        case "Sistema":
-          return "#43A047"; // Color sugerente para productos (verde)
-        case "Home":
-          return "#03626C"; // Color base para hogar
-        default:
-          return "#E0E0E0"; // Color gris claro para otros tipos
-      }
-    },
     async save() {
       this.loading = true;
       if (this.editedIndex === -1) {
@@ -1248,9 +1241,9 @@ export default {
               // Transformar el campo `people`
               obj[key] = this.editedItem.people.map((person) => ({
                 home_id: Number(this.editedItem.home_id), // Asegurar que sea un número
-                person_id: Number(person.person_id), // Asegurar que sea un número
-                //role_id: Number(person.roleId),
-                //roleName: person.roleName
+                person_id: Number(person.id), // Asegurar que sea un número
+                role_id: Number(person.roleId),
+                roleName: person.roleName
               }));
             } else {
               obj[key] = this.editedItem[key];
@@ -1264,9 +1257,9 @@ export default {
           updatedFields.start_date = this.editedItem.start_date
             ? this.editedItem.start_date
             : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(
-                2,
-                "0"
-              )}-${String(new Date().getDate()).padStart(2, "0")}`;
+              2,
+              "0"
+            )}-${String(new Date().getDate()).padStart(2, "0")}`;
           updatedFields.estimated_time = this.editedItem.estimated_time
             ? this.editedItem.estimated_time
             : 0;
@@ -1356,11 +1349,11 @@ export default {
               // Transformar el campo `people`
               obj[key] = this.editedItem.people.map((person) => ({
                 home_id: Number(this.editedItem.home_id), // Asegurar que sea un número
-                person_id: person.person_id
-                  ? Number(person.person_id)
-                  : Number(person.person_id), // Asegurar que sea un número
-                //role_id: Number(person.roleId),
-                //roleName: person.roleName            // Asegurar que sea un número
+                person_id: person.id
+                  ? Number(person.id)
+                  : Number(person.id), // Asegurar que sea un número
+                role_id: Number(person.roleId),
+                roleName: person.roleName            // Asegurar que sea un número
               }));
             } else {
               obj[key] = this.editedItem[key];
@@ -1485,6 +1478,8 @@ export default {
       } catch (error) {
         this.showAlert("error", "Ocurrió un error inesperado al cargar los datos.", 3000);
       } finally {
+        this.initializeSelections();
+        this.timeSlots = this.generateTimeSlots();
         this.dialog = true;
       }
     },
@@ -1602,7 +1597,6 @@ export default {
 
 .avatar-item {
   margin-right: -5px;
-  border: 2px solid #4caf50;
   /* Cambia el color del borde según desees */
   border-radius: 50%;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -1650,14 +1644,17 @@ export default {
 .people-scroll-container {
   width: 100%;
   overflow-x: auto;
-  padding-bottom: 12px; /* Más espacio para el scroll */
-  scrollbar-width: thin; /* Para navegadores modernos */
+  padding-bottom: 12px;
+  /* Más espacio para el scroll */
+  scrollbar-width: thin;
+  /* Para navegadores modernos */
 }
 
 /* Estilo para la barra de scroll en WebKit */
 .people-scroll-container::-webkit-scrollbar {
   height: 6px;
 }
+
 .people-scroll-container::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.2);
   border-radius: 3px;
@@ -1665,17 +1662,23 @@ export default {
 
 .people-scroll-wrapper {
   display: inline-flex;
-  gap: 12px; /* Más espacio entre cards */
-  padding: 4px 8px; /* Padding para que no peguen a los bordes */
+  gap: 12px;
+  /* Más espacio entre cards */
+  padding: 4px 8px;
+  /* Padding para que no peguen a los bordes */
 }
 
 .person-card {
   cursor: pointer;
   transition: all 0.3s ease;
-  width: 220px; /* Ancho fijo */
-  flex-shrink: 0; /* Evita que se reduzcan */
-  border-radius: 8px !important; /* Bordes más redondeados */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important; /* Sombra sutil por defecto */
+  width: 220px;
+  /* Ancho fijo */
+  flex-shrink: 0;
+  /* Evita que se reduzcan */
+  border-radius: 8px !important;
+  /* Bordes más redondeados */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+  /* Sombra sutil por defecto */
 }
 
 .person-card:hover {
@@ -1685,15 +1688,18 @@ export default {
 
 .selected-person {
   border: 2px solid #03626c;
-  background-color: rgba(3, 98, 108, 0.08) !important; /* Color más suave */
+  background-color: rgba(3, 98, 108, 0.08) !important;
+  /* Color más suave */
 }
 
 .current-user {
-  border-left: 3px solid #1976d2; /* Indicador lateral para el usuario actual */
+  border-left: 3px solid #1976d2;
+  /* Indicador lateral para el usuario actual */
 }
 
 .person-info {
-  max-width: calc(220px - 60px); /* 220px (card) - 40px (avatar) - 20px (márgenes) */
+  max-width: calc(220px - 60px);
+  /* 220px (card) - 40px (avatar) - 20px (márgenes) */
   overflow: hidden;
 }
 
@@ -1707,5 +1713,50 @@ export default {
 /* Mejor contraste para los subtítulos */
 .v-card-subtitle {
   color: rgba(0, 0, 0, 0.7) !important;
+}
+.v-select input {
+  color: #7e57c2;
+  /* purple text input */
+}
+
+/* Estilo base para la tarjeta */
+.v-card {
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Efecto hover más pronunciado */
+.v-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.1) !important;
+}
+
+/* Estilo para el tiempo de la reunión */
+.meeting-time {
+  min-width: 60px;
+  padding-top: 2px; /* Alineación vertical */
+}
+
+/* Estilo para la sección de próximas tareas */
+.next-meetings {
+  background-color: rgba(245, 245, 245, 0.7);
+  border-radius: 8px;
+  padding: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.next-meetings:hover {
+  background-color: rgba(245, 245, 245, 1);
+}
+
+/* Estilo para los avatares de participantes */
+.v-avatar {
+  transition: transform 0.2s ease;
+}
+
+.v-avatar:hover {
+  transform: scale(1.1);
+  z-index: 2;
 }
 </style>

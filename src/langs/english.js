@@ -51,7 +51,7 @@ const english = {
    taskForm: {
       dialogTitle: "Task Details",
       fields: {
-        title: "Title",
+        title: "Task title",
         date: "Date",
         time: "Time",
         priority: "Priority",
@@ -60,6 +60,7 @@ const english = {
           task: "Task",
           event: "Event"
         },
+        status: "Status",
         category: "Category",
         recurrence: "Recurrence",
         description: "Description",
@@ -74,7 +75,12 @@ const english = {
         addDetails: "Add details",
         hideDetails: "Hide details",
         cancel: "Cancel",
-        save: "Save"
+        save: "Save",
+        confirmDelete: "Accept",
+         "close": "Close",
+      "previous": "Previous",
+      "next": "Next",
+      "saveAndClose": "Save and Close"
       },
       validation: {
         required: "This field is required",
@@ -90,6 +96,43 @@ const english = {
     "Tarea": "Task",
     "Evento": "Event"
   },
+  formInstructions: "Enter the requested information below",
+    "steps": {
+      "Información Básica": {
+        "title": "Basic Information",
+        "subtitle": "Enter title and description"
+      },
+      "Asignación": {
+        "title": "Assignment",
+        "subtitle": "Select responsible parties"
+      },
+      "Programación": {
+        "title": "Scheduling",
+        "subtitle": "Choose date and time"
+      }
+    },
+    buttons: {
+        addDetails: "Add details",
+        hideDetails: "Hide details",
+        cancel: "Cancel",
+        save: "Save",
+        confirmDelete: "Accept",
+         "close": "Close",
+      "previous": "Previous",
+      "next": "Next",
+      "saveAndClose": "Save and Close"
+      },
+      "deleteDialog": {
+    "title": "Delete {item}",
+    "message": "Do you want to delete this {item}?",
+    "confirm": "Confirm deletion",
+    "items": {
+      "task": "task",
+      "user": "user",
+      "event": "event",
+      "default": "item"
+    }
+  }
   },
 };
 

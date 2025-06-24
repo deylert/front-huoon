@@ -199,7 +199,9 @@
                                   'background-color': `#${statusOption.colorStatus}`,
                                   'border-color': `#${statusOption.colorStatus}`,
                                   'color': 'white'
-                                } : {}" 
+                                } : {
+                                  'border-color': '#9e9e9e' // Color gris (puedes ajustar el código de color según necesites)
+                                }"
                                 variant="outlined"
                                 :elevation="meeting.status_id === statusOption.id ? 2 : 0"
                                 style="border-radius: 12px; cursor: pointer;"

@@ -122,7 +122,7 @@ const spanish = {
       },
       "deleteDialog": {
     "title": "Eliminar {item}",
-    "message": "¿Desea eliminar este(a) {item}?",
+    "message": "Desea eliminar este(a) {item}?",
     "confirm": "Confirmar eliminación",
     "items": {
       "task": "tarea",

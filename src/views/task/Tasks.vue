@@ -21,8 +21,8 @@
     </v-row>
     <template v-if="tasks.length > 0">
       <!-- Tarjetas de reuniones -->
-      <v-card v-for="(meeting, index) in tasks" :key="index" class="mb-3 rounded-lg" elevation="2">
-        <v-row no-gutters>
+      <v-card v-for="(meeting, index) in tasks" :key="index" class="mb-3 rounded-lg" elevation="2" :class="{'smooth-hover': true}">
+        <v-row no-gutters class="ma-0">
           <!-- Barra lateral de color e info -->
           <v-col cols="1" class="pa-4 d-flex flex-column align-center">
             <div class=" text-body-2 font-weight-medium">{{ meeting.start_date }}</div>
@@ -53,7 +53,7 @@
             <!-- Info usuario -->
             <v-row align="center" class="gap-3" no-gutters>
               <div class="avatar-row d-flex flex-wrap justify-end gap-1">
-                <v-tooltip v-for="person in meeting.people" :key="person.id" bottom>
+                <v-tooltip v-for="person in meeting.people" :key="person.id" bottom  :open-delay="300" :close-delay="100">
                   <template v-slot:activator="{ props }">
                     <v-avatar class="avatar-item hover-expand" size="32" v-bind="props">
                       <v-img :src="`${this.$axios.defaults.baseURL}images/${person.image}?t=${Date.now()}`"
@@ -129,7 +129,7 @@
           <!-- Acciones -->
           <v-col cols="1" class="d-flex align-center pe-4 gap-2">
             <v-btn icon variant="text" color="green-darken-2" size="small" @click="editItem(meeting)">
-              <v-icon>mdi-check</v-icon>
+              <v-icon>mdi-pencil</v-icon>
             </v-btn>
             <v-btn icon variant="text" color="red-darken-2" size="small" @click="deleteItem(meeting)">
               <v-icon>mdi-close</v-icon>
@@ -145,8 +145,8 @@
       </v-col>
     </template>
   </v-container>
-  <v-dialog v-model="dialog" fullscreen persistent transition="dialog-bottom-transition">
-    <v-form ref="form" v-model="valid">
+  <v-dialog v-model="dialog" fullscreen persistent transition="dialog-bottom-transition" content-class="fullscreen-dialog">
+    <v-form ref="form" v-model="valid" class="h-100">
       <v-card class="pa-10">
         <v-card-text class="pt-12">
 
@@ -1579,6 +1579,21 @@ export default {
 };
 </script>
 <style scoped>
+.smooth-hover {
+  transition: all 0.50s ease;
+}
+
+.smooth-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12) !important;
+}
+.fullscreen-dialog {
+  height: 100vh !important;
+  max-height: 100vh !important;
+  min-width: 100vh;
+  margin: 0 !important;
+  padding: 0 !important;
+}
 .avatar-border {
   border: 2px solid #000;
   /* Aquí se define el borde */

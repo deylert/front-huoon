@@ -1,132 +1,121 @@
 <template>
-  <v-snackbar v-model="snackbar" :timeout="sb_timeout" :color="sb_type" location="top right" elevation="24" multi-line>
-    <v-row no-gutters align="center">
-      <v-col cols="auto">
-        <v-avatar :icon="sb_icon" :color="sb_type" size="40" class="me-3"></v-avatar>
+  <v-snackbar class="mt-12" location="right top" :timeout="sb_timeout" :color="sb_type" elevation="24"
+    :multi-line="true" vertical v-model="snackbar">
+    <v-row>
+      <v-col md="2">
+        <v-avatar :icon="sb_icon" color="sb_type" size="40"></v-avatar>
       </v-col>
-      <v-col>
-        <strong>{{ sb_title }}</strong><br />
+      <v-col md="10">
+        <h4>{{ sb_title }}</h4>
         {{ sb_message }}
+
       </v-col>
+
     </v-row>
   </v-snackbar>
+  <v-container fluid class="d-flex align-center justify-center" style="height:100%; background-color: #03626C;">
+    <v-row class="w-100" style=" margin: 0;">
+      <!-- Imagen de fondo -->
+      <v-col cols="12" md="9" class="pa-0 position-relative">
+        <v-card flat max-height="95vh">
+          <v-img src="@/assets/Login.png" alt="Imagen de fondo" cover class="background-img">
+            <!-- Logo en la parte superior izquierda -->
+            <div class="position-absolute d-flex align-center" style="top: 50px; left: 50px;">
+              <v-avatar color="#ffffff" size="50">
+                <img src="@/assets/logo-verde.png" alt="Imagen de avatar" class="avatar-image" />
+              </v-avatar>
+              <span style="color: #03626C; font-weight: bold; font-size: 1.6rem; margin-left: 20px;">huoon</span>
+            </div>
+          </v-img>
+        </v-card>
+      </v-col>
 
-  <v-container fluid class="login-wrapper pa-0" style="height: 100vh;">
-  <v-row no-gutters class="flex-column flex-md-row" style="min-height: 100vh;">
-    <!-- PANEL IZQUIERDO (Onboarding) -->
-    <v-col cols="12" md="7" class="d-flex flex-column justify-center align-center px-5 dark-panel">
+      <!-- Formulario de registro -->
+      <v-col cols="12" md="3" class="pa-0">
+        <v-card flat min-height="95vh">
+          <v-container>
+            <v-card-text>
+              <!-- Logo superior -->
+              <v-row align="center" justify="center" class="mb-3">
+                <v-img src="@/assets/logo-verde.png" alt="Logo" max-width="50" />
+              </v-row>
+              <div class="text-h6 text-center mb-5"><span v-if="this.register">Registrarse</span><span
+                  v-else>Entrar</span></div>
 
+              <v-form ref="form" v-model="valid" enctype="multipart/form-data">
+                <!-- Botones de redes sociales -->
+                <v-row class="mb-3">
+                  <v-col cols="12" md="6">
+                    <v-btn block outlined style="background-color: #f5f5f5;" color="#f5f5f5" @click="loginWithGoogle">
+                      <v-icon left>mdi-google</v-icon> Google
+                    </v-btn>
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <v-btn block outlined style="background-color: #f5f5f5;" color="#f5f5f5" @click="loginWithFacebook">
+                      <v-icon left>mdi-facebook</v-icon> Facebook
+                    </v-btn>
+                  </v-col>
+                </v-row>
 
-      <!-- Logo -->
-      <v-img src="@/assets/logo-verde.png" max-width="80" class="mb-6" />
-
-      <!-- Carrusel -->
-      <div style="max-width: 100%; width: 100%; overflow: hidden;">
-      <v-carousel 
-          height="150px" 
-          show-arrows="hover" 
-          hide-delimiter-background 
-          cycle 
-          interval="5000"
-          class="onboarding-carousel"
-          style="
-        max-width: 100%;
-        margin: 0 auto;
-      "
-        >
-          <v-carousel-item 
-            v-for="(slide, i) in slides" 
-            :key="i"
-            style="
-              display: flex;
-              justify-content: center;
-              align-items: flex-start; /* Contenido al inicio vertical */
-              padding-top: 20px; /* Espacio mínimo arriba */
-              height: 100%;
-            "
-          >
-            <div class="text-center" style="width: 100%">
-              <h2 class="text-h5 text-white font-weight-bold mb-3">
-              {{ slide.title }} <span style="color: #006064">{{ slide.emphasis }}</span><br />
-              {{ slide.subtitle }}
-            </h2>
-            <p class="text-white text-subtitle-2" style="max-width: 360px; opacity: 0.8; margin: auto;">
-              {{ slide.description }}
-            </p>
-          </div>
-        </v-carousel-item>
-      </v-carousel>
-      </div>
-    </v-col>
-
-    <!-- PANEL DERECHO (Login) -->
-    <v-col cols="12" md="5" class="d-flex flex-column justify-center align-center pa-4 bg-white">
-      <v-card class="w-100" max-width="500" flat>
-
-        <v-row justify="" class="mb-6 mt-2 ">
-
-          <v-avatar class="ml-2" image="@/assets/logo-verde.png" size="60"></v-avatar>
-
-          <span class="text-h5 font-weight-bold mt-4 ml-3 text-cyan-darken-3">huoon</span>
-        </v-row>
+                <!-- Divider con texto "Or" -->
+                <v-row class="align-center justify-center mb-3">
+                  <v-col cols="12" md="5"><v-divider /></v-col>
+                  <v-col cols="12" md="2"><span>Or</span></v-col>
+                  <v-col cols="12" md="5"><v-divider /></v-col>
+                </v-row>
 
 
+                <!-- Campos del formulario -->
+                <div class="text-body-2 text-medium-emphasis" v-if="this.register">
+                  <v-text-field v-model="editedItem.name" density="compact" variant="outlined" class="mb-0"
+                    placeholder="Nombre y Apellidos" prepend-inner-icon="mdi-account-outline" :rules="nameRules" />
+                </div>
+                <v-text-field v-model="editedItem.email" density="compact" variant="outlined" class="mb-0"
+                  placeholder="Correo Electrónico" prepend-inner-icon="mdi-email-outline"
+                  :rules="this.register ? emailRules : []" />
+                <div class="text-body-2 text-medium-emphasis" v-if="this.register">
+                  <v-text-field v-model="editedItem.user" density="compact" variant="outlined" class="mb-0"
+                    placeholder="Usuario" prepend-inner-icon="mdi-account" />
+                </div>
+                <v-text-field v-model="editedItem.password" :type="showPassword ? 'text' : 'password'" density="compact"
+                  variant="outlined" :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                  placeholder="Contraseña" prepend-inner-icon="mdi-lock-outline"
+                  @click:append-inner="showPassword = !showPassword" class="mb-0" />
 
-        <p class="text-h5 font-weight-bold ">Log in to Your Account</p>
+                <!-- Checkbox de términos -->
+                <v-checkbox v-model="editedItem.agreeTerms"
+                  label="Al crear una cuenta, aceptas los términos de uso y nuestra política de privacidad." dense
+                  v-if="this.register" />
 
-        <p class="text-subtitle-2 mb-6 font-weight-light">Welcome Back! Select method to log in:</p>
+                <!-- Botón de envío -->
+                <v-btn block color="#03626C" :disabled="this.register ?? !(this.editedItem.agreeTerms && this.valid)"
+                  :loading="loading" @click="login()"><span v-if="this.register">Crear Cuenta</span>
+                  <span v-else>Entrar</span>
+                </v-btn>
+              </v-form>
 
-        <v-btn size="x-large" prepend-icon="mdi-google" class="flex-grow-1" variant="tonal" color="info"
-          style="text-transform: none;" rounded="lg" @click="loginWithGoogle">
-          Google&nbsp;&nbsp;&nbsp;&nbsp;
-        </v-btn>
-        <v-btn size="x-large" prepend-icon="mdi-facebook" class="flex-grow-1 ml-12" style="text-transform: none;"
-          variant="tonal" color="primary" rounded="lg" @click="loginWithFacebook">
-          Facebook&nbsp;&nbsp;
-        </v-btn>
+              <!-- Enlace de login -->
+              <v-row class="mt-4">
+                <v-col cols="12" class="text-center">
+                  <span class="text-body1" v-if="this.register">
+                    ¿Ya tienes una cuenta?
+                    <span style="cursor: pointer; color: #1976D2;" @click="goToLogin">
+                      Entrar
+                    </span>
+                  </span>
+                  <span class="text-body1" v-else>
+                    ¿Deseas crear una cuenta?
+                    <span style="cursor: pointer; color: #1976D2;" @click="goToLogin">
+                      Registrar
+                    </span>
+                  </span>
+                </v-col>
+              </v-row>
 
-
-
-        <div class="text-center mt-6 text-caption my-2">Or sign in with</div>
-
-        <v-text-field v-model="editedItem.name" variant="outlined" class="mb-3" v-if="this.register"
-          placeholder="Name" prepend-inner-icon="mdi-account-outline" :rules="nameRules" density="comfortable"/>
-
-        <v-text-field v-model="editedItem.email" label="Email" variant="outlined" placeholder="johndoe@mail.com"
-          density="comfortable" class="mb-3" :rules="this.register ? emailRules : []"/>
-
-        <v-text-field v-model="editedItem.password" label="Password" variant="outlined" placeholder="minimum 8 characters"
-          :type="showPassword ? 'text' : 'password'" :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-          @click:append-inner="showPassword = !showPassword" density="comfortable" class="mb-5" />
-
-        <v-text-field v-model="editedItem.user" density="comfortable" variant="outlined" class="mb-3" v-if="this.register"
-          placeholder="User" prepend-inner-icon="mdi-account" />
-
-        <v-btn block size="x-large" color="cyan-darken-3" class="text-white text-subtitle-1 mb-3"
-          style="text-transform: none;" rounded="lg" :loading="loading" @click="login()" :disabled="this.register ?? this.valid">
-          Sign In →
-        </v-btn>
-
-        <div class="text-center mt-2">
-          <span class="text-body-2 text-decoration-underline" style="cursor: pointer;">
-            Forgot password?
-          </span>
-        </div>
-
-
-
-        <v-row justify="center" class="mb-2 mt-4">
-          <span class="text-caption">Don't have an account?
-            <span class="text-primary" style="cursor: pointer;" @click="goToLogin"> Sign Up</span>
-          </span>
-        </v-row>
-
-        <div class="text-caption text-grey text-center mt-10">
-          © 2025 Huoon · <a href="#" class="text-primary">Privacy Policy</a> · <a href="#"
-            class="text-primary">Support</a>
-        </div>
-      </v-card>
-    </v-col>
+            </v-card-text>
+          </v-container>
+        </v-card>
+      </v-col>
     </v-row>
   </v-container>
 </template>
@@ -138,60 +127,6 @@ import { handleRequest } from "@/utils/api";
 import router from '@/router/index';
 export default {
   data: () => ({
-
-    onboardingStep: 0,
-    onboardingSlides: [
-      {
-        title: "Administra tu hogar",
-        description: "Organiza tareas, eventos y finanzas en un solo lugar.",
-        icon: "mdi-home-city-outline"
-      },
-      {
-        title: "Comparte con tu familia",
-        description: "Todos los miembros pueden colaborar y mantenerse al tanto.",
-        icon: "mdi-account-group-outline"
-      },
-      {
-        title: "Accede desde cualquier lugar",
-        description: "Tu hogar virtual siempre contigo.",
-        icon: "mdi-cellphone-link"
-      }
-    ],
-    // ...lo demás ya lo tienes
-
-
-    slides: [
-      {
-        title: "Bienvenido a",
-        emphasis: "Huoon",
-        subtitle: "tu hogar organizado",
-        description: "Centraliza tareas, miembros, productos y documentos del hogar en un solo lugar."
-      },
-      {
-        title: "Comparte tu casa",
-        emphasis: "con tu familia",
-        subtitle: "",
-        description: "Crea un hogar colaborativo donde todos participan: pareja, hijos, roomies o cuidadores."
-      },
-      {
-        title: "Tareas y recordatorios",
-        emphasis: "inteligentes",
-        subtitle: "",
-        description: "Automatiza rutinas, recibe alertas importantes y mantén tu hogar al día fácilmente."
-      },
-      {
-        title: "Todo bajo control",
-        emphasis: "desde tu celular",
-        subtitle: "",
-        description: "Consulta información de compras, pagos, recetas, calendarios y más desde cualquier lugar."
-      },
-      {
-        title: "Diseñado para ti",
-        emphasis: "y tu bienestar",
-        subtitle: "",
-        description: "Huoon se adapta a tu estilo de vida: incluye herramientas útiles para todos los miembros del hogar, incluyendo niños y adultos mayores."
-      }
-    ],
     loading: false,
     snackbar: false,
     sb_type: '',
@@ -431,7 +366,6 @@ export default {
 </script>
 
 <style scoped>
-
 .background-img {
   height: 100%;
   /* Ocupa toda la altura */
@@ -456,48 +390,5 @@ export default {
   /* Ajusta la imagen para que cubra el contorno del avatar */
   border-radius: 50%;
   /* Asegura que la imagen sea circular */
-}
-
-.dark-panel {
-  background: radial-gradient(circle at center, #1d1d1d, #0a0a0a);
-  color: white;
-}
-
-.login-wrapper {
-  min-height: 100vh;
-  background: white;
-}
-/* Ajustes generales */
-.login-wrapper {
-  min-height: 100vh;
-}
-
-/* Panel izquierdo (carrusel) */
-.dark-panel {
-  background: radial-gradient(circle at center, #1d1d1d, #0a0a0a);
-  min-height: 40vh; /* Altura mínima en móvil */
-}
-
-/* Panel derecho (login) */
-.bg-white {
-  min-height: 60vh; /* Altura mínima en móvil */
-}
-
-/* Ajustes para desktop */
-@media (min-width: 960px) {
-  .dark-panel {
-    min-height: 100vh;
-  }
-  
-  .bg-white {
-    min-height: 100vh;
-  }
-}
-
-/* Ajustes del carrusel */
-.onboarding-carousel {
-  height: auto;
-  max-height: 60vh;
-  margin: 20px 0;
 }
 </style>

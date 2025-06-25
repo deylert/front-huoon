@@ -25,8 +25,8 @@
         <v-row no-gutters class="ma-0">
           <!-- Barra lateral de color e info -->
           <v-col cols="1" class="pa-4 d-flex flex-column align-center">
-            <div class=" text-body-2 font-weight-medium">{{ meeting.start_date }}</div>
-            <div class="mt-2 text-body-2 font-weight-medium">{{ meeting.start_time }}</div>
+            <div class="date">{{ formatDate(meeting.start_date) }}</div>
+            <div class="time">{{ meeting.start_time }}</div>
           </v-col>
 
           <!-- Contenido principal -->
@@ -691,6 +691,10 @@ export default {
     this.timeSlots = this.generateTimeSlots(); // Genera los horarios al montar el componente
   },
   methods: {
+    formatDate(dateString) {
+    const [year, month, day] = dateString.split('-');
+    return `${day}-${month}-${year}`;
+  },
     getTypeColor(type) {
       const colorMap = {
         'Tarea': 'deep-purple-lighten-2',
@@ -1579,6 +1583,18 @@ export default {
 };
 </script>
 <style scoped>
+.date-time-display .date {
+  font-size: 0.9rem;
+  font-weight: 500; /* medium */
+  color: inherit; /* usa el color por defecto del tema */
+}
+
+.date-time-display .time {
+  font-size: 0.9rem;
+  font-weight: 400; /* regular */
+  color: rgba(0, 0, 0, 0.6); /* gris medio */
+  margin-top: 8px;
+}
 .smooth-hover {
   transition: all 0.50s ease;
 }

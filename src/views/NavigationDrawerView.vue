@@ -1,7 +1,7 @@
 <template>
   <v-card>
     <v-layout>
-      <v-navigation-drawer permanent color="#03626C" class="pt-4" style="height: 100vh;">
+      <v-navigation-drawer permanent class="pt-4" style="height: 100vh;">
         <template v-slot:prepend>
           <v-list-item color="#03626C" class="text-subtitle-1" lines="two" variant="flat"
             prepend-avatar="@/assets/logo-blanco.png" :style="{ backgroundColor: '#03626C' }">

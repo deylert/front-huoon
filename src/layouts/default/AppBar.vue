@@ -541,6 +541,7 @@ export default {
     async save() {
       this.loading = true; // Iniciar loader
       try {
+        this.data = {};
         // Preparar el payload
         this.data.id = this.user_id;
         this.data.currentPassword = this.editedItem.currentPassword;

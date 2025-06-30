@@ -14,7 +14,7 @@
   <v-container class="pa-4">
     <!-- Encabezado -->
     <v-row justify="space-between" align="center" class="mb-6">
-      <h2 class="text-h5 font-weight-bold">Tareas</h2>
+      <h2 class="text-h5 font-weight-bold">{{ $t('viewTitles.tasks') }}</h2>
       <v-btn icon color="deep-purple-accent-4" variant="flat" class="elevation-3" @click="showAdd">
         <v-icon>mdi-plus</v-icon>
       </v-btn>
@@ -354,7 +354,7 @@
       <v-toolbar color="#DA7171">
         <span class="text-subtitle-2 ml-4"> {{ $t('deleteDialog.title', { item: $t(`deleteDialog.items.task`) }) }}</span>
       </v-toolbar>
-      <v-card-text class="mt-2 mb-2"> ¿{{ $t('deleteDialog.message', { item: $t(`deleteDialog.items.task`) }) }}</v-card-text>
+      <v-card-text class="mt-2 mb-2"> ¿{{ $t('deleteDialog.message') }}</v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
@@ -478,7 +478,6 @@ export default {
       { title: 'Información Básica', subtitle: 'Ingresa el título y descripción' },
       { title: 'Asignación', subtitle: 'Selecciona responsables y participantes' },
       { title: 'Programación', subtitle: 'Elige fecha y hora de la tarea' },
-      //{ title: 'Confirmación', subtitle: 'Revisa y guarda la tarea' },
     ],
      itemsPerPage: 6,
      currentPage: 1,

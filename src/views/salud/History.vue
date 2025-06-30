@@ -1,6 +1,14 @@
 <template>
-  <v-snackbar class="mt-12" location="right top" :timeout="sb_timeout" :color="sb_type" elevation="24"
-    :multi-line="true" vertical v-model="snackbar">
+  <v-snackbar
+    class="mt-12"
+    location="right top"
+    :timeout="sb_timeout"
+    :color="sb_type"
+    elevation="24"
+    :multi-line="true"
+    vertical
+    v-model="snackbar"
+  >
     <v-row>
       <v-col md="2">
         <v-avatar :icon="sb_icon" color="sb_type" size="40"></v-avatar>
@@ -11,344 +19,786 @@
       </v-col>
     </v-row>
   </v-snackbar>
-  <!--<v-container fluid fill-height>-->
-  <v-card elevation="6" class="mx-2">
-    <v-toolbar color="#03626C">
-      <v-row align="center">
-        <v-col cols="12" md="8" class="grow ml-4">
-          <span class="text-subtitle-1"><strong>Historias Clínicas</strong></span>
-        </v-col>
-        <v-col cols="12" md="3" class="text-right">
-          <v-btn class="text-subtitle-1 ml-12" color="white" variant="tonal" elevation="2"
-            prepend-icon="mdi-plus-circle" @click="showAdd">
-            Agregar Historia Clínica
-          </v-btn>
-        </v-col>
-      </v-row>
-    </v-toolbar>
 
-    <v-card-text>
-      <v-text-field class="mt-1 mb-1" v-model="search" append-icon="mdi-magnify" label="Buscar" single-line
-        hide-details>
-      </v-text-field>
-      <v-data-table :headers="headers" :search="search" :items="medicalhistories" class="elevation-1"
-        style="max-height: 68vh; overflow-y: auto;" :items-per-page-text="'Elementos por páginas'"
-        no-data-text="No hay datos disponibles" :loading="loading" loading-text="Cargando datos..." dense>
-        <template v-slot:item.actions="{ item }">
-          <v-btn density="comfortable" icon="mdi-pencil" @click="editItem(item)" color="primary" variant="tonal"
-            elevation="1" title="Editar Historia Clínica"></v-btn>
-          <v-btn density="comfortable" icon="mdi-delete" @click="deleteItem(item)" color="#DA7171" variant="tonal"
-            elevation="1" title="Eliminar Historia Clínica"></v-btn>
-        </template>
-        <!-- Columna de Vacunas -->
-        <template v-slot:item.vaccines="{ item }">
-          <v-list dense style="max-height: 150px; overflow-y: auto;">
-            <v-list-item v-for="(vaccine, index) in item.vaccines" :key="index">
-              <v-tooltip location="top">
-                <template v-slot:activator="{ props }">
-                  <span v-bind="props">{{ vaccine.name }}</span>
-                </template>
-                <span>
-                  <strong>Nombre:</strong> {{ vaccine.name }}<br />
-                  <strong>Fecha:</strong> {{ vaccine.date }}<br />
-                  <strong>Lote:</strong> {{ vaccine.lot }}
-                </span>
-              </v-tooltip>
-            </v-list-item>
-          </v-list>
-        </template>
+  <v-container>
+    <v-card class="pa-4" elevation="4" rounded="lg">
+      <!-- Encabezado con foto y datos -->
+      <v-card-text>
+        <v-row dense>
+          <!-- Foto del usuario -->
+          <v-col cols="auto">
+            <v-avatar size="80" class="me-4">
+              <v-img
+                :src="`${this.$axios.defaults.baseURL}images/${imageUrl}`"
+                alt="Foto del paciente"
+              />
+            </v-avatar>
+          </v-col>
 
-        <!-- Columna de Medicamentos -->
-        <template v-slot:item.currentMedications="{ item }">
-          <v-list dense style="max-height: 150px; overflow-y: auto;">
-            <v-list-item v-for="(medication, index) in item.currentMedications" :key="index">
-              <v-tooltip location="top">
-                <template v-slot:activator="{ props }">
-                  <span v-bind="props">{{ medication.name }}</span>
-                </template>
-                <span>
-                  <strong>Nombre:</strong> {{ medication.name }}<br />
-                  <strong>Dosis:</strong> {{ medication.dose }}<br />
-                  <strong>Frecuencia:</strong> {{ medication.frequency }}
-                </span>
-              </v-tooltip>
-            </v-list-item>
-          </v-list>
-        </template>
-      </v-data-table>
-    </v-card-text>
-  </v-card>
-  <!--</v-container>-->
+          <!-- Datos del paciente -->
+          <v-col>
+            <div class="text-h6 font-weight-bold mb-1">{{ person.name }}</div>
+            <div class="text-body-2 text-grey-darken-1">
+              {{
+                person.age !== null
+                  ? $t("personDetails.age.withValue", { age: person.age })
+                  : $t("personDetails.age.withoutValue")
+              }}
+            </div>
 
-  <v-dialog v-model="dialog" max-width="800px">
-    <v-form ref="form" v-model="valid">
+            <div class="text-body-2 text-grey-darken-1">
+              {{
+                person.documentType
+                  ? $t("personDetails.documentType.withValue", {
+                      type: person.documentType,
+                    })
+                  : $t("personDetails.documentType.withoutValue")
+              }}
+            </div>
+
+            <div class="text-body-2 text-grey-darken-1">
+              {{
+                person.documentNumber !== null
+                  ? $t("personDetails.documentNumber.withValue", {
+                      number: person.documentNumber,
+                    })
+                  : $t("personDetails.documentNumber.withoutValue")
+              }}
+            </div>
+          </v-col>
+
+          <v-col cols="12" sm="6" md="3">
+            <v-card
+              class="pa-2 d-flex align-center signo-card"
+              elevation="1"
+              rounded="lg"
+              @click="dialogAlerta = true"
+              style="cursor: pointer"
+            >
+              <!-- Ícono -->
+              <v-avatar size="40" class="me-3" color="purple-lighten-4" variant="tonal">
+                <v-icon color="warning">mdi-lightbulb-on-outline</v-icon>
+              </v-avatar>
+
+              <!-- Texto -->
+              <div>
+                <div class="text-body-2 font-weight-medium">Alertas</div>
+                <div class="text-caption text-grey-darken-1">
+                  Tienes {{ alertasHoy }} alerta<span v-if="alertasHoy !== 1">s</span>
+                  para hoy
+                </div>
+              </div>
+            </v-card>
+          </v-col>
+        </v-row>
+                    <!-- Fila completa para herramientas -->
+  <v-row no-gutters class="mt-2">
+    <v-col cols="12">
+      <div class="d-flex flex-wrap gap-1">
+        <v-btn 
+          v-for="tool in tools" 
+          :key="tool.name" 
+          @click="tool.action" 
+          size="small" 
+          color="primary" 
+          variant="text"
+          prepend-icon="mdi-plus" 
+          class="text-capitalize"
+        >
+          {{ tool.name }}
+        </v-btn>
+      </div>
+    </v-col>
+  </v-row>
+        <v-divider class="my-4" />
+        <div class="text-body-2 font-weight-medium mb-2">Signos Vitales</div>
+        <v-row dense>
+          <template v-if="signosVitalesTransformados.length > 0">
+            <v-col
+              v-for="(signo, index) in signosVitalesTransformados"
+              :key="index"
+              cols="12"
+              sm="6"
+              md="3"
+            >
+              <v-card
+                class="pa-2 d-flex align-center signo-card"
+                elevation="1"
+                rounded="lg"
+                @click="abrirModal(signo)"
+                style="cursor: pointer"
+              >
+                <v-avatar
+                  size="40"
+                  class="me-3"
+                  :color="signo.color + ' lighten-4'"
+                  variant="tonal"
+                >
+                  <v-icon :color="signo.color">{{ signo.icon }}</v-icon>
+                </v-avatar>
+
+                <div style="min-width: 0; flex: 1">
+                  <!-- Contenedor con overflow oculto -->
+                  <div class="text-body-2 font-weight-medium text-truncate">
+                    {{ signo.nombre }}
+                  </div>
+
+                  <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                      <div
+                        v-bind="props"
+                        class="text-caption text-grey-darken-1 text-truncate"
+                      >
+                        {{ signo.valor }} {{ signo.unidad }}
+                      </div>
+                    </template>
+                    <span>{{ signo.valor }} {{ signo.unidad }}</span>
+                  </v-tooltip>
+
+                  <div class="text-caption text-grey-lighten-1 mt-1">
+                    {{ formatoFecha(signo.fecha) }}
+                  </div>
+                </div>
+              </v-card>
+            </v-col>
+          </template>
+          <template v-else>
+            <v-col cols="12">
+              <v-alert type="info" variant="tonal">
+                No ha actualizado los datos de los signos vitales y tratamientos
+              </v-alert>
+            </v-col>
+          </template>
+        </v-row>
+
+        <v-divider class="my-4" />
+        <div class="text-body-2 font-weight-medium mb-2">Información Medica</div>
+        <v-row dense>
+          <template v-if="informacionMedica.length > 0">
+            <v-col
+              v-for="(info, index) in informacionMedicaTransformada"
+              :key="index"
+              cols="12"
+              sm="6"
+              md="3"
+            >
+              <v-card
+                class="pa-2 d-flex align-center signo-card"
+                elevation="1"
+                rounded="lg"
+                @click="abrirModal(info)"
+                style="cursor: pointer"
+              >
+                <!-- Ícono a la izquierda -->
+                <v-avatar
+                  size="40"
+                  class="me-3"
+                  :color="info.color + ' lighten-4'"
+                  variant="tonal"
+                >
+                  <v-icon :color="info.color">{{ info.icon }}</v-icon>
+                </v-avatar>
+
+                <!-- Texto a la derecha -->
+                <div style="min-width: 0; flex: 1">
+                  <div class="text-body-2 font-weight-medium text-truncate">
+                    {{ info.nombre }}
+                  </div>
+
+                  <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                      <div
+                        v-bind="props"
+                        class="text-caption text-grey-darken-1 text-truncate"
+                      >
+                        {{ info.valor }} {{ info.unidad }}
+                      </div>
+                    </template>
+                    <span>{{ info.valor }} {{ info.unidad }}</span>
+                  </v-tooltip>
+
+                  <div class="text-caption text-grey-lighten-1 mt-1">
+                    {{ formatoFecha(info.fecha) }}
+                  </div>
+                </div>
+              </v-card>
+            </v-col>
+          </template>
+          <template v-else>
+            <v-col cols="12">
+              <v-alert type="info" variant="tonal">
+                No se ha definido información médica
+              </v-alert>
+            </v-col>
+          </template>
+        </v-row>
+
+        <v-divider class="my-4" />
+        <div class="text-body-2 font-weight-medium mb-2">Datos Complementarios</div>
+        <v-row dense>
+          <template v-if="datosComplementariosTransformados.length > 0">
+            <v-col
+              v-for="(info, index) in datosComplementariosTransformados"
+              :key="index"
+              cols="12"
+              sm="6"
+              md="3"
+            >
+              <v-card
+                class="pa-2 d-flex align-center signo-card"
+                elevation="1"
+                rounded="lg"
+                @click="abrirModal(info)"
+                style="cursor: pointer"
+              >
+                <!-- Ícono -->
+                <v-avatar
+                  size="40"
+                  class="me-3"
+                  :color="info.color + ' lighten-4'"
+                  variant="tonal"
+                >
+                  <v-icon :color="info.color">{{ info.icon }}</v-icon>
+                </v-avatar>
+
+                <!-- Contenido con tooltip -->
+                <div style="min-width: 0; flex: 1">
+                  <div class="text-body-2 font-weight-medium text-truncate">
+                    {{ info.nombre }}
+                  </div>
+
+                  <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                      <div
+                        v-bind="props"
+                        class="text-caption text-grey-darken-1 text-truncate"
+                      >
+                        {{ info.valor }} {{ info.unidad }}
+                      </div>
+                    </template>
+                    <span>{{ info.valor }} {{ info.unidad }}</span>
+                  </v-tooltip>
+
+                  <div class="text-caption text-grey-lighten-1 mt-1">
+                    {{ formatoFecha(info.fecha) }}
+                  </div>
+                </div>
+              </v-card>
+            </v-col>
+          </template>
+          <template v-else>
+            <v-col cols="12">
+              <v-alert type="info" variant="tonal">
+                No se ha actualizado la información de los datos complementarios
+              </v-alert>
+            </v-col>
+          </template>
+        </v-row>
+        <v-divider class="my-4" />
+        <div class="text-body-2 font-weight-medium mb-2">Exámenes Médicos</div>
+        <v-row dense>
+          <template v-if="signosVitalesTransformados.length > 0">
+            <v-col
+              v-for="(info, index) in examenesMedicosTransformados"
+              :key="index"
+              cols="12"
+              sm="6"
+              md="3"
+            >
+              <v-card
+                class="pa-2 d-flex align-center signo-card"
+                elevation="1"
+                rounded="lg"
+                @click="showAddExam()"
+                style="cursor: pointer"
+              >
+                <!-- Ícono a la izquierda -->
+
+                <v-avatar
+                  size="40"
+                  class="me-3"
+                  :color="info.color + ' lighten-4'"
+                  variant="tonal"
+                >
+                  <v-icon :color="info.color">{{ info.icon }}</v-icon>
+                </v-avatar>
+
+                <!-- Texto a la derecha -->
+                <div>
+                  <div class="text-body-2 font-weight-medium">{{ info.nombre }}</div>
+                  <div class="text-caption text-grey-darken-1">
+                    {{ info.valor }} {{ info.unidad }}
+                  </div>
+                  <div class="text-caption text-grey-lighten-1 mt-1">
+                    {{ formatoFecha(info.fecha) }}
+                  </div>
+                </div>
+              </v-card>
+            </v-col>
+          </template>
+          <template v-else>
+            <v-col cols="12">
+              <v-alert type="info" variant="tonal">
+                No se ha realizado exámenes médicos
+              </v-alert>
+            </v-col>
+          </template>
+        </v-row>
+      </v-card-text>
+    </v-card>
+
+    <!-- Modal para editar signo vital -->
+    <v-dialog v-model="dialog" max-width="400">
       <v-card>
-        <!-- Toolbar con título -->
-        <v-toolbar color="#03626C">
-          <span class="text-subtitle-2 ml-4">{{ formTitle }}</span>
-        </v-toolbar>
-
-        <!-- Campos principales -->
+        <v-card-title class="text-h6"
+          >Editar {{ signoSeleccionado?.nombre }}</v-card-title
+        >
         <v-card-text>
-          <v-container>
-            <v-tabs v-model="tab" vertical>
-              <v-tab value="general" :class="tab === 'general' ? 'selected-tab' : ''">Datos Generales</v-tab>
-              <v-tab value="vaccine" :class="tab === 'vaccine' ? 'selected-tab' : ''">Vacunas</v-tab>
-              <v-tab value="medication" :class="tab === 'medication' ? 'selected-tab' : ''">Medicamentos</v-tab>
-            </v-tabs>
-            <v-window v-model="tab" min-height="50vh" class="mt-2">
-              <v-window-item value="general">
-
-                <v-row>
-                  <v-col cols="12" md="12">
-                    <v-text-field v-model="editedItem.familyBackground" label="Antecedentes Familiares"
-                      prepend-icon="mdi-account-group-outline" variant="underlined" :rules="nameRules"></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="12">
-                    <v-text-field v-model="editedItem.personalBackground" label="Antecedentes Personales"
-                      prepend-icon="mdi-account-outline" variant="underlined" :rules="nameRules"></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="12">
-                    <v-text-field v-model="editedItem.bloodType" label="Tipo de Sangre" prepend-icon="mdi-blood-bag"
-                      variant="underlined" :rules="nameRules"></v-text-field>
-                  </v-col>
-                </v-row>
-              </v-window-item>
-              <v-window-item value="vaccine">
-
-                <!-- Tabla de Vacunas -->
-                <v-row>
-                  <v-col cols="12">
-                    <v-card class="mb-4">
-                      <v-toolbar color="#03626C">
-                        <v-row align="center">
-                          <v-col cols="12" md="8" class="grow ml-4">
-                            <span class="text-subtitle-1"><strong>Vacunas</strong></span>
-                          </v-col>
-                          <v-col cols="12" md="3" class="text-right">
-                            <v-btn class="text-subtitle-1 mr-2" color="white" variant="tonal" elevation="2"
-                              prepend-icon="mdi-plus-circle" @click="addVaccine">
-                              Agregar Vacuna
-                            </v-btn>
-                          </v-col>
-                        </v-row>
-                      </v-toolbar>
-                      <v-data-table :headers="vaccineHeaders" :items="editedItem.vaccines"
-                        no-data-text="No hay vacunas registradas" style="max-height: 40vh; overflow-y: auto;" :items-per-page-text="'Elementos por páginas'" dense>
-                        <template v-slot:item.actions="{ item }">
-                          <v-btn density="comfortable" icon="mdi-pencil" @click="editVaccine(item)" color="primary"
-                            variant="tonal"></v-btn>
-                          <v-btn density="comfortable" icon="mdi-delete" @click="deleteVaccine(item)" color="error"
-                            variant="tonal"></v-btn>
-                        </template>
-                      </v-data-table>
-                    </v-card>
-                  </v-col>
-                </v-row>
-              </v-window-item>
-              <v-window-item value="medication">
-
-                <!-- Tabla de Medicamentos -->
-                <v-row>
-                  <v-col cols="12">
-                    <v-card class="mb-4">
-                      <v-toolbar color="#03626C">
-                        <v-row align="center">
-                          <v-col cols="12" md="5" class="grow ml-4">
-                            <span class="text-subtitle-1"><strong>Medicamentos Actuales</strong></span>
-                          </v-col>
-                          <v-col cols="12" md="6" class="text-right">
-                            <v-btn class="text-subtitle-1 mr-2" color="white" variant="tonal" elevation="2"
-                              prepend-icon="mdi-plus-circle" @click="addMedication">
-                              Agregar Medicamento
-                            </v-btn>
-                          </v-col>
-                        </v-row>
-                      </v-toolbar>
-                      <v-data-table :headers="medicationHeaders" :items="editedItem.currentMedications"
-                        no-data-text="No hay medicamentos registrados" style="max-height: 40vh; overflow-y: auto;" :items-per-page-text="'Elementos por páginas'"
-                        dense>
-                        <template v-slot:item.actions="{ item }">
-                          <v-btn density="comfortable" icon="mdi-pencil" @click="editMedication(item)" color="primary"
-                            variant="tonal"></v-btn>
-                          <v-btn density="comfortable" icon="mdi-delete" @click="deleteMedication(item)" color="error"
-                            variant="tonal"></v-btn>
-                        </template>
-                      </v-data-table>
-                    </v-card>
-                  </v-col>
-                </v-row>
-              </v-window-item>
-            </v-window>
-          </v-container>
+          <v-text-field
+            v-model="nuevoValor"
+            label="Nuevo valor"
+            type="number"
+            append-inner-icon="mdi-pencil"
+          />
         </v-card-text>
-
-        <!-- Divider y botones de acción -->
-        <v-divider></v-divider>
         <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="#DA7171" variant="flat" @click="close">Cancelar</v-btn>
-          <v-btn color="#03626C" variant="flat" :loading="loading" @click="save" :disabled="!valid">Aceptar</v-btn>
+          <v-spacer />
+          <v-btn text @click="dialog = false">Cancelar</v-btn>
+          <v-btn color="primary" @click="guardarValor">Guardar</v-btn>
         </v-card-actions>
       </v-card>
-    </v-form>
-  </v-dialog>
-
-  <!-- Diálogo para agregar/editar vacuna -->
-  <v-dialog v-model="vaccineDialog" max-width="500px">
+    </v-dialog>
+  </v-container>
+  <!-- Modal para ver las alertas -->
+  <v-dialog v-model="dialogAlerta" max-width="500">
     <v-card>
-      <v-toolbar color="#03626C">
-        <span class="text-subtitle-2 ml-4">{{ vaccineFormTitle }}</span>
-      </v-toolbar>
+      <v-card-title class="text-h6">Alertas para Hoy</v-card-title>
       <v-card-text>
-        <v-text-field v-model="editedVaccine.name" label="Nombre de la Vacuna" variant="underlined"
-          prepend-icon="mdi-needle"></v-text-field>
-        <v-menu v-model="menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition" offset-y
-          min-width="290px">
-          <template v-slot:activator="{ props }">
-            <v-text-field v-bind="props" :modelValue="dateFormatted" variant="underlined" prepend-icon="mdi-calendar"
-              label="Fecha" density="compact"></v-text-field>
-          </template>
-          <v-locale-provider locale="es">
-            <v-date-picker header="Calendario" title="Seleccione la fecha" color="#03626C" :modelValue="input"
-              @update:model-value="updateDate" format="yyyy-MM-dd"
-              :min="new Date().toISOString().split('T')[0]"></v-date-picker>
-          </v-locale-provider>
-        </v-menu>
-        <v-text-field v-model="editedVaccine.lot" label="Lote" variant="underlined"
-          prepend-icon="mdi-barcode"></v-text-field>
+        <v-list v-if="listaAlertas.length">
+          <v-list-item v-for="(alerta, i) in listaAlertas" :key="i">
+            <v-list-item-icon>
+              <v-icon color="deep-orange">mdi-alert</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title class="text-subtitle-2">{{
+                alerta.titulo
+              }}</v-list-item-title>
+              <v-list-item-subtitle class="text-caption">{{
+                alerta.descripcion
+              }}</v-list-item-subtitle>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+        <div v-else class="text-caption text-grey">No hay alertas para hoy.</div>
       </v-card-text>
       <v-card-actions>
-        <v-btn color="#DA7171" variant="flat" @click="closeVaccineDialog">Cancelar</v-btn>
-        <v-btn color="#03626C" variant="flat" @click="saveVaccine">Guardar</v-btn>
+        <v-spacer />
+        <v-btn text @click="dialogAlerta = false">Cerrar</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 
-  <!-- Diálogo para agregar/editar medicamento -->
-  <v-dialog v-model="medicationDialog" max-width="500px">
+  <!--Datos del exmen físico-->
+  <v-dialog v-model="dialogPhysicalExam" fullscreen transition="dialog-bottom-transition">
     <v-card>
-      <v-toolbar color="#03626C">
-        <span class="text-subtitle-2 ml-4">{{ medicationFormTitle }}</span>
-      </v-toolbar>
       <v-card-text>
-        <v-text-field v-model="editedMedication.name" label="Nombre del Medicamento" variant="underlined"
-          prepend-icon="mdi-pill"></v-text-field>
-        <v-text-field v-model="editedMedication.dose" label="Dosis" variant="underlined"
-          prepend-icon="mdi-numeric"></v-text-field>
-        <v-text-field v-model="editedMedication.frequency" label="Frecuencia" variant="underlined"
-          prepend-icon="mdi-clock-outline"></v-text-field>
+        <!-- Aquí pasamos el 'selectedWorker' al componente dentro del diálogo -->
+        <PhysicalExam />
       </v-card-text>
-      <v-card-actions>
-        <v-btn color="#DA7171" variant="flat" @click="closeMedicationDialog">Cancelar</v-btn>
-        <v-btn color="#03626C" variant="flat" @click="saveMedication">Guardar</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-  <v-dialog v-model="dialogDelete" max-width="500px">
-    <v-card>
-      <v-toolbar color="#DA7171">
-        <span class="text-subtitle-2 ml-4"> Eliminar una Historia Clínica</span>
-      </v-toolbar>
-      <v-card-text class="mt-2 mb-2"> ¿Desea eliminar la Historia Clínica Seleccionada?</v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="#DA7171" variant="flat" @click="closeDelete">Cancelar</v-btn>
-        <v-btn color="#03626C" variant="flat" :loading="loading" @click="deleteItemConfirm">Aceptar</v-btn>
+        <v-btn variant="flat" color="grey-lighten-1" @click="closeDialogPhysicalExam"
+          >Cerrar</v-btn
+        >
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!--Datos de los tratamientos-->
+  <v-dialog v-model="dialogTreatment" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-text>
+        <!-- Aquí pasamos el 'selectedWorker' al componente dentro del diálogo -->
+        <Treatment />
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn variant="flat" color="grey-lighten-1" @click="closeDialogTreatment"
+          >Cerrar</v-btn
+        >
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!--Datos de los antecedentes personales-->
+  <v-dialog v-model="dialogPerson" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-text>
+        <!-- Aquí pasamos el 'selectedWorker' al componente dentro del diálogo -->
+        <BackGroungPerson />
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn variant="flat" color="grey-lighten-1" @click="closeDialogPerson"
+          >Cerrar</v-btn
+        >
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+   <!--Datos de los antecedentes familiares-->
+  <v-dialog v-model="dialogFamily" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-text>
+        <!-- Aquí pasamos el 'selectedWorker' al componente dentro del diálogo -->
+        <BackGroundFamily />
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn variant="flat" color="grey-lighten-1" @click="closeDialogFamily"
+          >Cerrar</v-btn
+        >
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!--Datos de los examenes medicos-->
+  <v-dialog v-model="dialogExams" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-text>
+        <!-- Aquí pasamos el 'selectedWorker' al componente dentro del diálogo -->
+        <MedicalExam />
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn variant="flat" color="grey-lighten-1" @click="closeDialogExadialogExams"
+          >Cerrar</v-btn
+        >
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!--Datos de los diagnosticos-->
+  <v-dialog v-model="dialogDiagnosis" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-text>
+        <!-- Aquí pasamos el 'selectedWorker' al componente dentro del diálogo -->
+        <Diagnosis />
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn variant="flat" color="grey-lighten-1" @click="closeDialogDiagnosis"
+          >Cerrar</v-btn
+        >
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!--Datos de las consultas-->
+  <v-dialog v-model="dialogConsultations" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-text>
+        <!-- Aquí pasamos el 'selectedWorker' al componente dentro del diálogo -->
+        <MedicalConsultation />
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn variant="flat" color="grey-lighten-1" @click="closeDialogConsultations"
+          >Cerrar</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 
 <script>
+import LocalStorageService from "@/LocalStorageService";
 import { handleRequest } from "@/utils/api"; // Ruta al archivo
-import _ from 'lodash';
+import _ from "lodash";
+import PhysicalExam from "./PhysicalExam.vue";
+import Treatment from "./Treatment.vue";
+import BackGroungPerson from "./BackGroungPerson.vue";
+import BackGroundFamily from "./BackGroundFamily.vue";
+import MedicalExam from "./MedicalExam.vue";
+import Diagnosis from "./Diagnosis.vue";
+import MedicalConsultation from "./MedicalConsultation.vue";
 export default {
+  components: {
+    PhysicalExam,
+    Treatment,
+    BackGroungPerson,
+    BackGroundFamily,
+    MedicalExam,
+    Diagnosis,
+    MedicalConsultation
+  },
   data: () => ({
+    dialogPhysicalExam: false,
+    dialogTreatment: false,
+    dialogPerson: false,
+    dialogFamily: false,
+    dialogExams: false,
+    dialogDiagnosis: false,
+    dialogAlerta: false,
+    dialogConsultations: false,
+    listaAlertas: [
+      {
+        titulo: "Cita médica en 1 hora",
+        descripcion: "Revisión nutricional con Dra. Gómez.",
+      },
+      {
+        titulo: "Posible omisión de medicación",
+        descripcion: "No se ha registrado dosis matutina.",
+      },
+      {
+        titulo: "Síntoma fuera de rango",
+        descripcion: "Temperatura detectada superior a 38.5 °C.",
+      },
+    ],
+    dialog: false,
+    nuevoValor: "",
+    signoSeleccionado: null,
+
+    signosVitales: [
+      {
+        nombre: "Presión Arterial",
+        valor: "120/80",
+        unidad: "mmHg",
+        icon: "mdi-heart-pulse",
+        color: "indigo-darken-2",
+        fecha: "2025-06-25",
+      },
+      {
+        nombre: "Pulso",
+        valor: 72,
+        unidad: "bpm",
+        icon: "mdi-heart",
+        color: "indigo-darken-2",
+        fecha: "2025-06-25",
+      },
+      {
+        nombre: "Temperatura",
+        valor: 36.5,
+        unidad: "°C",
+        icon: "mdi-thermometer",
+        color: "indigo-darken-2",
+        fecha: "2025-06-25",
+      },
+      {
+        nombre: "Oxigenación",
+        valor: 98,
+        unidad: "%",
+        icon: "mdi-air-filter",
+        color: "indigo-darken-2",
+        fecha: "2025-06-25",
+      },
+      {
+        nombre: "Peso",
+        valor: 74,
+        unidad: "kg",
+        icon: "mdi-scale-bathroom",
+        color: "indigo-darken-2",
+        fecha: "2025-06-25",
+      },
+      {
+        nombre: "Medicamentos Actuales",
+        valor: "Losartán, Metformina",
+        unidad: "",
+        icon: "mdi-pill",
+        color: "purple",
+        fecha: "2025-06-24",
+      },
+    ],
+
+    informacionMedica: [
+      {
+        nombre: "Grupo Sanguíneo",
+        valor: "O+",
+        unidad: "",
+        icon: "mdi-water",
+        color: "grey-darken-1",
+        fecha: "2020-01-01",
+      },
+      {
+        nombre: "Alergias",
+        valor: "Penicilina, Mariscos",
+        unidad: "",
+        icon: "mdi-alert-circle",
+        color: "deep-orange",
+        fecha: "2023-05-12",
+      },
+      {
+        nombre: "Antecedentes Personales",
+        valor: "Diabetes tipo 2, Hipertensión",
+        unidad: "",
+        icon: "mdi-file-document-outline",
+        color: "deep-orange",
+        fecha: "2025-01-01",
+      },
+      {
+        nombre: "Antecedentes Familiares",
+        valor: "Infarto en padre",
+        unidad: "",
+        icon: "mdi-family-tree",
+        color: "deep-orange",
+        fecha: "2025-01-01",
+      },
+    ],
+
+    datosComplementarios: [
+      {
+        nombre: "Plan de Vacunación",
+        valor: "Influenza 2024, COVID bivalente",
+        unidad: "",
+        icon: "mdi-needle",
+        color: "green-darken-1",
+        fecha: "2024-04-01",
+      },
+      {
+        nombre: "Talla",
+        valor: 1.68,
+        unidad: "m",
+        icon: "mdi-human-male-height",
+        color: "grey-darken-1",
+        fecha: "2025-06-01",
+      },
+      {
+        nombre: "IMC",
+        valor: 26.2,
+        unidad: "",
+        icon: "mdi-calculator-variant-outline",
+        color: "grey-darken-1",
+        fecha: "2025-06-25",
+      },
+    ],
+
+    examenesMedicos: [
+      {
+        nombre: "Hemograma",
+        fecha: "2025-06-15",
+        resultado: "Anemia leve detectada",
+        icon: "mdi-flask",
+        color: "blue-darken-1",
+        archivo: null, // puedes usar esto si luego quieres subir PDF
+      },
+      {
+        nombre: "Radiografía de Tórax",
+        fecha: "2025-05-30",
+        resultado: "Sin hallazgos patológicos",
+        icon: "mdi-x-ray",
+        color: "blue-grey-darken-1",
+        archivo: null,
+      },
+      {
+        nombre: "Examen de Orina",
+        fecha: "2025-06-01",
+        resultado: "Proteínas elevadas",
+        icon: "mdi-flask-outline",
+        color: "blue-darken-2",
+        archivo: null,
+      },
+    ],
     snackbar: false,
-    sb_type: '',
-    sb_message: '',
+    sb_type: "",
+    sb_message: "",
     sb_timeout: 2000,
-    sb_title: '',
-    sb_icon: '',
+    sb_title: "",
+    sb_icon: "",
     valid: true,
     tab: null,
     loading: false,
-    dialog: false,
     dialogDelete: false,
     medicalhistories: [],
+    person: {},
+    physicalExam: {},
+    medicalExam: [],
+    treatment: {},
+    diagnosis: {},
+    backgroundPerson: [],
+    backgroundFamily: [],
     data: {},
-    page: 1,              // Página actual
-    itemsPerPage: 5,     // Elementos por página
-    totalItems: 0,        // Total de elementos disponibles
+    page: 1, // Página actual
+    itemsPerPage: 5, // Elementos por página
+    totalItems: 0, // Total de elementos disponibles
     headers: [
-      { title: 'Antecedentes Familiares', value: 'familyBackground' },
-      { title: 'Antecedentes Personales', value: 'personalBackground' },
-      { title: 'Grupo Sanguíneo', value: 'bloodType' },
-      { title: 'Vacunaciones', value: 'vaccines' },
-      { title: 'Medicamentos Actuales', value: 'currentMedications' },
-      { title: 'Acciones', value: 'actions', sortable: false, width: '10%' },
+      { title: "Antecedentes Familiares", value: "familyBackground" },
+      { title: "Antecedentes Personales", value: "personalBackground" },
+      { title: "Grupo Sanguíneo", value: "bloodType" },
+      { title: "Vacunaciones", value: "vaccines" },
+      { title: "Medicamentos Actuales", value: "currentMedications" },
+      { title: "Acciones", value: "actions", sortable: false, width: "10%" },
     ],
 
     editedItem: {
-      id: '',
-      familyBackground: '',
-      personalBackground: '',
+      id: "",
+      familyBackground: "",
+      personalBackground: "",
       vaccines: [],
-      bloodType: '',
-      currentMedications: []
+      bloodType: "",
+      currentMedications: [],
     },
     defaultItem: {
-      id: '',
-      familyBackground: '',
-      personalBackground: '',
+      id: "",
+      familyBackground: "",
+      personalBackground: "",
       vaccines: [],
-      bloodType: '',
-      currentMedications: []
+      bloodType: "",
+      currentMedications: [],
     },
     originalItem: {
-      id: '',
-      familyBackground: '',
-      personalBackground: '',
+      id: "",
+      familyBackground: "",
+      personalBackground: "",
       vaccines: [],
-      bloodType: '',
-      currentMedications: []
+      bloodType: "",
+      currentMedications: [],
     },
     vaccineHeaders: [
-      { title: 'Nombre', value: 'name' },
-      { title: 'Fecha', value: 'date' },
-      { title: 'Lote', value: 'lot' },
-      { title: 'Acciones', value: 'actions', sortable: false },
+      { title: "Nombre", value: "name" },
+      { title: "Fecha", value: "date" },
+      { title: "Lote", value: "lot" },
+      { title: "Acciones", value: "actions", sortable: false },
     ],
     medicationHeaders: [
-      { title: 'Nombre', value: 'name' },
-      { title: 'Dosis', value: 'dose' },
-      { title: 'Frecuencia', value: 'frequency' },
-      { title: 'Acciones', value: 'actions', sortable: false },
+      { title: "Nombre", value: "name" },
+      { title: "Dosis", value: "dose" },
+      { title: "Frecuencia", value: "frequency" },
+      { title: "Acciones", value: "actions", sortable: false },
     ],
     vaccineDialog: false, // Controla el diálogo de vacunas
     medicationDialog: false, // Controla el diálogo de medicamentos
-    editedVaccine: { id: null, name: '', date: '', lot: '' }, // Vacuna en edición
-    editedMedication: { id: null, name: '', dose: '', frequency: '' }, // Medicamento en edición
-    vaccineFormTitle: 'Agregar Vacuna', // Título del diálogo de vacunas
-    medicationFormTitle: 'Agregar Medicamento', // Título del diálogo de medicamentos
+    editedVaccine: { id: null, name: "", date: "", lot: "" }, // Vacuna en edición
+    editedMedication: { id: null, name: "", dose: "", frequency: "" }, // Medicamento en edición
+    vaccineFormTitle: "Agregar Vacuna", // Título del diálogo de vacunas
+    medicationFormTitle: "Agregar Medicamento", // Título del diálogo de medicamentos
     editedIndex: -1,
-    search: '',
+    search: "",
     menu: false,
     input: null,
+    imageUrl: "",
+    name: "",
     nameRules: [
       (v) => !!v || "El campo es requerido",
-      (v) => (v && v.length <= 50) ||
-        "El campo debe tener menos de 51 caracteres",
-      (v) => (v && v.length >= 2) ||
-        "El campo debe tener al menos de 2 caracteres",
+      (v) => (v && v.length <= 50) || "El campo debe tener menos de 51 caracteres",
+      (v) => (v && v.length >= 2) || "El campo debe tener al menos de 2 caracteres",
     ],
     selectRules: [(v) => !!v || "Seleccionar al menos un elemento"],
   }),
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? 'Agregar Historia Clínica' : 'Editar Historia Clínica';
+      return this.editedIndex === -1
+        ? "Agregar Historia Clínica"
+        : "Editar Historia Clínica";
+    },
+    alertasHoy() {
+      return this.listaAlertas.length;
     },
 
     dateFormatted() {
@@ -361,16 +811,470 @@ export default {
     getDate() {
       return this.input ? new Date(this.input) : new Date();
     },
+   tools() {
+  return [
+    // 1. Diagnósticos (lo primero que se suele registrar)
+    {
+      name: this.$t("viewTitles.diagnosis"),
+      action: () => this.showAddDiagnosis()
+    },
+    
+    // 2. Antecedentes personales (historia clínica)
+    {
+      name: this.$t("viewTitles.personalBackground"),
+      action: () => this.showAddPerson()
+    },
+    
+    // 3. Antecedentes familiares (importantes para diagnóstico)
+    {
+      name: this.$t("viewTitles.familyBackground"),
+      action: () => this.showAddFamily()
+    },
+    
+    // 4. Exámenes físicos (evaluación inicial)
+    {
+      name: this.$t("viewTitles.physicalExams"),
+      action: () => this.showAddPhysicalExam()
+    },
+    
+    // 5. Exámenes médicos (complementarios)
+    {
+      name: this.$t("viewTitles.medicalExams"),
+      action: () => this.showAddExam()
+    },
+    
+    // 6. Tratamientos (lo último, después de tener diagnóstico)
+    {
+      name: this.$t("viewTitles.treatments"),
+      action: () => this.showAddTreatment()
+    },
+    
+    // 7. Consultas médicas (nuevo elemento)
+    {
+      name: this.$t("viewTitles.medicalConsultations"), // Asegúrate de añadir la traducción
+      action: () => this.showAddConsultations()
+    }
+  ];
+},
+    //card de signos vitales
+    signosVitalesTransformados() {
+      const signosConfig = {
+        bloodPressure: {
+          nombre: "Presión Arterial",
+          unidad: "mmHg",
+          icon: "mdi-heart-pulse",
+          color: "indigo-darken-2",
+          type: "physicalExam",
+        },
+        pulse: {
+          nombre: "Pulso",
+          unidad: "bpm",
+          icon: "mdi-heart",
+          color: "indigo-darken-2",
+          type: "physicalExam",
+        },
+        temperature: {
+          nombre: "Temperatura",
+          unidad: "°C",
+          icon: "mdi-thermometer",
+          color: "indigo-darken-2",
+          type: "physicalExam",
+        },
+        respiratoryRate: {
+          nombre: "Frecuencia Respiratoria",
+          unidad: "rpm",
+          icon: "mdi-lungs",
+          color: "indigo-darken-2",
+          type: "physicalExam",
+        },
+        weight: {
+          nombre: "Peso",
+          unidad: "kg",
+          icon: "mdi-scale-bathroom",
+          color: "indigo-darken-2",
+          type: "physicalExam",
+        },
+      };
+
+      const result = [];
+      const examData = this.physicalExam || {};
+
+      // Transformar cada propiedad relevante
+      Object.keys(signosConfig).forEach((key) => {
+        if (examData[key] !== null && examData[key] !== undefined) {
+          result.push({
+            ...signosConfig[key],
+            valor: examData[key],
+            fecha: examData.examDate || examData.exam_date,
+            originalKey: key,
+          });
+        }
+      });
+
+      // Añadir medicamentos si existen
+      /*if (this.person.currentMedications && this.person.currentMedications.length > 0) {
+        result.push({
+          nombre: 'Medicamentos Actuales',
+          valor: this.person.currentMedications.map(m => m.name).join(', '),
+          unidad: '',
+          icon: 'mdi-pill',
+          color: 'purple',
+          fecha: new Date().toISOString().split('T')[0],
+          originalKey: 'medications'
+        });
+      }*/
+
+      // Añadir medicamentos si existen (versión para objeto treatment)
+      if (this.treatment && this.treatment.medication) {
+        const medInfo = [
+          this.treatment.medication,
+          this.treatment.dosage,
+          this.treatment.frequency,
+        ]
+          .filter(Boolean)
+          .join(" - ");
+
+        result.push({
+          nombre: "Medicamento Actual",
+          valor: medInfo,
+          unidad: "",
+          icon: "mdi-pill",
+          color: "purple",
+          fecha: this.treatment.startDate || new Date().toISOString().split("T")[0],
+          originalKey: "medication",
+          type: "treatment",
+        });
+      }
+
+      return result;
+    },
+    examenesMedicosTransformados() {
+      // Mapeo de tipos a iconos (case insensitive)
+      const iconMapping = {
+        radiografia: { icon: "mdi-x-ray", color: "blue-grey-darken-1" },
+        hemograma: { icon: "mdi-flask", color: "blue-darken-1" },
+        "examen de orina": { icon: "mdi-flask-outline", color: "blue-darken-2" },
+        ultrasonido: { icon: "mdi-ultrasound", color: "green-darken-1" },
+        tomografia: { icon: "mdi-scanner", color: "deep-purple-darken-1" },
+        default: { icon: "mdi-file-document-outline", color: "grey-darken-1" },
+      };
+
+      return this.medicalExam.map((exam) => {
+        // Normalizamos el tipo a minúsculas y sin espacios extras
+        const examType = exam.type.toString().toLowerCase().trim();
+
+        // Buscamos coincidencia ignorando mayúsculas/minúsculas
+        const matchedType = Object.keys(iconMapping).find((key) =>
+          examType.includes(key.toLowerCase())
+        );
+
+        const iconInfo = matchedType ? iconMapping[matchedType] : iconMapping.default;
+
+        return {
+          id: exam.id,
+          nombre: exam.typeName || exam.examName || "Examen médico",
+          fecha: exam.date,
+          valor: exam.typeName,
+          unidad: "",
+          resultado: exam.results,
+          observaciones: exam.observations,
+          archivo: exam.archive,
+          ...iconInfo,
+        };
+      });
+    },
+    informacionMedicaTransformada() {
+      const informacionMedica = [];
+      const { person, backgroundPerson, backgroundFamily } = this;
+
+      // 1. Grupo sanguíneo
+      if (person?.bloodType || person?.blood_type) {
+        informacionMedica.push({
+          nombre: "Grupo Sanguíneo",
+          valor: person.bloodType || person.blood_type || "No especificado",
+          unidad: "",
+          icon: "mdi-water",
+          color: "grey-darken-1",
+          fecha: person.date || "No especificada",
+        });
+      }
+
+      // 2. Alergias
+      const alergias =
+        backgroundPerson?.filter(
+          (item) => item.type && item.type.toLowerCase().includes("alergia")
+        ) || [];
+
+      if (alergias.length > 0) {
+        const alergiasText = alergias.map((a) => a.description).join(", ");
+        informacionMedica.push({
+          nombre: "Alergias",
+          valor: alergiasText,
+          unidad: "",
+          icon: "mdi-alert-circle",
+          color: "deep-orange",
+          fecha: alergias[0]?.startDate || "No especificada",
+          type: 'backgroundPerson'
+        });
+      }
+
+      // 3. Antecedentes personales (excluyendo alergias)
+      const antecedentesPersonales =
+        backgroundPerson?.filter(
+          (item) => !item.type || !item.type.toLowerCase().includes("alergia")
+        ) || [];
+
+      if (antecedentesPersonales.length > 0) {
+        const antecedentesText = antecedentesPersonales
+          .map((a) => a.description)
+          .join(", ");
+        informacionMedica.push({
+          nombre: "Antecedentes Personales",
+          valor: antecedentesText,
+          unidad: "",
+          icon: "mdi-file-document-outline",
+          color: "deep-orange",
+          fecha: antecedentesPersonales[0]?.startDate || "No especificada",
+          type: 'backgroundPerson'
+        });
+      }
+
+      // 4. Antecedentes familiares
+      if (backgroundFamily?.length > 0) {
+        const familiaresText = backgroundFamily
+          .map((f) => `${f.relationship}: ${f.disease}`)
+          .join("; ");
+
+        informacionMedica.push({
+          nombre: "Antecedentes Familiares",
+          valor: familiaresText,
+          unidad: "",
+          icon: "mdi-family-tree",
+          color: "deep-orange",
+          fecha: backgroundFamily[0]?.date || "No especificada",
+          type: 'backgroundFamily'
+        });
+      }
+
+      return informacionMedica;
+    },
+    /*datosComplementariosTransformados() {
+      const complementarios = [];
+      const { physicalExam, backgroundPerson } = this;
+
+      // 1. Plan de Vacunación
+      const vacunas = backgroundPerson.filter(
+        (item) => item.type && item.type.toLowerCase().includes("vacunación")
+      );
+
+      if (vacunas.length > 0) {
+        const vacunasText = vacunas.map((v) => v.description).join(", ");
+        complementarios.push({
+          nombre: "Plan de Vacunación",
+          valor: vacunasText,
+          unidad: "",
+          icon: "mdi-needle",
+          color: "green-darken-1",
+          fecha:
+            vacunas[0]?.startDate ||
+            physicalExam?.exam_date ||
+            new Date().toISOString().split("T")[0],
+            type: "backgroundPerson"
+        }); 
+      }
+
+      // 2. Talla
+      if (physicalExam?.height) {
+        complementarios.push({
+          nombre: "Talla",
+          valor: parseFloat(physicalExam.height).toFixed(2),
+          unidad: "m",
+          icon: "mdi-human-male-height",
+          color: "grey-darken-1",
+          fecha: physicalExam?.exam_date || new Date().toISOString().split("T")[0],
+          type: "physicalExam",
+        });
+      }
+
+      // 3. IMC (usamos el calculado o calculamos si no existe)
+      if (physicalExam?.height) {
+        const imc =
+          physicalExam.bmi ||
+          (physicalExam.weight
+            ? (
+                parseFloat(physicalExam.weight) /
+                (parseFloat(physicalExam.height) * parseFloat(physicalExam.height))
+              ).toFixed(2)
+            : null);
+
+        if (imc) {
+          complementarios.push({
+            nombre: "IMC",
+            valor: imc,
+            unidad: "",
+            icon: "mdi-calculator-variant-outline",
+            color: this.getImcColor(imc), // Función para color según IMC
+            fecha: physicalExam?.exam_date || new Date().toISOString().split("T")[0],
+          type: "physicalExam",
+          });
+        }
+      }
+
+      return complementarios;
+    },*/
+    datosComplementariosTransformados() {
+    const complementarios = [];
+    const { physicalExam, backgroundPerson, diagnosis } = this; // Agregamos diagnosis
+
+    // 3. Talla (existente)
+    if (physicalExam?.height) {
+      complementarios.push({
+        nombre: "Talla",
+        valor: parseFloat(physicalExam.height).toFixed(2),
+        unidad: "m",
+        icon: "mdi-human-male-height",
+        color: "grey-darken-1",
+        fecha: physicalExam?.exam_date || new Date().toISOString().split("T")[0],
+        type: "physicalExam",
+      });
+    }
+
+    // 4. IMC (existente)
+    if (physicalExam?.height) {
+      const imc = physicalExam.bmi ||
+        (physicalExam.weight
+          ? (parseFloat(physicalExam.weight)) /
+            (parseFloat(physicalExam.height) * parseFloat(physicalExam.height))
+            .toFixed(2)
+          : null);
+
+      if (imc) {
+        complementarios.push({
+          nombre: "IMC",
+          valor: imc,
+          unidad: "",
+          icon: "mdi-calculator-variant-outline",
+          color: this.getImcColor(imc),
+          fecha: physicalExam?.exam_date || new Date().toISOString().split("T")[0],
+          type: "physicalExam",
+        });
+      }
+      
+    // 2. Plan de Vacunación (existente)
+    const vacunas = backgroundPerson.filter(
+      (item) => item.type && item.type.toLowerCase().includes("vacunación")
+    );
+
+    if (vacunas.length > 0) {
+      const vacunasText = vacunas.map((v) => v.description).join(", ");
+      complementarios.push({
+        nombre: "Plan de Vacunación",
+        valor: vacunasText,
+        unidad: "",
+        icon: "mdi-needle",
+        color: "green-darken-1",
+        fecha: vacunas[0]?.startDate || physicalExam?.exam_date || new Date().toISOString().split("T")[0],
+        type: "backgroundPerson"
+      }); 
+    }
+    // 1. Diagnóstico Principal
+    if (diagnosis?.typeName) {
+      complementarios.push({
+        nombre: "Diagnóstico",
+        valor: `${diagnosis.typeName} (${diagnosis.cie10Code || 'Sin código'})`,
+        detalle: diagnosis.description, // Agregamos descripción como detalle
+        unidad: "",
+        icon: "mdi-heart-pulse", // Icono médico
+        color: "red-darken-1", // Color distintivo para diagnósticos
+        fecha: diagnosis.date || new Date().toISOString().split("T")[0],
+        type: "diagnosis" // Nuevo tipo para identificar
+      });
+    }
+
+    }
+
+    return complementarios;
+  },
   },
   mounted() {
+    this.name = JSON.parse(LocalStorageService.getItem("name"));
+    this.imageUrl = LocalStorageService.getItem("image").replace(/['"]+/g, "");
     this.initialize();
   },
   methods: {
+    getImcColor(imc) {
+      const value = parseFloat(imc);
+      if (value < 18.5) return "blue"; // Bajo peso
+      if (value >= 18.5 && value < 25) return "green"; // Normal
+      if (value >= 25 && value < 30) return "orange"; // Sobrepeso
+      return "red"; // Obesidad
+    },
+    formatoFecha(fecha) {
+      if (!fecha) return "";
+
+      const d = new Date(fecha);
+      const locale = this.$i18n.locale;
+      const options = {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "UTC", // Forzar UTC
+      };
+
+      return d.toLocaleDateString(locale, options);
+    },
+    abrirModal(item) {
+      switch (item.type) {
+        case "physicalExam":
+          this.showAddPhysicalExam();
+          break;
+        case "treatment":
+          this.showAddTreatment();
+          break;
+        case "backgroundPerson":
+          this.showAddPerson();
+          break;
+        case "backgroundFamily":
+          this.showAddFamily();
+          break;
+        case "medicalExam":
+          this.showAddExam();
+          break;
+        case "diagnosis":
+          this.showAddDiagnosis();
+          break;
+        default:
+          this.signoSeleccionado = item;
+          this.nuevoValor = item.valor;
+          this.dialog = true;
+          break;
+      }
+    },
+    guardarValor() {
+      if (this.signoSeleccionado) {
+        this.signoSeleccionado.valor = this.nuevoValor;
+        this.signoSeleccionado.fecha = new Date().toISOString().slice(0, 10);
+      }
+      this.dialog = false;
+    },
     // Método para manejar la paginación
     updatePage(page) {
       this.page = page;
-      this.initialize();  // Recarga los almacenes con la nueva página
+      this.initialize(); // Recarga los almacenes con la nueva página
     },
+
+    /*formatoFecha(fecha) {
+      const d = new Date(fecha)
+      return d.toLocaleDateString('es-CL', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    },*/
 
     updateDate(val) {
       this.input = val;
@@ -380,7 +1284,7 @@ export default {
     // Método para manejar el cambio de elementos por página
     updateItemsPerPage(itemsPerPage) {
       this.itemsPerPage = itemsPerPage;
-      this.initialize();  // Recarga los almacenes con el nuevo número de elementos por página
+      this.initialize(); // Recarga los almacenes con el nuevo número de elementos por página
     },
     showAdd() {
       this.dialog = true;
@@ -394,87 +1298,109 @@ export default {
       });
       this.editedIndex = -1;
     },
-    addVaccine() {
-      this.editedVaccine = { id: null, name: '', date: '', lot: '' };
-      this.vaccineFormTitle = 'Agregar Vacuna';
+    /*addVaccine() {
+      this.editedVaccine = { id: null, name: "", date: "", lot: "" };
+      this.vaccineFormTitle = "Agregar Vacuna";
       this.vaccineDialog = true;
     },
     editVaccine(vaccine) {
       this.editedVaccine = { ...vaccine };
-      this.vaccineFormTitle = 'Editar Vacuna';
+      this.vaccineFormTitle = "Editar Vacuna";
       this.vaccineDialog = true;
     },
     deleteVaccine(vaccine) {
-      this.editedItem.vaccines = this.editedItem.vaccines.filter(v => v.id !== vaccine.id);
-    },
-    saveVaccine() {
+      this.editedItem.vaccines = this.editedItem.vaccines.filter(
+        (v) => v.id !== vaccine.id
+      );
+    },*/
+    /*saveVaccine() {
       if (this.editedVaccine.id === null) {
         this.editedVaccine.id = this.editedItem.vaccines.length + 1;
-        this.editedVaccine.date = this.editedVaccine.date ? this.editedVaccine.date : new Date().toISOString().split('T')[0];
+        this.editedVaccine.date = this.editedVaccine.date
+          ? this.editedVaccine.date
+          : new Date().toISOString().split("T")[0];
         this.editedItem.vaccines.push(this.editedVaccine);
       } else {
-        const index = this.editedItem.vaccines.findIndex(v => v.id === this.editedVaccine.id);
+        const index = this.editedItem.vaccines.findIndex(
+          (v) => v.id === this.editedVaccine.id
+        );
         this.editedItem.vaccines.splice(index, 1, this.editedVaccine);
       }
       this.closeVaccineDialog();
     },
     closeVaccineDialog() {
       this.vaccineDialog = false;
-    },
+    },*/
 
     // Métodos para medicamentos
-    addMedication() {
-      this.editedMedication = { id: null, name: '', dose: '', frequency: '' };
-      this.medicationFormTitle = 'Agregar Medicamento';
+    /*addMedication() {
+      this.editedMedication = { id: null, name: "", dose: "", frequency: "" };
+      this.medicationFormTitle = "Agregar Medicamento";
       this.medicationDialog = true;
     },
     editMedication(medication) {
       this.editedMedication = { ...medication };
-      this.medicationFormTitle = 'Editar Medicamento';
+      this.medicationFormTitle = "Editar Medicamento";
       this.medicationDialog = true;
     },
     deleteMedication(medication) {
-      this.editedItem.currentMedications = this.editedItem.currentMedications.filter(m => m.id !== medication.id);
+      this.editedItem.currentMedications = this.editedItem.currentMedications.filter(
+        (m) => m.id !== medication.id
+      );
     },
     saveMedication() {
       if (this.editedMedication.id === null) {
         this.editedMedication.id = this.editedItem.currentMedications.length + 1;
         this.editedItem.currentMedications.push(this.editedMedication);
       } else {
-        const index = this.editedItem.currentMedications.findIndex(m => m.id === this.editedMedication.id);
+        const index = this.editedItem.currentMedications.findIndex(
+          (m) => m.id === this.editedMedication.id
+        );
         this.editedItem.currentMedications.splice(index, 1, this.editedMedication);
       }
       this.closeMedicationDialog();
     },
     closeMedicationDialog() {
       this.medicationDialog = false;
-    },
+    },*/
     async initialize() {
       this.data = {};
       try {
         this.loading = true;
         const result = await handleRequest({
-          endpoint: 'get-medical-histories',
-          method: 'POST'
+          endpoint: "person-profile",
+          method: "GET",
         });
 
         if (result.success) {
           // Si la solicitud es exitosa, asignamos las sucursales
-          this.medicalhistories = result.data?.medicalHistories || [];
+          this.person = result.data?.person || {};
+          this.physicalExam = result.data?.physicalExam || {};
+          this.treatment = result.data?.treatment || {};
+          this.medicalExam = result.data?.medicalExam || [];
+          this.backgroundPerson = result.data?.backgroundPerson || [];
+          this.backgroundFamily = result.data?.backgroundFamily || [];
+          this.diagnosis = result.data?.diagnosis || {};
         } else {
           // Si no hay datos, asignamos un array vacío
-          this.medicalhistories = [];
+          this.person = {};
+          this.physicalExam = {};
+          this.treatment = {};
+          this.diagnosis = {};
+          this.medicalExam = [];
+          this.backgroundPerson = [];
+          this.backgroundFamily = [];
         }
       } catch (error) {
         this.loading = false;
         // Captura de errores no controlados
-        this.showAlert('error', 'Ocurrió un error inesperado al cargar los roles.', 3000);
+        this.showAlert("error", "Ocurrió un error inesperado al cargar los roles.", 3000);
       } finally {
         this.loading = false;
       }
     },
     async save() {
-      this.data = {}
+      this.data = {};
       this.loading = true;
       if (this.editedIndex === -1) {
         this.valid = false;
@@ -485,9 +1411,9 @@ export default {
         this.data.currentMedications = this.editedItem.currentMedications;
         try {
           const result = await handleRequest({
-            endpoint: 'history-medical',
-            method: 'POST',
-            data: this.data
+            endpoint: "history-medical",
+            method: "POST",
+            data: this.data,
           });
 
           // Manejo de la respuesta según el resultado
@@ -501,18 +1427,31 @@ export default {
         } catch (error) {
           this.loading = false;
           // Este bloque captura errores inesperados fuera del manejo estándar
-          this.showAlert("error", "Ocurrió un error inesperado al procesar la solicitud.", 3000);
+          this.showAlert(
+            "error",
+            "Ocurrió un error inesperado al procesar la solicitud.",
+            3000
+          );
         } finally {
           this.loading = false;
         }
       } else {
-        const fieldsToUpdate = ['id', 'familyBackground', 'personalBackground', 'bloodType', 'vaccines', 'currentMedications'];
+        const fieldsToUpdate = [
+          "id",
+          "familyBackground",
+          "personalBackground",
+          "bloodType",
+          "vaccines",
+          "currentMedications",
+        ];
         let updatedFields = Object.keys(this.editedItem)
-          .filter((key) => fieldsToUpdate.includes(key) && (
-            key !== 'vaccines' && key !== 'currentMedications' // Si no es un array, comparar directamente
-              ? this.editedItem[key] !== this.originalItem[key]
-              : this.areArraysDifferent(this.originalItem[key], this.editedItem[key]) // Comparar arrays
-          ))
+          .filter(
+            (key) =>
+              fieldsToUpdate.includes(key) &&
+              (key !== "vaccines" && key !== "currentMedications" // Si no es un array, comparar directamente
+                ? this.editedItem[key] !== this.originalItem[key]
+                : this.areArraysDifferent(this.originalItem[key], this.editedItem[key])) // Comparar arrays
+          )
           .reduce((obj, key) => {
             obj[key] = this.editedItem[key]; // Agregar el campo al objeto de campos actualizados
             return obj;
@@ -522,9 +1461,9 @@ export default {
           this.loading = true;
           try {
             const result = await handleRequest({
-              endpoint: 'history-medical',
-              method: 'PUT',
-              data: updatedFields
+              endpoint: "history-medical",
+              method: "PUT",
+              data: updatedFields,
             });
 
             // Manejo de la respuesta según el resultado
@@ -538,7 +1477,11 @@ export default {
           } catch (error) {
             this.loading = false;
             // Este bloque captura errores inesperados fuera del manejo estándar
-            this.showAlert("error", "Ocurrió un error inesperado al procesar la solicitud.", 3000);
+            this.showAlert(
+              "error",
+              "Ocurrió un error inesperado al procesar la solicitud.",
+              3000
+            );
           }
         } else {
           this.loading = false;
@@ -568,21 +1511,21 @@ export default {
       this.dialogDelete = true;
     },
     closeDelete() {
-      this.dialogDelete = false
+      this.dialogDelete = false;
       this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem)
-      })
+        this.editedItem = Object.assign({}, this.defaultItem);
+      });
     },
     async deleteItemConfirm() {
       this.loading = true;
       try {
         let request = {
-          id: this.editedItem.id
+          id: this.editedItem.id,
         };
         const result = await handleRequest({
-          endpoint: 'history-medical-destroy',
-          method: 'POST',
-          data: request
+          endpoint: "history-medical-destroy",
+          method: "POST",
+          data: request,
         });
 
         // Manejo de la respuesta según el resultado
@@ -594,7 +1537,11 @@ export default {
         }
       } catch (error) {
         // Este bloque captura errores inesperados fuera del manejo estándar
-        this.showAlert("error", "Ocurrió un error inesperado al procesar la solicitud.", 3000);
+        this.showAlert(
+          "error",
+          "Ocurrió un error inesperado al procesar la solicitud.",
+          3000
+        );
       } finally {
         this.loading = false;
         this.closeDelete();
@@ -621,10 +1568,80 @@ export default {
       this.sb_timeout = sb_timeout;
       this.snackbar = true;
     },
+
+    //Exámenes Físicos
+    showAddPhysicalExam() {
+      this.dialogPhysicalExam = true; // Abrimos el diálogo
+    },
+    closeDialogPhysicalExam() {
+      this.dialogPhysicalExam = false; // Cerramos el diálogo
+      this.initialize();
+    },
+    //Tratamientos
+    showAddTreatment() {
+      this.dialogTreatment = true; // Abrimos el diálogo
+    },
+    closeDialogTreatment() {
+      this.dialogTreatment = false; // Cerramos el diálogo
+      this.initialize();
+    },
+    //Antecedentes personales
+    showAddPerson() {
+      this.dialogPerson = true; // Abrimos el diálogo
+    },
+    closeDialogPerson() {
+      this.dialogPerson = false; // Cerramos el diálogo
+      this.initialize();
+    },
+    //Antecedentes personales
+    showAddFamily() {
+      this.dialogFamily = true; // Abrimos el diálogo
+    },
+    closeDialogFamily() {
+      this.dialogFamily = false; // Cerramos el diálogo
+      this.initialize();
+    },
+    //Examenes medicos
+    showAddExam() {
+      this.dialogExams = true; // Abrimos el diálogo
+    },
+    closeDialogExadialogExams() {
+      this.dialogExams = false; // Cerramos el diálogo
+      this.initialize();
+    },
+    //Diagnosticos
+    showAddDiagnosis() {
+      this.dialogDiagnosis = true; // Abrimos el diálogo
+    },
+    closeDialogDiagnosis() {
+      this.dialogDiagnosis = false; // Cerramos el diálogo
+      this.initialize();
+    },
+    //Diagnosticos
+    showAddConsultations() {
+      this.dialogConsultations = true; // Abrimos el diálogo
+    },
+    closeDialogConsultations() {
+      this.dialogConsultations = false; // Cerramos el diálogo
+      this.initialize();
+    },
   },
 };
 </script>
 <style scoped>
+.v-btn {
+  flex-shrink: 0;
+}
+
+/* Espaciado entre elementos */
+.gap-1 {
+  gap: 4px;
+}
+.tools-bar {
+  overflow-x: auto;
+  white-space: nowrap;
+  gap: 8px;
+}
 /* Estilos para personalizar el scroll */
 .v-list {
   scrollbar-width: thin;
@@ -634,7 +1651,7 @@ export default {
 }
 
 .selected-tab {
-  background-color: #03626C;
+  background-color: #03626c;
   /* Fondo del tab seleccionado */
   color: white;
   /* Texto blanco */
@@ -657,5 +1674,26 @@ export default {
 .v-list::-webkit-scrollbar-track {
   background-color: #f1f1f1;
   /* Color del track */
+}
+
+.text-h6 {
+  font-size: 1.2rem;
+}
+
+.signo-card {
+  transition: 0.2s ease-in-out;
+}
+
+.signo-card .text-truncate {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.signo-card:hover {
+  transform: scale(1.01);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
 }
 </style>

@@ -60,7 +60,7 @@
                     <v-container>
                         <v-row>
                             <v-col cols="12" md="12">
-                                <v-text-field v-model="editedItem.result" label="Resultado" prepend-icon="mdi-note"
+                                <v-text-field v-model="editedItem.results" label="Resultado" prepend-icon="mdi-note"
                                     variant="underlined"></v-text-field>
                             </v-col>
                             <v-col cols="12" md="6">
@@ -212,7 +212,7 @@ export default {
             id: '',
             person_id: '',
             date: '',
-            result: '',
+            results: '',
             archive: '',
             type_id: ''
         },
@@ -220,7 +220,7 @@ export default {
             id: '',
             person_id: '',
             date: '',
-            result: '',
+            results: '',
             archive: '',
             type_id: ''
         },
@@ -228,7 +228,7 @@ export default {
             id: '',
             person_id: '',
             date: '',
-            result: '',
+            results: '',
             archive: '',
             type_id: ''
         },

@@ -179,26 +179,26 @@
         </v-menu>
       </v-btn>
       <!-- Botón de Configuración -->
-<v-btn icon variant="text" class="mr-2" style="color: #FFC0CB; border: 2px solid #FFF;">
-  <v-menu v-model="menuSettings" :close-on-content-click="false" offset-y min-width="200px" content-class="rounded-menu">
-    <template v-slot:activator="{ props }">
-      <v-icon 
-        size="x-large" 
-        style="color: #FFC0CB;" 
-        icon="mdi-cog-outline"
-        v-bind="props"
-      ></v-icon>
-    </template>
-    <v-list density="compact">
-      <v-list-item v-for="(item, i) in settingsItems" :key="i" @click="$router.push(item.to)">
-        <template v-slot:prepend>
-          <v-icon :icon="item.icon" size="small"></v-icon>
-        </template>
-        <v-list-item-title class="text-body-1">{{ $t(`settings.${item.to.replace('/', '')}`) }}</v-list-item-title>
-      </v-list-item>
-    </v-list>
-  </v-menu>
-</v-btn>
+      <v-btn icon variant="text" class="mr-2" style="color: #FFC0CB; border: 2px solid #FFF;">
+        <v-menu v-model="menuSettings" offset-y min-width="200px" content-class="rounded-menu">
+          <template v-slot:activator="{ props }">
+            <v-icon 
+              size="x-large" 
+              style="color: #FFC0CB;" 
+              icon="mdi-cog-outline"
+              v-bind="props"
+            ></v-icon>
+          </template>
+          <v-list density="compact">
+            <v-list-item v-for="(item, i) in settingsItems" :key="i" @click="$router.push(item.to)">
+              <template v-slot:prepend>
+                <v-icon :icon="item.icon" size="small"></v-icon>
+              </template>
+              <v-list-item-title class="text-body-1">{{ $t(`settings.${item.to.replace('/', '')}`) }}</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </v-btn>
       <!-- Menú desplegable activado por avatar -->
       <v-menu>
         <template v-slot:activator="{ props }">

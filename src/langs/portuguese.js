@@ -4,6 +4,23 @@ const portuguese = {
     chat: {
       initialMessage: "Olá 👋 Como posso te ajudar hoje, {name}?",
     },
+    vitalSigns: "Sinais Vitais",
+    medicalInformation: "Informação Médica",
+    complementaryData: "Dados Complementares",
+    medicalExamsTitle: "Exames Médicos",
+    vitalSignsnoData:
+      "Você não atualizou os dados dos sinais vitais e tratamentos",
+    medicalInfonoData: "Nenhuma informação médica foi definida",
+    complementaryDatanoData:
+      "As informações complementares não foram atualizadas",
+    medicalExamsnoData: "Nenhum exame médico foi realizado",
+    cardMedicamento: "Medicação Atual",
+    cardAlergias: "Alergias",
+    cardAntecedentesPersonales: "Histórico Pessoal",
+    cardAntecedentesFamiliares: "Histórico Familiar",
+    cardPlanVacunacion: "Plano de Vacinação",
+    cardDiagnostico: "Diagnóstico",
+    cardConsultaMedica: "Consulta Médica",
     menu: {
       desire: {
         title: "Desejos",
@@ -47,6 +64,8 @@ const portuguese = {
       medicalExams: "Exames Médicos",
       diagnosis: "Diagnósticos",
       medicalConsultations: "Consultas Médicas",
+      incomes: "Receitas",
+      expenses: "Despesas",
     },
     settings: {
       category: "Categorias",
@@ -469,6 +488,171 @@ const portuguese = {
           invalid: "A data não é válida",
         },
       },
+    },
+    personManagement: {
+      formInstructions:
+        "Preencha todos os campos obrigatórios para registrar as informações da pessoa",
+      edit_title: "Editar Pessoa",
+      create_title: "Nova Pessoa",
+      no_changes: "Nenhuma alteração foi feita",
+      save_error: "Erro ao salvar as informações",
+      steps: {
+        basic_info: {
+          title: "Informações Básicas",
+          subtitle: "Dados principais da pessoa",
+        },
+        personal_info: {
+          title: "Informações Pessoais",
+          subtitle: "Detalhes pessoais e contato",
+        },
+        medical_info: {
+          title: "Informações Médicas",
+          subtitle: "Dados médicos e documentação",
+        },
+      },
+      fields: {
+        profile_image: "Imagem de perfil",
+        name: "Nome completo",
+        username: "Nome de usuário",
+        password: "Senha",
+        language: "Idioma",
+        birth_date: "Data de nascimento",
+        age: "Idade",
+        gender: "Gênero",
+        emergency_contact: "Contato de emergência",
+        email: "E-mail",
+        phone: "Telefone",
+        address: "Endereço",
+        medical_record_number: "Número do prontuário médico",
+        document_type: "Tipo de documento",
+        document_number: "Número do documento",
+        health_coverage: "Cobertura de saúde",
+        coverage_name: "Nome da cobertura",
+        blood_type: "Tipo sanguíneo",
+      },
+      genders: {
+        male: "Masculino",
+        female: "Feminino",
+        other: "Outro",
+      },
+      documentTypes: {
+        id: "RG",
+        passport: "Passaporte",
+        driver_license: "Carteira de motorista",
+      },
+      healthCoverages: {
+        public: "Pública",
+        private: "Privada",
+        none: "Nenhuma",
+      },
+      validation: {
+        name_required: "O nome é obrigatório",
+        email_valid: "O e-mail deve ser válido",
+        image_size: "A imagem deve ser menor que 500KB",
+      },
+    },
+    finances: {
+      formInstructions: {
+        income: "Preencha todos os campos do registro de receitas",
+        expense: "Preencha todos os campos do registro de despesas",
+        finance: "Preencha todos os campos do registro financeiro",
+      },
+      steps: {
+        financialDetails: {
+          title: "Detalhes Financeiros",
+          subtitle: "Informações básicas do registro",
+        },
+        description: {
+          title: "Descrição",
+          subtitle: "Detalhes adicionais",
+        },
+      },
+      fields: {
+        type: "Tipo de Transação",
+        method: "Método de Pagamento",
+        income: "Receita",
+        spent: "Despesa",
+        description: "Descrição",
+        date: "Data",
+        file: "Comprovante",
+        attach_file: "Anexar Comprovante",
+      },
+      actions: {
+        viewFile: "Ver Comprovante",
+        downloadFile: "Baixar",
+      },
+      titles: {
+        new: {
+          income: "Adicionar Receita",
+          expense: "Adicionar Despesa",
+          finance: "Adicionar Registro Financeiro",
+        },
+        edit: {
+          income: "Editar Receita",
+          expense: "Editar Despesa",
+          finance: "Editar Registro Financeiro",
+        },
+        view: {
+          income: "Registros de Receitas",
+          expense: "Registros de Despesas",
+          finance: "Registros Financeiros",
+        },
+      },
+      validationMessages: {
+        type: {
+          required: "O tipo é obrigatório",
+          maxLength: "O tipo não pode exceder 50 caracteres",
+        },
+        method: {
+          maxLength: "O método não pode exceder 50 caracteres",
+        },
+        income: {
+          number: "A receita deve ser um número",
+          precision: "A receita deve ter no máximo 2 casas decimais",
+        },
+        spent: {
+          number: "A despesa deve ser um número",
+          precision: "A despesa deve ter no máximo 2 casas decimais",
+        },
+        description: {
+          maxLength: "A descrição não pode exceder 255 caracteres",
+        },
+        date: {
+          required: "A data é obrigatória",
+          invalid: "A data deve ser válida",
+        },
+        file: {
+          invalidType: "Apenas imagens (PNG, JPG) são permitidas",
+          sizeExceeded: "O tamanho do arquivo deve ser menor que 500KB",
+        },
+      },
+      notRecorded: "Sem registro",
+      noRecords: "Nenhum registro financeiro encontrado",
+      header: {
+        title: "Finanças Domésticas",
+        subtitle: "Controle familiar de receitas e despesas",
+      },
+      suggestions: {
+        title: "Sugestões Inteligentes",
+        alerts: {
+          message: "Você tem {count} alerta para hoje",
+          message_plural: "Você tem {count} alertas para hoje",
+        },
+      },
+      comparison: {
+        lastMonth: "Mês passado",
+        thisMonth: "Este mês",
+        vs: "vs {amount}",
+      },
+      sections: {
+        balance: "Saldo",
+        movements: "Movimentações",
+        suggestions: "Sugestões",
+      },
+      currentAmount: "<strong>{amount}</strong> atual",
+    },
+    summary: {
+      title: "Resumo de",
     },
   },
 };

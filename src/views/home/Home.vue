@@ -839,7 +839,6 @@ export default {
           // Asignar la imagen cargada a imgMiniatura
           this.imgMiniatura = `${this.$axios.defaults.baseURL}images/${item.image}`;
         } catch (error) {
-          console.error('Error al cargar la imagen', error);
           this.showAlert('error', 'Error al cargar la imagen.', 3000);
         }
       };

@@ -944,6 +944,7 @@ export default {
       // Asignar a originalItem y editedItem solo las personas seleccionadas
       this.originalItem = Object.assign({}, item);
       this.editedItem = Object.assign({}, item);
+      this.input = new Date(item.exam_date);
       /*this.data = {};
       try {
         const result = await handleRequest({

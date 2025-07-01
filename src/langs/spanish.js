@@ -4,6 +4,25 @@ const spanish = {
     chat: {
       initialMessage: "Hola 👋 ¿En qué te puedo ayudar hoy, {name}?",
     },
+    vitalSigns: "Signos Vitales",
+    medicalInformation: "Información Médica",
+    complementaryData: "Datos Complementarios",
+    medicalExamsTitle: "Exámenes Médicos",
+    vitalSignsnoData:
+      "No ha actualizado los datos de los signos vitales y tratamientos",
+    medicalInfonoData: "No se ha definido información médica",
+    complementaryDatanoData:
+      "No se ha actualizado la información de los datos complementarios",
+    medicalExamsnoData: "No se ha realizado exámenes médicos",
+    cardMedicamento: "Medicamento Actual",
+    cardAlergias: "Alergias",
+    cardAntecedentesPersonales: "Antecedentes Personales",
+    cardAntecedentesFamiliares: "Antecedentes Familiares",
+    cardPlanVacunacion: "Plan de Vacunación",
+    cardDiagnostico: "Diagnóstico",
+    cardConsultaMedica: "Consulta Médica",
+    incomes: "Ingresos",
+    expenses: "Gastos",
     menu: {
       desire: {
         title: "Deseos",
@@ -46,7 +65,7 @@ const spanish = {
       familyBackground: "Antecedentes Familiares",
       medicalExams: "Exámenes Médicos",
       diagnosis: "Diagnósticos",
-      medicalConsultations: "Consultas Médicas",
+      consultations: "Consultas Médicas",
     },
     settings: {
       category: "Categorías",
@@ -471,6 +490,171 @@ const spanish = {
           invalid: "La fecha no es válida",
         },
       },
+    },
+    personManagement: {
+      formInstructions:
+        "Complete todos los campos requeridos para registrar la información de la persona",
+      edit_title: "Editar Persona",
+      create_title: "Nueva Persona",
+      no_changes: "No se realizaron cambios",
+      save_error: "Error al guardar la información",
+      steps: {
+        basic_info: {
+          title: "Información Básica",
+          subtitle: "Datos principales de la persona",
+        },
+        personal_info: {
+          title: "Información Personal",
+          subtitle: "Detalles personales y contacto",
+        },
+        medical_info: {
+          title: "Información Médica",
+          subtitle: "Datos médicos y documentación",
+        },
+      },
+      fields: {
+        profile_image: "Imagen de perfil",
+        name: "Nombre completo",
+        username: "Nombre de usuario",
+        password: "Contraseña",
+        language: "Idioma",
+        birth_date: "Fecha de nacimiento",
+        age: "Edad",
+        gender: "Género",
+        emergency_contact: "Contacto de emergencia",
+        email: "Correo electrónico",
+        phone: "Teléfono",
+        address: "Dirección",
+        medical_record_number: "Número de historial médico",
+        document_type: "Tipo de documento",
+        document_number: "Número de documento",
+        health_coverage: "Cobertura de salud",
+        coverage_name: "Nombre de la cobertura",
+        blood_type: "Tipo de sangre",
+      },
+      genders: {
+        male: "Masculino",
+        female: "Femenino",
+        other: "Otro",
+      },
+      documentTypes: {
+        id: "Cédula",
+        passport: "Pasaporte",
+        driver_license: "Licencia de conducir",
+      },
+      healthCoverages: {
+        public: "Pública",
+        private: "Privada",
+        none: "Ninguna",
+      },
+      validation: {
+        name_required: "El nombre es requerido",
+        email_valid: "El correo electrónico debe ser válido",
+        image_size: "La imagen debe ser menor a 500KB",
+      },
+    },
+    finances: {
+      formInstructions: {
+        income: "Complete todos los campos del registro de ingresos",
+        expense: "Complete todos los campos del registro de gastos",
+        finance: "Complete todos los campos del registro financiero", // General por si acaso
+      },
+      steps: {
+        financialDetails: {
+          title: "Detalles Financieros",
+          subtitle: "Información básica del registro",
+        },
+        description: {
+          title: "Descripción",
+          subtitle: "Detalles adicionales",
+        },
+      },
+      fields: {
+        type: "Tipo de Transacción",
+        method: "Método de Pago",
+        income: "Ingreso",
+        spent: "Gasto",
+        description: "Descripción",
+        date: "Fecha",
+        file: "Comprobante",
+        attach_file: "Adjuntar Comprobante",
+      },
+      actions: {
+        viewFile: "Ver Comprobante",
+        downloadFile: "Descargar",
+      },
+      titles: {
+        new: {
+          income: "Agregar Ingreso",
+          expense: "Agregar Gasto",
+          finance: "Agregar Registro Financiero",
+        },
+        edit: {
+          income: "Editar Ingreso",
+          expense: "Editar Gasto",
+          finance: "Editar Registro Financiero",
+        },
+        view: {
+          income: "Registros de Ingresos",
+          expense: "Registros de Gastos",
+          finance: "Registros Financieros",
+        },
+      },
+      validationMessages: {
+        type: {
+          required: "El tipo es requerido",
+          maxLength: "El tipo no puede exceder 50 caracteres",
+        },
+        method: {
+          maxLength: "El método no puede exceder 50 caracteres",
+        },
+        income: {
+          number: "El ingreso debe ser un número",
+          precision: "El ingreso debe tener máximo 2 decimales",
+        },
+        spent: {
+          number: "El gasto debe ser un número",
+          precision: "El gasto debe tener máximo 2 decimales",
+        },
+        description: {
+          maxLength: "La descripción no puede exceder 255 caracteres",
+        },
+        date: {
+          required: "La fecha es obligatoria",
+          invalid: "La fecha debe ser válida",
+        },
+        file: {
+          invalidType: "Solo se permiten imágenes (PNG, JPG)",
+          sizeExceeded: "El tamaño del archivo debe ser menor a 500KB",
+        },
+      },
+      notRecorded: "Sin registro",
+      noRecords: "No se encontraron registros financieros",
+      header: {
+        title: "Finanzas del Hogar",
+        subtitle: "Control familiar de ingresos y gastos",
+      },
+      suggestions: {
+        title: "Sugerencias Inteligentes",
+        alerts: {
+          message: "Tienes {count} alerta para hoy",
+          message_plural: "Tienes {count} alertas para hoy",
+        },
+      },
+      comparison: {
+        lastMonth: "Mes pasado",
+        thisMonth: "Este mes",
+        vs: "vs {amount}",
+      },
+      sections: {
+        balance: "Balance",
+        movements: "Movimientos",
+        suggestions: "Sugerencias",
+      },
+      currentAmount: "<strong>{amount}</strong> actual",
+    },
+    summary: {
+      title: "Resumen de",
     },
   },
 };

@@ -11,338 +11,896 @@
       </v-col>
     </v-row>
   </v-snackbar>  
-  <!--<v-container style="min-width: 100%; min-height: 100%;">-->
-    <v-card elevation="6" class="mx-2">
-      <v-toolbar color="#03626C">
-        <v-row align="center">
-          <v-col cols="12" md="8" class="grow ml-4">
-            <span class="text-subtitle-1"><strong>Finanzas</strong></span>
+  <v-container>
+    <v-card class="pa-4" elevation="4" rounded="lg">
+      <!-- Encabezado con foto y datos -->
+      <v-card-text>
+        <v-row class="mb-4" align="center" no-gutters>
+          <!-- Columna ícono + texto título: ocupando un ancho fijo o proporcional -->
+          <v-col cols="12" sm="9" md="9" class="d-flex align-center">
+            <v-avatar size="48" class="me-3" color="grey-lighten-4" variant="tonal">
+              <v-icon color="green-darken-2">mdi-finance</v-icon>
+            </v-avatar>
+            <div>
+              <div class="text-h6 font-weight-bold mb-1">{{ $t('finances.header.title') }}</div>
+              <div class="text-body-2 text-grey-darken-1">
+                {{ $t('finances.header.subtitle') }}
+              </div>
+            </div>
           </v-col>
-          <v-col cols="12" md="3" class="text-right">
-            <v-btn class="text-subtitle-1 ml-12" color="white" variant="tonal" elevation="2"
-              prepend-icon="mdi-plus-circle" @click="showAdd">
-              Agregar Finanza
-            </v-btn>
+
+          <!-- Columna de la tarjeta de sugerencia -->
+          <v-col cols="12" sm="3" md="3">
+            <v-card class="pa-3 d-flex align-center" elevation="1" rounded="lg">
+              <v-avatar size="40" class="me-3" color="purple-lighten-4" variant="tonal">
+                <v-icon color="purple">mdi-lightbulb-on-outline</v-icon>
+              </v-avatar>
+              <div>
+                <div class="text-body-2 font-weight-medium">{{ $t('finances.suggestions.title') }}</div>
+                <div class="text-caption text-grey-darken-1">
+                  {{ $t('finances.suggestions.alerts.message', alertasHoy, { count: alertasHoy }) }}
+                </div>
+              </div>
+            </v-card>
+          </v-col>
+
+          <v-menu offset-y location="right">
+            <template #activator="{ props }">
+              <v-btn
+                v-bind="props"
+                icon
+                size="large"
+                color="purple"
+                class="ma-4"
+                elevation="6"
+                style="position: fixed; top: 40px; right: 260px"
+              >
+                <v-icon size="32">mdi-plus</v-icon>
+              </v-btn>
+            </template>
+
+            <v-list rounded="lg">
+              <v-list-item @click="this.showAddIncome()">
+                <v-list-item-title class="text-green">
+                  <v-icon start color="green">mdi-plus</v-icon>
+                  {{ $t('finances.titles.new.income') }}
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-item @click="showAddSpent()">
+                <v-list-item-title class="text-red">
+                  <v-icon start color="red">mdi-minus</v-icon>
+                  {{ $t('finances.titles.new.expense') }}
+                </v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+        </v-row>
+
+        <v-divider class="my-4" />
+        <div class="text-body-2 font-weight-medium mb-2">{{ $t('summary.title') }} {{ formattedCurrentMonth }}</div>
+        <v-row dense>
+          <v-col cols="12" sm="3" md="3">
+            <v-card class="pa-3 d-flex align-center" elevation="1" rounded="lg" @click="showIncome()">
+        <v-avatar size="40" class="me-3" :color="`${income.color}-lighten-4`" variant="tonal">
+          <v-icon :color="income.color">{{ income.icon }}</v-icon>
+        </v-avatar>
+        <div>
+          <div class="text-body-2 font-weight-medium"> {{ $t('finances.fields.income') }}</div>
+          <div class="text-subtitle-2">
+            <strong :class="`text-${income.color}`">${{ formatCurrency(income.current) }}</strong>
+            <span v-if="parseFloat(income.percentage) > 0"> (+{{ income.percentage }}%)</span>
+            <span v-else-if="parseFloat(income.percentage) < 0"> ({{ income.percentage }}%)</span>
+          </div>
+          <div class="text-caption text-grey-darken-1">
+            vs <strong>${{ formatCurrency(income.lastMonth) }}</strong> {{ $t('finances.comparison.lastMonth') }}
+          </div>
+        </div>
+      </v-card>
+          </v-col>
+
+          <v-col cols="12" sm="3" md="3">
+            <v-card class="pa-3 d-flex align-center" elevation="1" rounded="lg" @click="showSpent()">
+              <v-avatar size="40" class="me-3" :color="`${spent.color}-lighten-4`" variant="tonal">
+          <v-icon :color="spent.color">{{ spent.icon }}</v-icon>
+        </v-avatar>
+              <div>
+                <div class="text-body-2 font-weight-medium">{{ $t('finances.fields.spent') }}</div>
+               <div class="text-subtitle-2">
+            <strong :class="`text-${spent.color}`">${{ formatCurrency(spent.current) }}</strong>
+            <span v-if="parseFloat(spent.percentage) > 0"> (+{{ spent.percentage }}%)</span>
+            <span v-else-if="parseFloat(spent.percentage) < 0"> ({{ spent.percentage }}%)</span>
+          </div>
+          <div class="text-caption text-grey-darken-1">
+            vs <strong>${{ formatCurrency(spent.lastMonth) }}</strong> {{ $t('finances.comparison.lastMonth') }}
+          </div>
+              </div>
+            </v-card>
+          </v-col>
+
+          <v-col cols="12" sm="3" md="3">
+            <v-card class="pa-3 d-flex align-center" elevation="1" rounded="lg">
+              <v-avatar size="40" class="me-3" :color="`${balance.color}`" variant="tonal">
+                <v-icon :color="balance.color">{{ balance.icon }}</v-icon>
+              </v-avatar>
+              <div>
+                <div class="text-body-2 font-weight-medium">{{ $t('finances.sections.balance') }}</div>
+                <div class="text-subtitle-2">
+                  <strong class="text-blue">${{ formatCurrency(balance.current) }}</strong>
+                </div>
+                <div class="text-caption text-grey-darken-1">
+                  {{ $t('finances.fields.income') }} - {{ $t('finances.fields.spent') }} {{ $t('finances.comparison.thisMonth') }}
+                </div>
+              </div>
+            </v-card>
+          </v-col>
+
+          <v-col cols="12" sm="3" md="3">
+            <v-card class="pa-3 d-flex align-center" elevation="1" rounded="lg">
+              <v-avatar size="40" class="me-3" color="amber-lighten-4" variant="tonal">
+                <v-icon color="amber-darken-2">mdi-calendar-clock</v-icon>
+              </v-avatar>
+              <div>
+                <div class="text-body-2 font-weight-medium">{{ $t('finances.sections.movements') }}</div>
+                <div class="text-subtitle-2">
+                  <strong class="text-amber">$3.000.000</strong> {{ $t('finances.comparison.thisMonth') }}
+                </div>
+                <div class="text-caption text-grey-darken-1 d-flex align-center">
+                  <v-icon size="14" class="me-1" color="grey">mdi-cart</v-icon>
+                  $45.000 supermercado
+                </div>
+              </div>
+            </v-card>
           </v-col>
         </v-row>
-      </v-toolbar>
 
-      <v-card-text>
-        <v-tabs v-model="tab" vertical>
-          <v-tab value="personal" :class="tab === 'personal' ? 'selected-tab' : ''">Personales</v-tab>
-          <v-tab value="hogar" :class="tab === 'hogar' ? 'selected-tab' : ''">Hogar</v-tab>
-          <v-tab value="todas" :class="tab === 'todas' ? 'selected-tab' : ''">Todas</v-tab>
-        </v-tabs>
+        <v-divider class="my-4" />
 
-        <v-window v-model="tab" min-height="50vh" class="mt-2">
-          <v-window-item value="personal">
-            <v-text-field class="mt-1 mb-1" v-model="search" append-icon="mdi-magnify" label="Buscar" single-line
-              hide-details>
-            </v-text-field>
-            <v-data-table :headers="headers" :search="search" :items="filteredPersonalFinances" class="elevation-1"
-              style="max-height: 68vh; overflow-y: auto;" :items-per-page-text="'Elementos por páginas'"
-              no-data-text="No hay datos disponibles" :loading="loading" loading-text="Cargando datos...">
-              <template v-slot:item.actions="{ item }">
-                <v-btn density="comfortable" icon="mdi-pencil" @click="editItem(item)" color="#1976D2" variant="tonal"
-                  elevation="1" title="Editar Finanza"></v-btn>
-                <v-btn density="comfortable" icon="mdi-delete" @click="deleteItem(item)" color="#DA7171" variant="tonal"
-                  elevation="1" title="Eliminar Finanza"></v-btn>
-              </template>
-              <template v-slot:item.plate="{ item }">
-                <v-avatar class="mr-1" elevation="3" color="grey-lighten-4" size="small">
-                  <v-img :src="`${this.$axios.defaults.baseURL}images/${item.image}?t=${Date.now()}`"
-                    alt="image"></v-img>
-                </v-avatar>
-                {{ item.plate }}
-              </template>
-              <template v-slot:item.income="{ item }">
-                <span class="text-success font-weight-bold">{{ item.income }}</span>
-              </template>
-              <template v-slot:item.spent="{ item }">
-                <span class="text-error font-weight-bold">{{ item.spent }}</span>
-              </template>
-              <template v-slot:item.image="{ item }">
-                <v-btn density="comfortable" icon="mdi-eye" color="green"
-                  v-if="item.image && item.image !== 'finances/default.jpg'" @click="openModal(item.image)"
-                  variant="tonal" elevation="1" class="mr-1 mt-1 mb-1" title="Ver detalles"></v-btn>
-              </template>
-            </v-data-table>
-          </v-window-item>
-          <v-window-item value="hogar" class="mt-4">
-            <v-text-field class="mt-1 mb-1" v-model="search" append-icon="mdi-magnify" label="Buscar" single-line
-          hide-details>
-        </v-text-field>
-        <v-data-table :headers="headers" :search="search" :items="filteredHomeFinances" class="elevation-1"
-          style="max-height: 68vh; overflow-y: auto;" :items-per-page-text="'Elementos por páginas'"
-          no-data-text="No hay datos disponibles" :loading="loading" loading-text="Cargando datos...">
-          <template v-slot:item.actions="{ item }">
-            <v-btn density="comfortable" icon="mdi-pencil" @click="editItem(item)" color="#1976D2" variant="tonal"
-              elevation="1" title="Editar Finanza"></v-btn>
-            <v-btn density="comfortable" icon="mdi-delete" @click="deleteItem(item)" color="#DA7171" variant="tonal"
-              elevation="1" title="Eliminar Finanza"></v-btn>
-          </template>
-          <template v-slot:item.plate="{ item }">
-            <v-avatar class="mr-1" elevation="3" color="grey-lighten-4" size="small">
-              <v-img :src="`${this.$axios.defaults.baseURL}images/${item.image}?t=${Date.now()}`" alt="image"></v-img>
-            </v-avatar>
-            {{ item.plate }}
-          </template>
-          <template v-slot:item.income="{ item }">
-            <span class="text-success font-weight-bold">{{ item.income }}</span>
-          </template>
-          <template v-slot:item.spent="{ item }">
-            <span class="text-error font-weight-bold">{{ item.spent }}</span>
-          </template>
-          <template v-slot:item.image="{ item }">
-            <v-btn density="comfortable" icon="mdi-eye" color="green"
-              v-if="item.image && item.image !== 'finances/default.jpg'" @click="openModal(item.image)" variant="tonal"
-              elevation="1" class="mr-1 mt-1 mb-1" title="Ver detalles"></v-btn>
-          </template>
-        </v-data-table>
-          </v-window-item>
-          <v-window-item value="todas">
-            <v-text-field class="mt-1 mb-1" v-model="search" append-icon="mdi-magnify" label="Buscar" single-line
-          hide-details>
-        </v-text-field>
-        <v-data-table :headers="headers" :search="search" :items="finances" class="elevation-1"
-          style="max-height: 68vh; overflow-y: auto;" :items-per-page-text="'Elementos por páginas'"
-          no-data-text="No hay datos disponibles" :loading="loading" loading-text="Cargando datos...">
-          <template v-slot:item.actions="{ item }">
-            <v-btn density="comfortable" icon="mdi-pencil" @click="editItem(item)" color="#1976D2" variant="tonal"
-              elevation="1" title="Editar Finanza"></v-btn>
-            <v-btn density="comfortable" icon="mdi-delete" @click="deleteItem(item)" color="#DA7171" variant="tonal"
-              elevation="1" title="Eliminar Finanza"></v-btn>
-          </template>
-          <template v-slot:item.plate="{ item }">
-            <v-avatar class="mr-1" elevation="3" color="grey-lighten-4" size="small">
-              <v-img :src="`${this.$axios.defaults.baseURL}images/${item.image}?t=${Date.now()}`" alt="image"></v-img>
-            </v-avatar>
-            {{ item.plate }}
-          </template>
-          <template v-slot:item.income="{ item }">
-            <span class="text-success font-weight-bold">{{ item.income }}</span>
-          </template>
-          <template v-slot:item.spent="{ item }">
-            <span class="text-error font-weight-bold">{{ item.spent }}</span>
-          </template>
-          <template v-slot:item.image="{ item }">
-            <v-btn density="comfortable" icon="mdi-eye" color="green"
-              v-if="item.image && item.image !== 'finances/default.jpg'" @click="openModal(item.image)" variant="tonal"
-              elevation="1" class="mr-1 mt-1 mb-1" title="Ver detalles"></v-btn>
-          </template>
-        </v-data-table>
-          </v-window-item>
-        </v-window>
+        <div class="text-body-2 font-weight-medium mb-2">{{ $t('finances.sections.suggestions') }}</div>
+
+        <v-row>
+          <v-col>
+            <v-card
+              v-for="(financeTask, index) in financeSuggestions"
+              :key="index"
+              class="mb-3 rounded-lg"
+              elevation="2"
+              :class="{ 'smooth-hover': true }"
+            >
+              <v-row no-gutters class="ma-0">
+                <!-- Fecha -->
+                <v-col cols="1" class="pa-4 d-flex flex-column align-center">
+                  <div class="date">{{ formatDate(financeTask.due_date) }}</div>
+                  <div class="time">{{ financeTask.due_time || "--:--" }}</div>
+                </v-col>
+
+                <!-- Contenido principal -->
+                <v-col cols="7" class="d-flex align-center pe-4 gap-2">
+                  <v-row align="center" no-gutters>
+                    <v-icon
+                      class="me-2"
+                      :color="financeTask.source === 'ia' ? 'deep-purple' : 'blue'"
+                      size="24"
+                    >
+                      {{ financeTask.source === "ia" ? "mdi-brain" : "mdi-finance" }}
+                    </v-icon>
+                    <div>
+                      <div class="font-weight-semibold text-body-1">
+                        {{ financeTask.title }}
+                      </div>
+                      <div class="text-caption text-grey-darken-1">
+                        {{ financeTask.description }}
+                      </div>
+                    </div>
+                  </v-row>
+                </v-col>
+
+                <!-- Estado -->
+                <v-col cols="2" class="d-flex align-center justify-end pe-4">
+                  <v-chip
+                    :color="getFinanceStatusColor(financeTask.status)"
+                    size="small"
+                    variant="tonal"
+                  >
+                    {{ financeTask.status }}
+                  </v-chip>
+                </v-col>
+
+                <!-- Acciones -->
+                <v-col cols="2" class="d-flex align-center justify-end pe-4 gap-2">
+                  <v-btn
+                    icon
+                    variant="text"
+                    color="green-darken-2"
+                    size="small"
+                    @click="editFinanceTask(financeTask)"
+                  >
+                    <v-icon>mdi-pencil</v-icon>
+                  </v-btn>
+                  <v-btn
+                    icon
+                    variant="text"
+                    color="red-darken-2"
+                    size="small"
+                    @click="deleteFinanceTask(financeTask)"
+                  >
+                    <v-icon>mdi-close</v-icon>
+                  </v-btn>
+                </v-col>
+              </v-row>
+            </v-card>
+          </v-col>
+        </v-row>
       </v-card-text>
     </v-card>
-  <!--</v-container>-->
-  <v-dialog v-model="dialog" max-width="600px">
-    <v-form ref="form" v-model="valid" enctype="multipart/form-data">
-      <v-card>
-        <v-toolbar color="#03626C">
-          <span class="text-subtitle-2 ml-4">{{ formTitle }}</span>
-        </v-toolbar>
-        <v-card-text>
-          <v-container>
-            <v-row>
-              <v-col cols="12" md="6">
-                <v-select v-model="finance" :items="typeOptions" item-value="value" item-title="text" label="Finanza"
-                  prepend-icon="mdi-check-circle" variant="underlined" @update:model-value="clearFields"
-                  density="compact"></v-select>
-              </v-col>
-
-              <!-- Campo para Ingreso -->
-              <v-col cols="12" md="6" v-if="showType">
-                <v-text-field v-model="editedItem.income" clearable label="Ingreso" prepend-icon="mdi-currency-usd"
-                  variant="underlined" :rules="priceRules" type="number" density="compact"></v-text-field>
-              </v-col>
-
-              <!-- Campo para Gasto -->
-              <v-col cols="12" md="6" v-if="!showType">
-                <v-text-field v-model="editedItem.spent" clearable label="Gasto" prepend-icon="mdi-currency-usd"
-                  variant="underlined" :rules="priceRules" type="number" density="compact"></v-text-field>
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-menu v-model="menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
-                  offset-y min-width="290px">
-                  <template v-slot:activator="{ props }">
-                    <v-text-field v-bind="props" :modelValue="dateFormatted" variant="underlined"
-                      prepend-icon="mdi-calendar" label="Fecha" density="compact"></v-text-field>
-                  </template>
-                  <v-locale-provider locale="es">
-                    <v-date-picker header="Calendario" title="Seleccione la fecha" color="#03626C" :modelValue="input"
-                      @update:model-value="updateDate" format="yyyy-MM-dd"
-                      :min="new Date().toISOString().split('T')[0]"></v-date-picker>
-                  </v-locale-provider>
-                </v-menu>
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-select v-model="editedItem.type" :items="Options" item-value="value" item-title="text" label="Tipo"
-                  prepend-icon="mdi-check-circle" variant="underlined" density="compact"></v-select>
-              </v-col>
-              <v-col cols="12" md="12">
-                <v-textarea v-model="editedItem.description" clearable label="Descripción" prepend-icon="mdi-note"
-                  variant="underlined"></v-textarea>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="12" md="6">
-                <v-file-input clearable v-model="file" ref="fileInput" label="Imagen de la Dispositivo"
-                  variant="underlined" density="compact" name="file" accept=".png, .jpg, .jpeg"
-                  @change="onFileSelected">
-                </v-file-input>
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-card elevation="6" class="mx-auto" max-width="210" max-height="120">
-                  <img v-if="imagenDisponible()" :src="imgedit" height="120" width="210">
-                </v-card>
-
-
-              </v-col>
-            </v-row>
-          </v-container>
-        </v-card-text>
-        <v-divider></v-divider>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="#DA7171" variant="flat" @click="close">Cancelar</v-btn>
-          <v-btn color="#03626C" variant="flat" @click="save" :disabled="!valid" :loading="loading">Aceptar</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-form>
-  </v-dialog>
-  <v-dialog v-model="dialogDelete" max-width="500px">
+  </v-container>
+  <!--dialogo de ingresos-->
+  <v-dialog
+    v-model="dialogIncome"
+    fullscreen
+    transition="dialog-bottom-transition"
+  >
     <v-card>
-
-      <v-toolbar color="#DA7171">
-        <span class="text-subtitle-2 ml-4"> Eliminar Finanza</span>
-      </v-toolbar>
-
-      <v-card-text class="mt-2 mb-2"> ¿Desea eliminar la finanza?</v-card-text>
+      <v-card-text>
+        <!-- Aquí pasamos el 'selectedWorker' al componente dentro del diálogo -->
+        <Income />
+      </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="#DA7171" variant="flat" @click="closeDelete">
-          Cancelar
-        </v-btn>
-        <v-btn color="#1976D2" variant="flat" @click="deleteItemConfirm">
-          Aceptar
-        </v-btn>
-
+        <v-btn text @click="close"
+          >Cerrar</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <v-dialog v-model="dialogPhoto" persistent max-width="600px">
-    <v-card>
-      <v-toolbar color="#03626C">
-        <span class="text-subtitle-2 ml-4">Detalle</span> <v-spacer></v-spacer>
-        <v-btn @click="dialogPhoto = false">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-      </v-toolbar>
 
+  <!--dialogo de gastos-->
+  <v-dialog
+    v-model="dialogSpent"
+    fullscreen
+    transition="dialog-bottom-transition"
+  >
+    <v-card>
       <v-card-text>
-        <template v-if="loadingImage">
-          <!-- Centro el cargador dentro de su contenedor y aumento su tamaño -->
-          <div class="d-flex justify-center align-center" style="min-height: 200px;">
-            <v-progress-circular indeterminate color="#03626C"
-              style="width: 100px; height: 100px;"></v-progress-circular>
-          </div>
-        </template>
-        <template v-else>
-          <v-img :src="selectedImageUrl" aspect-ratio="1.5" contain fill-height></v-img>
-        </template>
+        <!-- Aquí pasamos el 'selectedWorker' al componente dentro del diálogo -->
+        <Spent />
       </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn text @click="close"
+          >Cerrar</v-btn
+        >
+      </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <v-dialog
+    v-model="dialogAddIncome"
+    fullscreen
+    persistent
+    transition="dialog-bottom-transition"
+    content-class="fullscreen-dialog"
+  >
+    <v-form ref="form" v-model="valid" class="h-100">
+      <v-card class="pa-10">
+        <v-card-text class="pt-12">
+          <p class="text-grey-lighten-1">
+            {{ $t("finances.formInstructions.income") }}
+          </p>
+
+          <v-row class="mt-12">
+            <!-- Side steps -->
+            <v-col cols="3">
+              <v-timeline align="start" side="end" dense>
+                <v-timeline-item
+                  v-for="(s, index) in steps"
+                  :key="index"
+                  :dot-color="
+                    step > index
+                      ? 'green'
+                      : step === index
+                      ? 'deep-purple'
+                      : 'grey-lighten-1'
+                  "
+                  :icon="
+                    step >= index
+                      ? step === index
+                        ? `mdi-numeric-${index + 1}`
+                        : 'mdi-check'
+                      : null
+                  "
+                  size="large"
+                >
+                  <template #opposite>
+                    <div class="text-end">
+                      <strong>{{ $t(`finances.steps.${s.title}.title`) }}</strong>
+                      <div class="text-caption text-grey">
+                        {{ $t(`finances.steps.${s.title}.subtitle`) }}
+                      </div>
+                    </div>
+                  </template>
+                </v-timeline-item>
+              </v-timeline>
+            </v-col>
+
+            <!-- Contenido dinámico según paso -->
+            <v-col cols="9">
+              <h3 class="text-deep-purple-accent-3 mb-8">
+                {{ $t(`finances.steps.${steps[step].title}.title`) }}
+              </h3>
+
+              <!-- Paso 1: Detalles del ingreso -->
+              <v-row dense v-if="step === 0">
+                <v-col cols="12" sm="6">
+                  <v-autocomplete 
+                    v-model="editedItem.type"
+                    :items="types" 
+                    :label="$t('finances.fields.type')" 
+                    item-title="name"
+                    item-value="id" 
+                    variant="underlined" 
+                    :rules="typeRules"
+                  >
+                    <template v-slot:item="{ props, item }">
+                      <v-list-item v-bind="props">
+                        <v-list-item-subtitle class="d-flex flex-column">
+                          <v-tooltip bottom>
+                            <template v-slot:activator="{ props: tooltipProps }">
+                              <div 
+                                class="truncate" 
+                                v-bind="tooltipProps"
+                                style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                              >
+                                {{ item.raw.description }}
+                              </div>
+                            </template>
+                            <span>{{ item.raw.description }}</span>
+                          </v-tooltip>
+                        </v-list-item-subtitle>
+                      </v-list-item>
+                    </template>
+                  </v-autocomplete>
+                </v-col>
+
+                <v-col cols="12" sm="6">
+                  <v-text-field
+                    v-model="editedItem.income"
+                    :label="$t('finances.fields.income')"
+                    variant="underlined"
+                    type="number"
+                    step="0.01"
+                    :rules="incomeRules"
+                    required
+                  />
+                </v-col>
+
+                <v-col cols="12" md="6">
+                  <v-file-input
+                    v-model="file"
+                    ref="fileInput"
+                    :label="$t('finances.fields.attach_file')"
+                    variant="underlined"
+                    name="file"
+                    accept=".png, .jpg, .jpeg"
+                    @change="onFileSelected"
+                    :prepend-icon="false"
+                  ></v-file-input>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-card elevation="6" class="mx-auto" max-width="210" max-height="120">
+                    <img
+                      v-if="imagenDisponible() && this.showImage"
+                      :src="imgedit"
+                      height="120"
+                      :label="$t('finances.fields.file')"
+                      width="210"
+                    />
+                    <v-icon
+                      v-else
+                      class="d-flex align-center justify-center"
+                      style="height: 120px; width: 210px; font-size: 120px"
+                      >{{ this.icono }}</v-icon
+                    >
+                  </v-card>
+                </v-col>
+              </v-row>
+
+              <!-- Step 2: Descripción y fecha -->
+              <v-row dense v-if="step === 1">
+                <v-col cols="12">
+                  <v-textarea
+                    v-model="editedItem.description"
+                    :label="$t('finances.fields.description')"
+                    variant="underlined"
+                    rows="3"
+                    auto-grow
+                    :rules="descriptionRules"
+                  />
+                </v-col>
+
+                <v-col cols="12">
+                <v-menu
+                  v-model="dateMenu"
+                  :close-on-content-click="false"
+                  transition="scale-transition"
+                  offset-y
+                  min-width="auto"
+                >
+                  <template v-slot:activator="{ props }">
+                    <v-text-field
+                      v-bind="props"
+                      :model-value="dateInput" 
+                      :label="$t('finances.fields.date')"
+                      variant="underlined"
+                      readonly
+                    ></v-text-field>
+                  </template>
+                  <v-date-picker
+                    color="#03626C"
+                    :model-value="parseDateString(dateInput)" 
+                    @update:model-value="updateDate"
+                  ></v-date-picker>
+                </v-menu>
+                </v-col>
+              </v-row>
+
+              <!-- Navegación -->
+              <div class="d-flex justify-space-between mt-8">
+                <v-btn
+                  variant="text"
+                  class="text-grey-darken-1"
+                  @click="step > 0 ? step-- : this.closeDialogIncomes()"
+                >
+                  {{ step === 0 ? $t("buttons.close") : $t("buttons.previous") }}
+                </v-btn>
+
+                <v-btn
+                  variant="text"
+                  class="text-deep-purple-accent-3"
+                  @click="nextStep"
+                  :disabled="!valid"
+                >
+                  {{
+                    step === steps.length - 1
+                      ? $t("buttons.saveAndClose")
+                      : $t("buttons.next")
+                  }}
+                </v-btn>
+              </div>
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
+    </v-form>
+  </v-dialog>
+
+  <v-dialog
+    v-model="dialogAddSpent"
+    fullscreen
+    persistent
+    transition="dialog-bottom-transition"
+    content-class="fullscreen-dialog"
+  >
+    <v-form ref="form" v-model="valid" class="h-100">
+      <v-card class="pa-10">
+        <v-card-text class="pt-12">
+          <p class="text-grey-lighten-1">
+            {{ $t("finances.formInstructions.expense") }}
+          </p>
+
+          <v-row class="mt-12">
+            <!-- Side steps -->
+            <v-col cols="3">
+              <v-timeline align="start" side="end" dense>
+                <v-timeline-item
+                  v-for="(s, index) in steps"
+                  :key="index"
+                  :dot-color="
+                    step > index
+                      ? 'green'
+                      : step === index
+                      ? 'deep-purple'
+                      : 'grey-lighten-1'
+                  "
+                  :icon="
+                    step >= index
+                      ? step === index
+                        ? `mdi-numeric-${index + 1}`
+                        : 'mdi-check'
+                      : null
+                  "
+                  size="large"
+                >
+                  <template #opposite>
+                    <div class="text-end">
+                      <strong>{{ $t(`finances.steps.${s.title}.title`) }}</strong>
+                      <div class="text-caption text-grey">
+                        {{ $t(`finances.steps.${s.title}.subtitle`) }}
+                      </div>
+                    </div>
+                  </template>
+                </v-timeline-item>
+              </v-timeline>
+            </v-col>
+
+            <!-- Contenido dinámico según paso -->
+            <v-col cols="9">
+              <h3 class="text-deep-purple-accent-3 mb-8">
+                {{ $t(`finances.steps.${steps[step].title}.title`) }}
+              </h3>
+
+              <!-- Paso 1: Detalles del ingreso -->
+              <v-row dense v-if="step === 0">
+                <v-col cols="12" sm="6">
+                  <v-autocomplete 
+                    v-model="editedItem.type"
+                    :items="types" 
+                    :label="$t('finances.fields.type')" 
+                    item-title="name"
+                    item-value="id" 
+                    variant="underlined" 
+                    :rules="typeRules"
+                  >
+                    <template v-slot:item="{ props, item }">
+                      <v-list-item v-bind="props">
+                        <v-list-item-subtitle class="d-flex flex-column">
+                          <v-tooltip bottom>
+                            <template v-slot:activator="{ props: tooltipProps }">
+                              <div 
+                                class="truncate" 
+                                v-bind="tooltipProps"
+                                style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                              >
+                                {{ item.raw.description }}
+                              </div>
+                            </template>
+                            <span>{{ item.raw.description }}</span>
+                          </v-tooltip>
+                        </v-list-item-subtitle>
+                      </v-list-item>
+                    </template>
+                  </v-autocomplete>
+                </v-col>
+
+                <v-col cols="12" sm="6">
+                  <v-text-field
+                    v-model="editedItem.spent"
+                    :label="$t('finances.fields.spent')"
+                    variant="underlined"
+                    type="number"
+                    step="0.01"
+                    :rules="incomeRules"
+                    required
+                  />
+                </v-col>
+
+                <v-col cols="12" md="6">
+                  <v-file-input
+                    v-model="file"
+                    ref="fileInput"
+                    :label="$t('finances.fields.attach_file')"
+                    variant="underlined"
+                    name="file"
+                    accept=".png, .jpg, .jpeg"
+                    @change="onFileSelected"
+                    :prepend-icon="false"
+                  ></v-file-input>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-card elevation="6" class="mx-auto" max-width="210" max-height="120">
+                    <img
+                      v-if="imagenDisponible() && this.showImage"
+                      :src="imgedit"
+                      height="120"
+                      :label="$t('finances.fields.file')"
+                      width="210"
+                    />
+                    <v-icon
+                      v-else
+                      class="d-flex align-center justify-center"
+                      style="height: 120px; width: 210px; font-size: 120px"
+                      >{{ this.icono }}</v-icon
+                    >
+                  </v-card>
+                </v-col>
+              </v-row>
+
+              <!-- Step 2: Descripción y fecha -->
+              <v-row dense v-if="step === 1">
+                <v-col cols="12">
+                  <v-textarea
+                    v-model="editedItem.description"
+                    :label="$t('finances.fields.description')"
+                    variant="underlined"
+                    rows="3"
+                    auto-grow
+                    :rules="descriptionRules"
+                  />
+                </v-col>
+
+                <v-col cols="12">
+                <v-menu
+                  v-model="dateMenu"
+                  :close-on-content-click="false"
+                  transition="scale-transition"
+                  offset-y
+                  min-width="auto"
+                >
+                  <template v-slot:activator="{ props }">
+                    <v-text-field
+                      v-bind="props"
+                      :model-value="dateInput" 
+                      :label="$t('finances.fields.date')"
+                      variant="underlined"
+                      readonly
+                    ></v-text-field>
+                  </template>
+                  <v-date-picker
+                    color="#03626C"
+                    :model-value="parseDateString(dateInput)" 
+                    @update:model-value="updateDate"
+                  ></v-date-picker>
+                </v-menu>
+                </v-col>
+              </v-row>
+
+              <!-- Navegación -->
+              <div class="d-flex justify-space-between mt-8">
+                <v-btn
+                  variant="text"
+                  class="text-grey-darken-1"
+                  @click="step > 0 ? step-- : this.closeDialogSpents()"
+                >
+                  {{ step === 0 ? $t("buttons.close") : $t("buttons.previous") }}
+                </v-btn>
+
+                <v-btn
+                  variant="text"
+                  class="text-deep-purple-accent-3"
+                  @click="nextStep"
+                  :disabled="!valid"
+                >
+                  {{
+                    step === steps.length - 1
+                      ? $t("buttons.saveAndClose")
+                      : $t("buttons.next")
+                  }}
+                </v-btn>
+              </div>
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
+    </v-form>
+  </v-dialog>
+
 </template>
 
 <script>
 import LocalStorageService from "@/LocalStorageService";
 import { handleRequest } from "@/utils/api"; // Ruta al archivo
+import Income from "./Income.vue";
+import Spent from "./Spent.vue";
 export default {
-  data: () => ({
-    snackbar: false,
-    sb_type: '',
-    sb_message: '',
-    sb_timeout: 2000,
-    sb_title: '',
-    sb_icon: '',
-    valid: true,
-    person_id: '',
-    tab: null,
-    loading: false,
-    mostrar: false,
-    file: null,
-    imgMiniatura: '',
-    dialog: false,
-    dialogDelete: false,
-    finances: [],
-    filteredPersonalFinances: [],
-    filteredHomeFinances: [],
-    data: {},
-    home_id: '',
-    finance: 'Ingreso',
-    showType: true,
-    dialogPhoto: false,
-    loadingImage: false,
-    selectedImageUrl: '',
-    headers: [
-      //{ title: 'Sucursal', value: 'branchName', width: '20%' },
-      { title: 'Ingreso', value: 'income', width: '10%' },
-      { title: 'Gasto', value: 'spent', width: '10%' },
-      { title: 'Fecha', value: 'date', width: '10%' },
-      { title: 'Tipo', value: 'type', width: '10%' },
-      { title: 'Método', value: 'method', width: '10%' },
-      { title: 'Descripción', value: 'description', width: '30%' },
-      { title: 'Detalle', value: 'image', width: '5%' },
-      { title: 'Acciones', value: 'actions', sortable: false, width: '15%' },
+  components: {
+    Income,
+    Spent
+  },
+  data() {
+    return {
+      dialogIncome: false,
+      dialogSpent: false,
+      dialogAddIncome: false,
+      dialogAddSpent: false,
+       snackbar: false,
+        sb_type: '',
+        sb_message: '',
+        sb_timeout: 2000,
+        sb_title: '',
+        sb_icon: '',
+        valid: true,
+        person_id: '',
+        tab: null,
+        loading: false,
+        file: null,
+        showImage: false,
+        icono: "mdi-file",
+        imgMiniatura: '',
+         step: 0,
+         steps: [
+      {
+        title: "financialDetails",
+        subtitle: "basic_information",
+      },
+      {
+        title: "description",
+        subtitle: "additional_details",
+      },
     ],
-    typeOptions: [
-      { text: 'Ingreso', value: 'Ingreso' },
-      { text: 'Gasto', value: 'Gasto' },
-    ],
-    Options: [
-      { text: 'Personal', value: 'Personal' },
-      { text: 'Hogar', value: 'Hogar' },
-    ],
+      financeSuggestions: [
+        {
+          id: 1,
+          title: "Revisa gasto en delivery",
+          description:
+            "Este mes gastaste $85.000 en pedidos, un 20% más que el anterior.",
+          due_date: "2025-06-30",
+          due_time: "09:00",
+          status: "pendiente",
+        },
+        {
+          id: 2,
+          title: "Agrega gasto de luz",
+          description: "No se ha registrado el gasto de electricidad este mes.",
+          due_date: "2025-06-28",
+          due_time: "12:00",
+          status: "pendiente",
+        },
+        {
+          id: 3,
+          title: "Superaste presupuesto en transporte",
+          description: "Gastos en transporte sobrepasan el límite definido por $40.000.",
+          due_date: "2025-06-29",
+          due_time: "18:00",
+          status: "revisado",
+        },
+
+        // 🔮 Sugerencias generadas por IA
+        {
+          id: 4,
+          title: "Podrías reducir el plan de streaming",
+          description:
+            "Pagas $18.000 al mes por plataformas que no se usan regularmente.",
+          due_date: "2025-06-30",
+          due_time: "14:00",
+          status: "pendiente",
+          source: "ia",
+        },
+        {
+          id: 5,
+          title: "Considera un presupuesto para vacaciones",
+          description:
+            "Según tus hábitos, un ahorro mensual de $50.000 permitiría viajar en verano.",
+          due_date: "2025-07-01",
+          due_time: "11:00",
+          status: "pendiente",
+          source: "ia",
+        },
+      ],
+
+      filtrosActivos: false,
+      filtroDesde: "",
+      filtroHasta: "",
+      filtroTipo: "",
+      filtroEstado: "",
+      filtroTexto: "",
+      filtroActivo: "todos",
+      filtroActivo2: "",
+      cards: [
+        {
+          title: "Ingresos",
+          icon: "mdi-cash-multiple",
+          amount: "$138,500",
+          lastMonth: "$128,000",
+          change: "+8.20",
+          changeColor: "green-lighten-4",
+          changeIcon: "mdi-arrow-up",
+          color: "green",
+        },
+        {
+          title: "Gastos",
+          icon: "mdi-cash-minus",
+          amount: "$97,400",
+          lastMonth: "$94,800",
+          change: "+2.74",
+          changeColor: "red-lighten-4",
+          changeIcon: "mdi-arrow-up",
+          color: "red",
+        },
+        {
+          title: "Balance",
+          icon: "mdi-scale-balance",
+          amount: "$41,100",
+          lastMonth: "$47,750",
+          change: "-13.92",
+          changeColor: "blue-lighten-4",
+          changeIcon: "mdi-arrow-down",
+          color: "blue",
+        },
+      ],
+      modal: false,
+      tipoModal: "ingreso",
+      nuevo: {
+        titulo: "",
+        monto: null,
+        categoria: "",
+        fecha: "",
+      },
+      categorias: [
+        "Alimentación",
+        "Transporte",
+        "Servicios",
+        "Educación",
+        "Salud",
+        "Otros",
+      ],
+      transacciones: [
+        { titulo: "Sueldo Juan", monto: 1200000, tipo: "ingreso", fecha: "2025-06-01" },
+        { titulo: "Supermercado", monto: 95000, tipo: "gasto", fecha: "2025-06-05" },
+        { titulo: "Gas", monto: 23000, tipo: "gasto", fecha: "2025-06-08" },
+      ],
+      loadingImage: false,
+    selectedImageUrl: "",
+    dateMenu: false,
+    dateInput: null,
     editedItem: {
-      id: '',
-      home_id: '',
-      spent: '',
-      income: '',
-      image: '',
-      date: '',
-      description: '',
-      type: '',
-      method: '',
-    },
-    originalItem: {
-      id: '',
-      home_id: '',
-      spent: '',
-      income: '',
-      image: '',
-      date: '',
-      description: '',
-      type: '',
-      method: '',
+      id: "",
+      type: "",
+      method: "",
+      income: null,
+      spent: null,
+      description: "",
+      date: null,
+      image: null,
     },
     defaultItem: {
-      id: '',
-      home_id: '',
-      spent: '',
-      income: '',
-      image: '',
-      date: '',
-      description: '',
-      type: '',
-      method: '',
+      id: "",
+      type: "",
+      method: "",
+      income: null,
+      spent: null,
+      description: "",
+      date: null,
+      image: null,
+    },
+    originalItem: {
+      id: "",
+      type: "",
+      method: "",
+      income: null,
+      spent: null,
+      description: "",
+      date: null,
+      image: null,
     },
     editedIndex: -1,
-    search: '',
-    menu: false,
-    input: null,
+    search: "",
+    types: [],
+    finances: {
+      incomeCard: {
+        current: "0",
+        percentage: "0.00",
+        lastMonth: "0",
+        color: "green",
+        icon: "mdi-cash"
+      },
+      spentCard: {
+        current: "0",
+        percentage: "0.00",
+        lastMonth: "0",
+        color: "red",
+        icon: "mdi-cart"
+      },
+      balanceCard: {
+        current: "0",
+        color: "blue-darken-2",
+        icon: "mdi-scale-balance"
+      },
+      movementsCard: {
+        total: "0",
+        lastMovement: {
+          amount: "0",
+          description: "No hay movimientos",
+          icon: "mdi-cash",
+          type: "income"
+        },
+        color: "amber-darken-2",
+        icon: "mdi-calendar-clock"
+      }
+    },
+    income: {},
+    spent: {},
+    balance: {},
     nameRules: [
       (v) => !!v || "El campo es requerido",
       (v) => (v && v.length <= 50) ||
@@ -358,23 +916,54 @@ export default {
         "El precio debe ser un número válido con hasta 2 decimales", // Valida el formato del precio
       (v) => v > 0 || "El precio debe ser un número positivo", // El precio debe ser positivo
     ],
-  }),
+    };
+  },
   computed: {
+    formattedCurrentMonth() {
+      const date = new Date()
+      return date.toLocaleDateString(this.$vuetify.locale.current, {
+        month: 'long',
+        year: 'numeric'
+      })
+    },
+    typeRules() {
+      return [
+        v => !!v || this.$t('finances.validationMessages.type.required'), // Validación de requerido
+        v => !v || v.length <= 50 || this.$t('finances.validationMessages.type.maxLength') // Validación de longitud máxima
+      ];
+    },
+    methodRules() {
+      return [
+        v => !v || v.length <= 50 || this.$t('finances.validationMessages.method.maxLength')
+      ];
+    },
+    incomeRules() {
+      return [
+        v => v === null || v === '' || !isNaN(v) || this.$t('finances.validationMessages.income.number'),
+        v => v === null || v === '' || /^-?\d+(\.\d{1,2})?$/.test(v) || this.$t('finances.validationMessages.income.precision')
+      ];
+    },
+    spentRules() {
+      return [
+        v => v === null || v === '' || !isNaN(v) || this.$t('finances.validationMessages.spent.number'),
+        v => v === null || v === '' || /^-?\d+(\.\d{1,2})?$/.test(v) || this.$t('finances.validationMessages.spent.precision')
+      ];
+    },
+    descriptionRules() {
+      return [
+        v => !v || v.length <= 255 || this.$t('finances.validationMessages.description.maxLength')
+      ];
+    },
+    dateRules() {
+      return [v => !!v || this.$t("finances.validationMessages.date.required")];
+    },
     formTitle() {
-      return this.editedIndex === -1 ? 'Agregar Finanza' : 'Editar Finanza';
+      return this.editedIndex === -1
+        ? this.$t("consultations.titles.new")
+        : this.$t("consultations.titles.edit");
     },
     imgedit() {
       return this.imgMiniatura;
-    },
-    dateFormatted() {
-      const date = this.input ? new Date(this.input) : new Date();
-      const day = date.getDate().toString().padStart(2, "0");
-      const month = (date.getMonth() + 1).toString().padStart(2, "0");
-      const year = date.getFullYear();
-      return `${year}-${month}-${day}`;
-    },
-    getDate() {
-      return this.input ? new Date(this.input) : new Date();
     },
   },
   mounted() {
@@ -383,7 +972,37 @@ export default {
     this.initialize();
   },
   methods: {
-    openModal(imageUrl) {
+    updateDate(value) {
+    // value viene como objeto Date desde el date-picker
+    // Convertimos a formato YYYY-MM-DD
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    this.dateInput = `${year}-${month}-${day}`;
+    this.editedItem.date = this.dateInput;
+    this.dateMenu = false;
+  },
+  
+  // Método para convertir string a Date (solo cuando sea necesario)
+  parseDateString(dateString) {
+    if (!dateString) return null;
+    const [year, month, day] = dateString.split('-');
+    return new Date(year, month - 1, day);
+  },
+    getFinanceStatusColor(status) {
+      switch (status) {
+        case "pendiente":
+          return "orange";
+        case "revisado":
+          return "blue";
+        case "completado":
+          return "green";
+        default:
+          return "grey";
+      }
+    },
+
+    /*openModal(imageUrl) {
       this.dialogPhoto = true;
       this.loadingImage = true;
       var img = new Image();
@@ -400,7 +1019,7 @@ export default {
         this.dialogPhoto = false; // Abre el modal incluso si la carga falla, puede mostrar un mensaje de error o una imagen de respaldo
         this.loadingImage = false;
       };
-    },
+    },*/
     formatNumber(value) {
       // Si el valor es menor que 1000, devuelve el valor original con dos decimales
       if (value < 1000) {
@@ -415,56 +1034,96 @@ export default {
 
       return formattedValue;
     },
+
+    formatCurrency(value) {
+      // Primero reemplaza los puntos (separadores de miles) si existen
+      const numericValue = typeof value === 'string' 
+        ? parseFloat(value.replace(/\./g, '').replace(',', '.')) 
+        : value;
+      
+      return new Intl.NumberFormat('es-CO', {
+        style: 'decimal',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(numericValue || 0);
+    },
     clearFields() {
       // Limpiar los valores de ingreso y gasto al cambiar el tipo
       this.editedItem.income = '';
       this.editedItem.spent = '';
       this.showType = !this.showType;
     },
-    updateDate(val) {
-      this.input = val;
-      this.editedItem.date = this.dateFormatted;
-      this.menu = false;
+
+    editFinanceTask(task) {
+      // lógica para editar la tarea
+      console.log("Editar", task);
     },
-    async showAdd() {
-      this.dialog = true;
-      this.editedItem.home_id = this.home_id;
+
+    deleteFinanceTask(task) {
+      // lógica para eliminar la tarea
+      console.log("Eliminar", task);
     },
-    close() {
-      this.dialog = false;
-      this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem);
-        this.originalItem = Object.assign({}, this.defaultItem);
+
+    formatDate(dateStr) {
+      const options = { day: "2-digit", month: "short" };
+      const date = new Date(dateStr);
+      return date.toLocaleDateString("es-CL", options);
+    },
+
+    resetFiltros() {
+      this.filtroDesde = "";
+      this.filtroHasta = "";
+      this.filtroTipo = "";
+      this.filtroEstado = "";
+      this.filtroTexto = "";
+    },
+    aplicarFiltros() {
+      console.log("Aplicando filtros:", {
+        desde: this.filtroDesde,
+        hasta: this.filtroHasta,
+        tipo: this.filtroTipo,
+        estado: this.filtroEstado,
+        texto: this.filtroTexto,
       });
-      this.editedIndex = -1
-      this.file = null;
-      this.imgMiniatura = '';
+      this.filtrosActivos = false;
+    },
+    abrirModal(tipo) {
+      this.tipoModal = tipo;
+      this.nuevo = { titulo: "", monto: null, categoria: "", fecha: "" };
+      this.modal = true;
+    },
+    guardarTransaccion() {
+      if (this.nuevo.titulo && this.nuevo.monto && this.nuevo.fecha) {
+        this.transacciones.unshift({
+          ...this.nuevo,
+          tipo: this.tipoModal,
+        });
+        this.modal = false;
+      }
     },
     async initialize() {
       try {
         this.data = {};
         this.data.home_id = this.home_id;
-        this.data.type = 'Todas';
+        //this.data.type = 'Todas';
         this.loading = true;
         const result = await handleRequest({
-          endpoint: 'get-type-finance',
+          endpoint: 'finance-statistics-month',
           method: 'POST',
           data: this.data
         });
 
         if (result.success) {
           // Si la solicitud es exitosa, asignamos las sucursales
-          this.finances = result.data?.finances || [];
-          // Filtro 1: donde person_id sea igual a this.person_id y type sea igual a 'Personal'
-          this.filteredPersonalFinances = this.finances.filter(finance =>
-            finance.idType === 'Personal')
-
-          // Filtro 2: donde home_id sea igual a this.home_id
-          this.filteredHomeFinances = this.finances.filter(finance =>
-            finance.idType === 'Hogar');
+          this.income = result.data?.incomeCard || [];	
+          this.spent = result.data?.spentCard || [];	
+          this.balance = result.data?.balanceCard || [];	
+          
         } else {
           // Si no hay datos, asignamos un array vacío
-          this.finances = [];
+          this.spent = [];
+          this.income = [];
+          this.balance = [];
           //this.showAlert('info', 'No hay finanzas disponibles.', 3000);
         }
       } catch (error) {
@@ -475,9 +1134,103 @@ export default {
         this.loading = false;
       }
     },
+
+    nextStep() {
+      if (this.step < this.steps.length - 1) {
+        this.step++;
+      } else {
+        this.dialogIncome = false;
+        this.dialogSpent = false;
+        this.step = 0;
+        this.save();
+      }
+    },
+    //Ingresos
+    showIncome(){
+      this.dialogIncome = true;
+    },
+    showSpent(){
+      this.dialogSpent = true;
+    },
+    close(){
+      this.dialogIncome = false;
+      this.dialogSpent = false;
+    },
+    async showAddIncome() {
+      this.editedIndex = 1;
+      this.editedItem = Object.assign({}, this.defaultItem);
+      this.originalItem = Object.assign({}, this.defaultItem);
+      this.file = null;
+      this.imgMiniatura = "";
+      try {
+        const result = await handleRequest({
+          endpoint: 'get-finances-data',
+          method: 'POST',
+        });
+
+        if (result.success) {
+          this.types = result.data?.types || [];
+        } else {
+          this.types = [];
+        }
+      } catch (error) {
+        this.showAlert('error', 'Ocurrió un error inesperado al cargar los tipos de consulta.', 3000);
+      } finally {
+      this.dialogAddIncome = true; // Abrimos el diálogo
+      }
+      this.dialogAddIncome = true; // Abrimos el diálogo
+    },
+    closeDialogIncomes() {
+      this.dialogAddIncome = false; // Cerramos el diálogo
+      this.$nextTick(() => {
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.originalItem = Object.assign({}, this.defaultItem);
+      });
+      this.editedIndex = -1;
+      this.file = null;
+      this.imgMiniatura = "";
+      this.initialize();
+    },
+
+    //Gastos
+    async showAddSpent() {
+      this.editedIndex = 2;
+      this.editedItem = Object.assign({}, this.defaultItem);
+      this.originalItem = Object.assign({}, this.defaultItem);
+      this.file = null;
+      this.imgMiniatura = "";
+      try {
+        const result = await handleRequest({
+          endpoint: 'get-finances-data',
+          method: 'POST',
+        });
+
+        if (result.success) {
+          this.types = result.data?.types || [];
+        } else {
+          this.types = [];
+        }
+      } catch (error) {
+        this.showAlert('error', 'Ocurrió un error inesperado al cargar los tipos de consulta.', 3000);
+      } finally {
+      this.dialogAddSpent = true; // Abrimos el diálogo
+      }
+      this.dialogAddSpent = true; // Abrimos el diálogo
+    },
+    closeDialogSpents() {
+      this.dialogAddSpent = false; // Cerramos el diálogo
+      this.$nextTick(() => {
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.originalItem = Object.assign({}, this.defaultItem);
+      });
+      this.editedIndex = -1;
+      this.file = null;
+      this.imgMiniatura = "";
+      this.initialize();
+    },
     async save() {
       this.loading = true;
-      if (this.editedIndex === -1) {
+
         this.valid = false;
         const fieldsToUpdate = ['home_id', 'spent', 'income', 'image', 'date', 'description', 'image', 'type', 'method'];
 
@@ -489,7 +1242,7 @@ export default {
           }, {});
         if (Object.keys(updatedFields).length > 0) {
           updatedFields.date = this.editedItem.date ? this.editedItem.date : new Date();
-          updatedFields.home_id = this.editedItem.home_id;
+          updatedFields.home_id = Number(this.home_id);
           if (this.file) {
             updatedFields.image = this.editedItem.image;
           }
@@ -509,7 +1262,6 @@ export default {
             if (result.success) {
               this.loading = false;
               this.showAlert("success", result.message, 3000);
-              this.initialize();
             } else {
               this.loading = false;
               this.showAlert("warning", result.message, 3000);
@@ -523,173 +1275,57 @@ export default {
           this.loading = false;
           this.showAlert("success", "Debe completar los datos de producto.", 3000);
         }
-      } else {
-        this.valid = false;
-        const fieldsToUpdate = ['home_id', 'spent', 'income', 'image', 'date', 'description', 'image', 'type', 'method'];
-        let updatedFields = Object.keys(this.editedItem)
-          .filter((key) => fieldsToUpdate.includes(key) && this.editedItem[key] !== this.originalItem[key])
-          .reduce((obj, key) => {
-            obj[key] = this.editedItem[key];
-            return obj;
-          }, {});
-        if (Object.keys(updatedFields).length > 0) {
-          updatedFields.id = this.editedItem.id;
-          if (this.file) {
-            updatedFields.image = this.editedItem.image;
-          }
-          const formData = new FormData();
-          for (let key in updatedFields) {
-            formData.append(key, updatedFields[key]);
-          }
-          try {
-            const result = await handleRequest({
-              endpoint: 'finance-update',
-              method: 'POST',
-              data: formData
-            });
-
-            // Manejo de la respuesta según el resultado
-            if (result.success) {
-              this.loading = false;
-              this.showAlert("success", result.message, 3000);
-              this.initialize();
-            } else {
-              this.loading = false;
-              this.showAlert("warning", result.message, 3000);
-            }
-          } catch (error) {
-            this.loading = false;
-            // Este bloque captura errores inesperados fuera del manejo estándar
-            this.showAlert("error", "Ocurrió un error inesperado al procesar la solicitud.", 3000);
-          }
-        } else {
-          this.loading = false;
-          this.showAlert("success", "No se realizaron cambios.", 3000);
+        if (this.editedIndex === 1) {
+          this.closeDialogIncomes();
         }
-      }
-      this.close();
-    },
-    async editItem(item) {
-      this.editedIndex = 1;
-      this.originalItem = Object.assign({}, item);
-      this.editedItem = Object.assign({}, item);
-      if (this.editedItem.finance === 'Ingreso') {
-        this.finance = 'Ingreso';
-        this.showType = true;
-      }
-      else {
-        this.finance = 'Gasto';
-        this.showType = false;
-      }
-      this.file = null;
-      // Crear la imagen y configurar el src
-      const img = new Image();
-      img.src = `${this.$axios.defaults.baseURL}images/${item.image}`; // Se asume que item.image_url es la URL de la imagen
-
-      // Usar una función asíncrona para manejar la carga de la imagen
-      img.onload = async () => {
-        try {
-          // Asignar la imagen cargada a imgMiniatura
-          this.imgMiniatura = `${this.$axios.defaults.baseURL}images/${item.image}`;
-        } catch (error) {
-          console.error('Error al cargar la imagen', error);
-          this.showAlert('error', 'Error al cargar la imagen.', 3000);
+        else if(this.editedIndex === 2){
+          this.closeDialogSpents();
         }
-      };
-      this.dialog = true;
-      console.log('this.type');
-      console.log(this.type);
+      
     },
-    deleteItem(item) {
-      this.editedIndex = 1;
-      this.editedItem.id = item.id;
-      this.dialogDelete = true;
-    },
-    closeDelete() {
-      this.dialogDelete = false
-      this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem)
-      })
-    },
-    async deleteItemConfirm() {
-      try {
-        let request = {
-          id: this.editedItem.id
-        };
-        const result = await handleRequest({
-          endpoint: 'finance-destroy',
-          method: 'POST',
-          data: request
-        });
-
-        // Manejo de la respuesta según el resultado
-        if (result.success) {
-          this.showAlert("success", result.message, 3000);
-          this.initialize();
-        } else {
-          this.showAlert("warning", result.message, 3000);
-        }
-      } catch (error) {
-        // Este bloque captura errores inesperados fuera del manejo estándar
-        this.showAlert("error", "Ocurrió un error inesperado al procesar la solicitud.", 3000);
-      } finally {
-        this.closeDelete();
-      }
-    },
-    showAlert(sb_type, sb_message, sb_timeout) {
-      this.sb_type = sb_type;
-
-      if (sb_type == "success") {
-        this.sb_title = "Éxito";
-        this.sb_icon = "mdi-check-circle";
-      }
-
-      if (sb_type == "info") {
-        this.sb_title = "Información";
-        this.sb_icon = "mdi-alert-circle";
-      }
-
-      if (sb_type == "error") {
-        this.sb_title = "Error";
-        this.sb_icon = "mdi-check-circle";
-      }
-
-      if (sb_type == "warning") {
-        this.sb_title = "Advertencia";
-        this.sb_icon = "mdi-alert-circle";
-      }
-      this.sb_message = sb_message;
-      this.sb_timeout = sb_timeout;
-      this.snackbar = true;
-    },
+    
     imagenDisponible() {
-      if (this.imgedit !== undefined && this.imgedit !== '') {
-        // Intenta cargar la imagen en un elemento oculto para verificar si está disponible
+      if (this.imgedit !== undefined && this.imgedit !== "") {
         let img = new Image();
         img.src = this.imgedit;
-        return true; // Devuelve true si la imagen está disponible
+        return true;
       }
-      return false; // Si la URL de la imagen no está definida o está vacía, devuelve false
+      return false;
     },
+
     onFileSelected(event) {
+      this.imgMiniatura = "";
       let file = event.target.files[0];
-      // Validar el tamaño del archivo (500 KB máximo)
       const maxSize = 500 * 1024; // 500 KB en bytes
+      
       if (file && file.size > maxSize) {
         this.valid = false;
-        this.showAlert('warning', 'El archivo de imagen debe ser de máximo 500 KB', 3000);
-        return; // Detener el proceso si el archivo es demasiado grande
+        this.showAlert("warning", "El archivo de imagen debe ser de máximo 500 KB", 3000);
+        return;
       }
+
+      const mimeType = file.type;
+      const extension = file.name.split(".").pop().toLowerCase();
+      const imageExtensions = ["jpg", "jpeg", "png", "gif"];
+
+      if ((mimeType.startsWith("image/") || imageExtensions.includes(extension)) && 
+          imageExtensions.includes(extension)) {
+        this.cargarImage(file);
+        this.showImage = true;
+      } else {
+        this.showImage = false;
+        this.icono = "mdi-file";
+      }
+
       this.valid = true;
       this.editedItem.image = file;
-      //console.log(this.editedItem.image_cardgift);
-      this.cargarImage(file);
     },
+
     cargarImage(file) {
       let reader = new FileReader();
       reader.onload = (e) => {
         this.imgMiniatura = e.target.result;
-      }
+      };
       reader.readAsDataURL(file);
     },
   },
@@ -697,12 +1333,15 @@ export default {
 </script>
 
 <style scoped>
-.selected-tab {
-  background-color: #03626C;
-  /* Fondo del tab seleccionado */
-  color: white;
-  /* Texto blanco */
-  border-radius: 4px;
-  /* Esquinas redondeadas, opcional */
+.text-green {
+  color: #2e7d32;
+}
+
+.text-red {
+  color: #c62828;
+}
+
+.text-blue {
+  color: #1565c0;
 }
 </style>

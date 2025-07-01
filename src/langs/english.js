@@ -5,6 +5,22 @@ const english = {
       initialMessage: "Hi 👋 How can I help you today, {name}?",
       // Puedes agregar más mensajes del bot aquí
     },
+    vitalSigns: "Vital Signs",
+    medicalInformation: "Medical Information",
+    complementaryData: "Complementary Data",
+    medicalExamsTitle: "Medical Exams",
+    vitalSignsnoData: "You haven't updated vital signs and treatments data",
+    medicalInfonoData: "No medical information has been defined",
+    complementaryDatanoData:
+      "Complementary data information has not been updated",
+    medicalExamsnoData: "No medical exams have been performed",
+    cardMedicamento: "Current Medication",
+    cardAlergias: "Allergies",
+    cardAntecedentesPersonales: "Personal History",
+    cardAntecedentesFamiliares: "Family History",
+    cardPlanVacunacion: "Vaccination Plan",
+    cardDiagnostico: "Diagnosis",
+    cardConsultaMedica: "Medical Consultation",
     menu: {
       desire: {
         title: "Wishes",
@@ -48,6 +64,8 @@ const english = {
       medicalExams: "Medical Exams",
       diagnosis: "Diagnoses",
       medicalConsultations: "Medical Consultations",
+      incomes: "Income",
+      expenses: "Expenses",
     },
     settings: {
       category: "Categories",
@@ -471,6 +489,171 @@ const english = {
           invalid: "Date is not valid",
         },
       },
+    },
+    personManagement: {
+      formInstructions:
+        "Fill in all required fields to register the person's information",
+      edit_title: "Edit Person",
+      create_title: "New Person",
+      no_changes: "No changes were made",
+      save_error: "Error saving information",
+      steps: {
+        basic_info: {
+          title: "Basic Information",
+          subtitle: "Person's main data",
+        },
+        personal_info: {
+          title: "Personal Information",
+          subtitle: "Personal details and contact",
+        },
+        medical_info: {
+          title: "Medical Information",
+          subtitle: "Medical data and documentation",
+        },
+      },
+      fields: {
+        profile_image: "Profile image",
+        name: "Full name",
+        username: "Username",
+        password: "Password",
+        language: "Language",
+        birth_date: "Birth date",
+        age: "Age",
+        gender: "Gender",
+        emergency_contact: "Emergency contact",
+        email: "Email",
+        phone: "Phone",
+        address: "Address",
+        medical_record_number: "Medical record number",
+        document_type: "Document type",
+        document_number: "Document number",
+        health_coverage: "Health coverage",
+        coverage_name: "Coverage name",
+        blood_type: "Blood type",
+      },
+      genders: {
+        male: "Male",
+        female: "Female",
+        other: "Other",
+      },
+      documentTypes: {
+        id: "ID",
+        passport: "Passport",
+        driver_license: "Driver license",
+      },
+      healthCoverages: {
+        public: "Public",
+        private: "Private",
+        none: "None",
+      },
+      validation: {
+        name_required: "Name is required",
+        email_valid: "Email must be valid",
+        image_size: "Image must be smaller than 500KB",
+      },
+    },
+    finances: {
+      formInstructions: {
+        income: "Complete all fields in the income record",
+        expense: "Complete all fields in the expense record",
+        finance: "Complete all fields in the financial record",
+      },
+      steps: {
+        financialDetails: {
+          title: "Financial Details",
+          subtitle: "Basic information of the record",
+        },
+        description: {
+          title: "Description",
+          subtitle: "Additional details",
+        },
+      },
+      fields: {
+        type: "Transaction Type",
+        method: "Payment Method",
+        income: "Income",
+        spent: "Expense",
+        description: "Description",
+        date: "Date",
+        file: "Receipt",
+        attach_file: "Attach Receipt",
+      },
+      actions: {
+        viewFile: "View Receipt",
+        downloadFile: "Download",
+      },
+      titles: {
+        new: {
+          income: "Add Income",
+          expense: "Add Expense",
+          finance: "Add Financial Record",
+        },
+        edit: {
+          income: "Edit Income",
+          expense: "Edit Expense",
+          finance: "Edit Financial Record",
+        },
+        view: {
+          income: "Income Records",
+          expense: "Expense Records",
+          finance: "Financial Records",
+        },
+      },
+      validationMessages: {
+        type: {
+          required: "Type is required",
+          maxLength: "Type cannot exceed 50 characters",
+        },
+        method: {
+          maxLength: "Method cannot exceed 50 characters",
+        },
+        income: {
+          number: "Income must be a number",
+          precision: "Income must have up to 2 decimal places",
+        },
+        spent: {
+          number: "Expense must be a number",
+          precision: "Expense must have up to 2 decimal places",
+        },
+        description: {
+          maxLength: "Description cannot exceed 255 characters",
+        },
+        date: {
+          required: "Date is required",
+          invalid: "Date must be valid",
+        },
+        file: {
+          invalidType: "Only images (PNG, JPG) are allowed",
+          sizeExceeded: "File size must be less than 500KB",
+        },
+      },
+      notRecorded: "Not recorded",
+      noRecords: "No financial records found",
+      header: {
+        title: "Household Finances",
+        subtitle: "Family income and expense control",
+      },
+      suggestions: {
+        title: "Smart Suggestions",
+        alerts: {
+          message: "You have {count} alert for today",
+          message_plural: "You have {count} alerts for today",
+        },
+      },
+      comparison: {
+        lastMonth: "Last month",
+        thisMonth: "This month",
+        vs: "vs {amount}",
+      },
+      sections: {
+        balance: "Balance",
+        movements: "Movements",
+        suggestions: "Suggestions",
+      },
+      currentAmount: "<strong>{amount}</strong> current",
+    },
+    summary: {
+      title: "Summary for",
     },
   },
 };

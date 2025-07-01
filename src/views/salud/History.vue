@@ -91,27 +91,27 @@
             </v-card>
           </v-col>
         </v-row>
-                    <!-- Fila completa para herramientas -->
-  <v-row no-gutters class="mt-2">
-    <v-col cols="12">
-      <div class="d-flex flex-wrap gap-1">
-        <v-btn 
-          v-for="tool in tools" 
-          :key="tool.name" 
-          @click="tool.action" 
-          size="small" 
-          color="primary" 
-          variant="text"
-          prepend-icon="mdi-plus" 
-          class="text-capitalize"
-        >
-          {{ tool.name }}
-        </v-btn>
-      </div>
-    </v-col>
-  </v-row>
+        <!-- Fila completa para herramientas -->
+        <v-row no-gutters class="mt-2">
+          <v-col cols="12">
+            <div class="d-flex flex-wrap gap-1">
+              <v-btn
+                v-for="tool in tools"
+                :key="tool.name"
+                @click="tool.action"
+                size="small"
+                color="primary"
+                variant="text"
+                prepend-icon="mdi-plus"
+                class="text-capitalize"
+              >
+                {{ tool.name }}
+              </v-btn>
+            </div>
+          </v-col>
+        </v-row>
         <v-divider class="my-4" />
-        <div class="text-body-2 font-weight-medium mb-2">Signos Vitales</div>
+        <div class="text-body-2 font-weight-medium mb-2">{{ $t("vitalSigns") }}</div>
         <v-row dense>
           <template v-if="signosVitalesTransformados.length > 0">
             <v-col
@@ -165,14 +165,16 @@
           <template v-else>
             <v-col cols="12">
               <v-alert type="info" variant="tonal">
-                No ha actualizado los datos de los signos vitales y tratamientos
+                {{ $t("vitalSignsnoData") }}
               </v-alert>
             </v-col>
           </template>
         </v-row>
 
         <v-divider class="my-4" />
-        <div class="text-body-2 font-weight-medium mb-2">Información Medica</div>
+        <div class="text-body-2 font-weight-medium mb-2">
+          {{ $t("medicalInformation") }}
+        </div>
         <v-row dense>
           <template v-if="informacionMedica.length > 0">
             <v-col
@@ -227,14 +229,16 @@
           <template v-else>
             <v-col cols="12">
               <v-alert type="info" variant="tonal">
-                No se ha definido información médica
+                {{ $t("medicalInfonoData") }}
               </v-alert>
             </v-col>
           </template>
         </v-row>
 
         <v-divider class="my-4" />
-        <div class="text-body-2 font-weight-medium mb-2">Datos Complementarios</div>
+        <div class="text-body-2 font-weight-medium mb-2">
+          {{ $t("complementaryData") }}
+        </div>
         <v-row dense>
           <template v-if="datosComplementariosTransformados.length > 0">
             <v-col
@@ -289,13 +293,15 @@
           <template v-else>
             <v-col cols="12">
               <v-alert type="info" variant="tonal">
-                No se ha actualizado la información de los datos complementarios
+                {{ $t("complementaryDatanoData") }}
               </v-alert>
             </v-col>
           </template>
         </v-row>
         <v-divider class="my-4" />
-        <div class="text-body-2 font-weight-medium mb-2">Exámenes Médicos</div>
+        <div class="text-body-2 font-weight-medium mb-2">
+          {{ $t("medicalExamsTitle") }}
+        </div>
         <v-row dense>
           <template v-if="signosVitalesTransformados.length > 0">
             <v-col
@@ -339,7 +345,7 @@
           <template v-else>
             <v-col cols="12">
               <v-alert type="info" variant="tonal">
-                No se ha realizado exámenes médicos
+                {{ $t("medicalExamsnoData") }}
               </v-alert>
             </v-col>
           </template>
@@ -408,7 +414,7 @@
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn variant="flat" color="grey-lighten-1" @click="closeDialogPhysicalExam"
+        <v-btn text @click="closeDialogPhysicalExam"
           >Cerrar</v-btn
         >
       </v-card-actions>
@@ -425,7 +431,7 @@
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn variant="flat" color="grey-lighten-1" @click="closeDialogTreatment"
+        <v-btn text @click="closeDialogTreatment"
           >Cerrar</v-btn
         >
       </v-card-actions>
@@ -442,14 +448,14 @@
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn variant="flat" color="grey-lighten-1" @click="closeDialogPerson"
+        <v-btn text @click="closeDialogPerson"
           >Cerrar</v-btn
         >
       </v-card-actions>
     </v-card>
   </v-dialog>
 
-   <!--Datos de los antecedentes familiares-->
+  <!--Datos de los antecedentes familiares-->
   <v-dialog v-model="dialogFamily" fullscreen transition="dialog-bottom-transition">
     <v-card>
       <v-card-text>
@@ -459,7 +465,7 @@
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn variant="flat" color="grey-lighten-1" @click="closeDialogFamily"
+        <v-btn text @click="closeDialogFamily"
           >Cerrar</v-btn
         >
       </v-card-actions>
@@ -476,7 +482,7 @@
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn variant="flat" color="grey-lighten-1" @click="closeDialogExadialogExams"
+        <v-btn text @click="closeDialogExadialogExams"
           >Cerrar</v-btn
         >
       </v-card-actions>
@@ -493,7 +499,7 @@
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn variant="flat" color="grey-lighten-1" @click="closeDialogDiagnosis"
+        <v-btn text @click="closeDialogDiagnosis"
           >Cerrar</v-btn
         >
       </v-card-actions>
@@ -501,7 +507,11 @@
   </v-dialog>
 
   <!--Datos de las consultas-->
-  <v-dialog v-model="dialogConsultations" fullscreen transition="dialog-bottom-transition">
+  <v-dialog
+    v-model="dialogConsultations"
+    fullscreen
+    transition="dialog-bottom-transition"
+  >
     <v-card>
       <v-card-text>
         <!-- Aquí pasamos el 'selectedWorker' al componente dentro del diálogo -->
@@ -537,7 +547,7 @@ export default {
     BackGroundFamily,
     MedicalExam,
     Diagnosis,
-    MedicalConsultation
+    MedicalConsultation,
   },
   data: () => ({
     dialogPhysicalExam: false,
@@ -721,6 +731,7 @@ export default {
     medicalExam: [],
     treatment: {},
     diagnosis: {},
+    consultation: {},
     backgroundPerson: [],
     backgroundFamily: [],
     data: {},
@@ -811,84 +822,84 @@ export default {
     getDate() {
       return this.input ? new Date(this.input) : new Date();
     },
-   tools() {
-  return [
-    // 1. Diagnósticos (lo primero que se suele registrar)
-    {
-      name: this.$t("viewTitles.diagnosis"),
-      action: () => this.showAddDiagnosis()
+    tools() {
+      return [
+        // 1. Diagnósticos (lo primero que se suele registrar)
+        {
+          name: this.$t("viewTitles.diagnosis"),
+          action: () => this.showAddDiagnosis(),
+        },
+
+        // 2. Antecedentes personales (historia clínica)
+        {
+          name: this.$t("viewTitles.personalBackground"),
+          action: () => this.showAddPerson(),
+        },
+
+        // 3. Antecedentes familiares (importantes para diagnóstico)
+        {
+          name: this.$t("viewTitles.familyBackground"),
+          action: () => this.showAddFamily(),
+        },
+
+        // 4. Exámenes físicos (evaluación inicial)
+        {
+          name: this.$t("viewTitles.physicalExams"),
+          action: () => this.showAddPhysicalExam(),
+        },
+
+        // 5. Exámenes médicos (complementarios)
+        {
+          name: this.$t("viewTitles.medicalExams"),
+          action: () => this.showAddExam(),
+        },
+
+        // 6. Tratamientos (lo último, después de tener diagnóstico)
+        {
+          name: this.$t("viewTitles.treatments"),
+          action: () => this.showAddTreatment(),
+        },
+
+        // 7. Consultas médicas (nuevo elemento)
+        {
+          name: this.$t("viewTitles.medicalConsultations"), // Asegúrate de añadir la traducción
+          action: () => this.showAddConsultations(),
+        },
+      ];
     },
-    
-    // 2. Antecedentes personales (historia clínica)
-    {
-      name: this.$t("viewTitles.personalBackground"),
-      action: () => this.showAddPerson()
-    },
-    
-    // 3. Antecedentes familiares (importantes para diagnóstico)
-    {
-      name: this.$t("viewTitles.familyBackground"),
-      action: () => this.showAddFamily()
-    },
-    
-    // 4. Exámenes físicos (evaluación inicial)
-    {
-      name: this.$t("viewTitles.physicalExams"),
-      action: () => this.showAddPhysicalExam()
-    },
-    
-    // 5. Exámenes médicos (complementarios)
-    {
-      name: this.$t("viewTitles.medicalExams"),
-      action: () => this.showAddExam()
-    },
-    
-    // 6. Tratamientos (lo último, después de tener diagnóstico)
-    {
-      name: this.$t("viewTitles.treatments"),
-      action: () => this.showAddTreatment()
-    },
-    
-    // 7. Consultas médicas (nuevo elemento)
-    {
-      name: this.$t("viewTitles.medicalConsultations"), // Asegúrate de añadir la traducción
-      action: () => this.showAddConsultations()
-    }
-  ];
-},
     //card de signos vitales
     signosVitalesTransformados() {
       const signosConfig = {
         bloodPressure: {
-          nombre: "Presión Arterial",
+          nombre: this.$t("physicalExam.fields.blood_pressure"),
           unidad: "mmHg",
           icon: "mdi-heart-pulse",
           color: "indigo-darken-2",
           type: "physicalExam",
         },
         pulse: {
-          nombre: "Pulso",
+          nombre: this.$t("physicalExam.fields.pulse"),
           unidad: "bpm",
           icon: "mdi-heart",
           color: "indigo-darken-2",
           type: "physicalExam",
         },
         temperature: {
-          nombre: "Temperatura",
+          nombre: this.$t("physicalExam.fields.temperature"),
           unidad: "°C",
           icon: "mdi-thermometer",
           color: "indigo-darken-2",
           type: "physicalExam",
         },
         respiratoryRate: {
-          nombre: "Frecuencia Respiratoria",
+          nombre: this.$t("physicalExam.fields.respiratory_rate"),
           unidad: "rpm",
           icon: "mdi-lungs",
           color: "indigo-darken-2",
           type: "physicalExam",
         },
         weight: {
-          nombre: "Peso",
+          nombre: this.$t("physicalExam.fields.weight"),
           unidad: "kg",
           icon: "mdi-scale-bathroom",
           color: "indigo-darken-2",
@@ -935,7 +946,7 @@ export default {
           .join(" - ");
 
         result.push({
-          nombre: "Medicamento Actual",
+          nombre: this.$t("cardMedicamento"),
           valor: medInfo,
           unidad: "",
           icon: "mdi-pill",
@@ -990,7 +1001,7 @@ export default {
       // 1. Grupo sanguíneo
       if (person?.bloodType || person?.blood_type) {
         informacionMedica.push({
-          nombre: "Grupo Sanguíneo",
+          nombre: this.$t("personManagement.fields.blood_type"),
           valor: person.bloodType || person.blood_type || "No especificado",
           unidad: "",
           icon: "mdi-water",
@@ -1008,13 +1019,13 @@ export default {
       if (alergias.length > 0) {
         const alergiasText = alergias.map((a) => a.description).join(", ");
         informacionMedica.push({
-          nombre: "Alergias",
+          nombre: this.$t("cardAlergias"),
           valor: alergiasText,
           unidad: "",
           icon: "mdi-alert-circle",
           color: "deep-orange",
           fecha: alergias[0]?.startDate || "No especificada",
-          type: 'backgroundPerson'
+          type: "backgroundPerson",
         });
       }
 
@@ -1029,13 +1040,13 @@ export default {
           .map((a) => a.description)
           .join(", ");
         informacionMedica.push({
-          nombre: "Antecedentes Personales",
+          nombre: this.$t("cardAntecedentesPersonales"),
           valor: antecedentesText,
           unidad: "",
           icon: "mdi-file-document-outline",
           color: "deep-orange",
           fecha: antecedentesPersonales[0]?.startDate || "No especificada",
-          type: 'backgroundPerson'
+          type: "backgroundPerson",
         });
       }
 
@@ -1046,13 +1057,13 @@ export default {
           .join("; ");
 
         informacionMedica.push({
-          nombre: "Antecedentes Familiares",
+          nombre: this.$t("cardAntecedentesFamiliares"),
           valor: familiaresText,
           unidad: "",
           icon: "mdi-family-tree",
           color: "deep-orange",
           fecha: backgroundFamily[0]?.date || "No especificada",
-          type: 'backgroundFamily'
+          type: "backgroundFamily",
         });
       }
 
@@ -1123,78 +1134,97 @@ export default {
       return complementarios;
     },*/
     datosComplementariosTransformados() {
-    const complementarios = [];
-    const { physicalExam, backgroundPerson, diagnosis } = this; // Agregamos diagnosis
+      const complementarios = [];
+      const { physicalExam, backgroundPerson, diagnosis, consultation } = this; // Agregamos diagnosis
 
-    // 3. Talla (existente)
-    if (physicalExam?.height) {
-      complementarios.push({
-        nombre: "Talla",
-        valor: parseFloat(physicalExam.height).toFixed(2),
-        unidad: "m",
-        icon: "mdi-human-male-height",
-        color: "grey-darken-1",
-        fecha: physicalExam?.exam_date || new Date().toISOString().split("T")[0],
-        type: "physicalExam",
-      });
-    }
-
-    // 4. IMC (existente)
-    if (physicalExam?.height) {
-      const imc = physicalExam.bmi ||
-        (physicalExam.weight
-          ? (parseFloat(physicalExam.weight)) /
-            (parseFloat(physicalExam.height) * parseFloat(physicalExam.height))
-            .toFixed(2)
-          : null);
-
-      if (imc) {
+      // 3. Talla (existente)
+      if (physicalExam?.height) {
         complementarios.push({
-          nombre: "IMC",
-          valor: imc,
-          unidad: "",
-          icon: "mdi-calculator-variant-outline",
-          color: this.getImcColor(imc),
+          nombre: this.$t("physicalExam.fields.height"),
+          valor: parseFloat(physicalExam.height).toFixed(2),
+          unidad: "m",
+          icon: "mdi-human-male-height",
+          color: "grey-darken-1",
           fecha: physicalExam?.exam_date || new Date().toISOString().split("T")[0],
           type: "physicalExam",
         });
       }
-      
-    // 2. Plan de Vacunación (existente)
-    const vacunas = backgroundPerson.filter(
-      (item) => item.type && item.type.toLowerCase().includes("vacunación")
-    );
 
-    if (vacunas.length > 0) {
-      const vacunasText = vacunas.map((v) => v.description).join(", ");
-      complementarios.push({
-        nombre: "Plan de Vacunación",
-        valor: vacunasText,
-        unidad: "",
-        icon: "mdi-needle",
-        color: "green-darken-1",
-        fecha: vacunas[0]?.startDate || physicalExam?.exam_date || new Date().toISOString().split("T")[0],
-        type: "backgroundPerson"
-      }); 
-    }
-    // 1. Diagnóstico Principal
-    if (diagnosis?.typeName) {
-      complementarios.push({
-        nombre: "Diagnóstico",
-        valor: `${diagnosis.typeName} (${diagnosis.cie10Code || 'Sin código'})`,
-        detalle: diagnosis.description, // Agregamos descripción como detalle
-        unidad: "",
-        icon: "mdi-heart-pulse", // Icono médico
-        color: "red-darken-1", // Color distintivo para diagnósticos
-        fecha: diagnosis.date || new Date().toISOString().split("T")[0],
-        type: "diagnosis" // Nuevo tipo para identificar
-      });
-    }
+      // 4. IMC (existente)
+      if (physicalExam?.height) {
+        const imc =
+          physicalExam.bmi ||
+          (physicalExam.weight
+            ? parseFloat(physicalExam.weight) /
+              (parseFloat(physicalExam.height) * parseFloat(physicalExam.height)).toFixed(
+                2
+              )
+            : null);
 
-    }
+        if (imc) {
+          complementarios.push({
+            nombre: this.$t("physicalExam.fields.bmi"),
+            valor: imc,
+            unidad: "",
+            icon: "mdi-calculator-variant-outline",
+            color: this.getImcColor(imc),
+            fecha: physicalExam?.exam_date || new Date().toISOString().split("T")[0],
+            type: "physicalExam",
+          });
+        }
 
-    return complementarios;
-  },
+        // 2. Plan de Vacunación (existente)
+        const vacunas = backgroundPerson.filter(
+          (item) => item.type && item.type.toLowerCase().includes("vacunación")
+        );
+
+        if (vacunas.length > 0) {
+          const vacunasText = vacunas.map((v) => v.description).join(", ");
+          complementarios.push({
+            nombre: this.$t("cardPlanVacunacion"),
+            valor: vacunasText,
+            unidad: "",
+            icon: "mdi-needle",
+            color: "green-darken-1",
+            fecha:
+              vacunas[0]?.startDate ||
+              physicalExam?.exam_date ||
+              new Date().toISOString().split("T")[0],
+            type: "backgroundPerson",
+          });
+        }
+        // 1. Diagnóstico Principal
+        if (diagnosis?.typeName) {
+          complementarios.push({
+            nombre: this.$t("cardDiagnostico"),
+            valor: `${diagnosis.typeName} (${diagnosis.cie10Code || "Sin código"})`,
+            detalle: diagnosis.description, // Agregamos descripción como detalle
+            unidad: "",
+            icon: "mdi-heart-pulse", // Icono médico
+            color: "red-darken-1", // Color distintivo para diagnósticos
+            fecha: diagnosis.date || new Date().toISOString().split("T")[0],
+            type: "diagnosis", // Nuevo tipo para identificar
+          });
+        }
+
+        if (consultation) {
+          complementarios.push({
+            nombre: this.$t("cardConsultaMedica"),
+            valor: consultation.typeName || "Consulta médica",
+            detalle: consultation.reason || "Sin motivo especificado",
+            unidad: consultation.professional
+              ? `Profesional: ${consultation.professional}`
+              : "",
+            icon: "mdi-stethoscope", // Icono de estetoscopio para consultas
+            color: "blue-darken-2", // Color azul para consultas
+            fecha: consultation.date ? consultation.date : "No registrada",
+            type: "consultation",
+          });
+        }
+      }
+
+      return complementarios;
+    },
   },
   mounted() {
     this.name = JSON.parse(LocalStorageService.getItem("name"));
@@ -1245,10 +1275,10 @@ export default {
         case "diagnosis":
           this.showAddDiagnosis();
           break;
+        case "consultation":
+          this.showAddConsultations();
+          break;
         default:
-          this.signoSeleccionado = item;
-          this.nuevoValor = item.valor;
-          this.dialog = true;
           break;
       }
     },
@@ -1381,12 +1411,14 @@ export default {
           this.backgroundPerson = result.data?.backgroundPerson || [];
           this.backgroundFamily = result.data?.backgroundFamily || [];
           this.diagnosis = result.data?.diagnosis || {};
+          this.consultation = result.data?.consultation || {};
         } else {
           // Si no hay datos, asignamos un array vacío
           this.person = {};
           this.physicalExam = {};
           this.treatment = {};
           this.diagnosis = {};
+          this.consultation = {};
           this.medicalExam = [];
           this.backgroundPerson = [];
           this.backgroundFamily = [];

@@ -37,7 +37,7 @@
   <v-card
     v-for="(exam, index) in medicalExams"
     :key="index"
-    class="mb-4"
+    class="mb-4 rounded-lg"
     elevation="2"
   >
     <v-row no-gutters class="ma-0">

@@ -59,19 +59,9 @@
 
       </div>-->
 
-      <v-btn
-        icon
-        variant="text"
-        class="mr-2"
-        style="color: #ffc0cb; border: 2px solid #fff"
-      >
-        <v-badge color="#FFC0CB" :content="cantHome" overlap>
-          <v-icon
-            size="x-large"
-            style="color: #ffc0cb"
-            icon="mdi-home-outline"
-            @click="openMenu"
-          ></v-icon>
+      <v-btn icon class="text-none" variant="text" >
+        <v-badge color="#E53935" :content="cantHome" dot>
+          <v-icon color="#00796B" icon="mdi-home" @click="openMenu"></v-icon>
         </v-badge>
 
         <!-- Menú desplegable -->
@@ -156,27 +146,20 @@
         </v-menu>
       </v-btn>
       <!-- Campanita de notificaciones -->
-      <v-btn
-        icon
-        variant="text"
-        class="mr-2"
-        style="color: #ffc0cb; border: 2px solid #fff"
-        @click="notifications.length ? openNoti() : ''"
-      >
+      <v-btn icon class="text-none" variant="text" >
         <template v-if="countNoti">
           <!-- Mostrar badge solo si hay notificaciones -->
-          <v-badge color="#FFC0CB" :content="countNoti" overlap>
+          <v-badge color="#E53935" :content="countNoti" dot>
             <v-icon
-              size="x-large"
-              style="color: #ffc0cb"
-              icon="mdi-bell-badge-outline"
+              color="#00796B"
+              icon="mdi-bell"
             ></v-icon>
           </v-badge>
         </template>
 
         <template v-else>
           <!-- Mostrar solo el icono (sin badge) -->
-          <v-icon size="x-large" style="color: #ffc0cb" icon="mdi-bell-outline"></v-icon>
+          <v-icon style="color: #00796B" icon="mdi-bell"></v-icon>
         </template>
 
         <!-- Componente de menú de notificaciones -->
@@ -258,12 +241,7 @@
         </v-menu>
       </v-btn>
       <!-- Botón de Configuración -->
-      <v-btn
-        icon
-        variant="text"
-        class="mr-2"
-        style="color: #ffc0cb; border: 2px solid #fff"
-      >
+      <v-btn icon class="text-none" variant="text">
         <v-menu
           v-model="menuSettings"
           offset-y
@@ -272,9 +250,8 @@
         >
           <template v-slot:activator="{ props }">
             <v-icon
-              size="x-large"
-              style="color: #ffc0cb"
-              icon="mdi-cog-outline"
+              style="color: #00796B"
+              icon="mdi-cog"
               v-bind="props"
             ></v-icon>
           </template>
@@ -297,7 +274,7 @@
       <!-- Menú desplegable activado por avatar -->
       <v-menu>
         <template v-slot:activator="{ props }">
-          <v-avatar v-bind="props" class="mr-2">
+          <v-avatar v-bind="props">
             <v-img
               :src="`${this.$axios.defaults.baseURL}images/${imageUrl}`"
               alt="Avatar del profesional"

@@ -3,7 +3,21 @@ const english = {
     greet: "Hello', {user}",
     chat: {
       initialMessage: "Hi 👋 How can I help you today, {name}?",
-      // Puedes agregar más mensajes del bot aquí
+      title: "Task Assistant",
+      placeholder: "Type a reply...",
+      askType:
+        "Would you like to create this suggestion as a 'task' or a 'goal'?",
+      askTitle: "What will be the task title? (Current: {current})",
+      askDescription:
+        "Do you want to edit the description? (Current: {current})",
+      askPriority: "What priority should it have? (e.g., 1, 2, 3)",
+      askStartDate: "What is the start date? (Current: {current})",
+      askStartTime: "What time does it start?",
+      askEstimatedTime: "How many minutes will it take approximately?",
+      askLocation: "Where will it take place?",
+      askRecurrence: "How often will it repeat? (e.g., daily, weekly)",
+      askStatus: "What is the initial status? (e.g., pending, in progress)",
+      completed: "Task created! You can save it or continue editing.",
     },
     vitalSigns: "Vital Signs",
     medicalInformation: "Medical Information",
@@ -149,6 +163,7 @@ const english = {
       previous: "Previous",
       next: "Next",
       saveAndClose: "Save and Close",
+      seeMore: "See more",
     },
     deleteDialog: {
       title: "Delete {item}",

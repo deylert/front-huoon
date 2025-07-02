@@ -1,8 +1,23 @@
 const spanish = {
   messages: {
     greet: "Hola",
+    
     chat: {
       initialMessage: "Hola 👋 ¿En qué te puedo ayudar hoy, {name}?",
+      title: "Asistente de Tareas",
+      placeholder: "Escribe una respuesta...",
+      askType:
+        "¿Deseas registrar esta sugerencia como una 'tarea' o una 'meta'?",
+      askTitle: "¿Cuál será el título de la tarea? (Actual: {current})",
+      askDescription: "¿Quieres modificar la descripción? (Actual: {current})",
+      askPriority: "¿Qué prioridad deseas asignar? (Ej: 1, 2, 3)",
+      askStartDate: "¿Cuál es la fecha de inicio? (Actual: {current})",
+      askStartTime: "¿A qué hora comenzará?",
+      askEstimatedTime: "¿Cuántos minutos estimas que tomará?",
+      askLocation: "¿Dónde se realizará?",
+      askRecurrence: "¿Con qué frecuencia se repetirá? (Ej: diaria, semanal)",
+      askStatus: "¿Cuál será el estado inicial? (Ej: pendiente, en progreso)",
+      completed: "¡Tarea registrada! Puedes guardar o seguir editando.",
     },
     vitalSigns: "Signos Vitales",
     medicalInformation: "Información Médica",
@@ -149,6 +164,7 @@ const spanish = {
       previous: "Anterior",
       next: "Siguiente",
       saveAndClose: "Guardar y Cerrar",
+      seeMore: "Ver más",
     },
     deleteDialog: {
       title: "Eliminar {item}",

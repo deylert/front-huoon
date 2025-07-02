@@ -3,6 +3,20 @@ const portuguese = {
     greet: "Olá",
     chat: {
       initialMessage: "Olá 👋 Como posso te ajudar hoje, {name}?",
+      title: "Assistente de Tarefas",
+      placeholder: "Digite uma resposta...",
+      askType:
+        "Você quer registrar essa sugestão como uma 'tarefa' ou uma 'meta'?",
+      askTitle: "Qual será o título da tarefa? (Atual: {current})",
+      askDescription: "Deseja modificar a descrição? (Atual: {current})",
+      askPriority: "Qual prioridade deseja definir? (Ex: 1, 2, 3)",
+      askStartDate: "Qual é a data de início? (Atual: {current})",
+      askStartTime: "Qual é o horário de início?",
+      askEstimatedTime: "Quantos minutos aproximadamente irá durar?",
+      askLocation: "Onde será realizada?",
+      askRecurrence: "Com que frequência se repetirá? (Ex: diária, semanal)",
+      askStatus: "Qual será o status inicial? (Ex: pendente, em andamento)",
+      completed: "Tarefa criada! Você pode salvar ou continuar editando.",
     },
     vitalSigns: "Sinais Vitais",
     medicalInformation: "Informação Médica",
@@ -149,6 +163,7 @@ const portuguese = {
       previous: "Anterior",
       next: "Próximo",
       saveAndClose: "Salvar e Fechar",
+      seeMore: "Ver mais",
     },
     deleteDialog: {
       title: "Excluir {item}",

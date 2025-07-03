@@ -73,30 +73,27 @@
                 </template>
 
                 <template v-else-if="msg.type === 'editable-text'">
-                  <v-text-field
-                    v-model="msg.model"
-                    :label="msg.label"
-                    variant="outlined"
-                    hide-details
-                    density="comfortable"
-                    class="w-500"
-                    autofocus                    
-                    style="min-width: 250px;"
-                    @keyup.enter="handleUserInput"
-                  />
-                </template>
+  <v-text-field
+    v-model="taskData.title"
+    :label="msg.label"
+    variant="outlined"
+    hide-details
+    style="min-width: 250px;"
+    @keyup.enter="handleTitleInput"
+  />
+</template>
 
-                <template v-else-if="msg.type === 'editable-textarea'">
-                  <v-textarea
-                    v-model="msg.model"
-                    :label="msg.label"
-                    variant="underlined"
-                    hide-details
-                    rows="4"                    
-                    style="min-width: 500px;"
-                    @keyup.enter="handleUserInput"
-                  />
-                </template>
+<template v-else-if="msg.type === 'editable-textarea'">
+  <v-textarea
+    v-model="taskData.description"
+    :label="msg.label"
+    variant="underlined"
+    hide-details
+    rows="4"
+    style="min-width: 500px;"
+    @keyup.enter="handleDescriptionInput"
+  />
+</template>
 
                 <template v-else-if="msg.type === 'priority-options'">
                   <v-slide-group show-arrows class="pa-2">
@@ -627,7 +624,7 @@ export default {
         people: [],
       };
     },
-      initializeTaskData() {
+    initializeTaskData() {
       // Usar valores existentes o iniciales
       const initialDate =
         this.taskData.start_date ||
@@ -712,7 +709,6 @@ export default {
       this.processStep(msg.model);
     },
     handlePrioritySelection(option) {
-      console.log('Prioridad seleccionada', option)
       this.taskData.priority_id = option.id;
       this.selectedPriorityId = option.id;
       this.input = option.name; // Actualizar el input con la selección
@@ -745,7 +741,7 @@ export default {
         if (!currentMessage.model?.trim()) return;
         this.sendUserMessage(currentMessage.model);
         this.processStep(currentMessage.model);
-        currentMessage.model = ""; // Limpiar después de enviar
+        //currentMessage.model = ""; // Limpiar después de enviar
         return;
       }
 
@@ -756,6 +752,23 @@ export default {
       this.processStep(this.input.trim());
       this.input = "";
     },
+    handleTitleInput() {
+    if (!this.taskData.title?.trim()) return;
+    
+    this.sendUserMessage(this.taskData.title);
+    this.processStep(this.taskData.title);
+    //this.step++; // Avanzar al siguiente paso
+    //this.prepareNextStep();
+  },
+
+  handleDescriptionInput() {
+    if (!this.taskData.description?.trim()) return;
+    
+    this.sendUserMessage(this.taskData.description);
+    this.processStep(this.taskData.description);
+    //this.step++; // Avanzar al siguiente paso
+    //this.prepareNextStep();
+  },
     generateTimeSlots() {
       const now = new Date();
       const currentHour = now.getHours();
@@ -847,10 +860,10 @@ export default {
       // Actualizar los datos según el paso actual
       switch (this.step) {
         case 1: // TÍTULO
-          this.taskData.title = response;
+          //this.taskData.title = response;
           break;
         case 2: // DESCRIPCIÓN
-          this.taskData.description = response;
+          //this.taskData.description = response;
           break;
         case 3: // PRIORIDAD
           console.log('prioridad:', response);
@@ -883,7 +896,7 @@ export default {
             from: "bot",
             type: "editable-text",
             label: "Título de la tarea",
-            model: this.taskData.title,
+            //model: this.taskData.title,
           });
           break;
 
@@ -892,7 +905,7 @@ export default {
             from: "bot",
             type: "editable-textarea",
             label: "Descripción de la tarea",
-            model: this.taskData.description,
+            //model: this.taskData.description,
           });
           break;
 

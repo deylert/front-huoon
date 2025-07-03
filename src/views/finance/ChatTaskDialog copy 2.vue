@@ -72,6 +72,17 @@
                   </v-btn>
                 </template>
 
+                <template v-else-if="msg.type === 'editable-textarea'">
+                  <v-textarea
+                    v-model="msg.model"
+                    :label="msg.label"
+                    variant="underlined"
+                    hide-details
+                    rows="4"
+                    @keyup.enter="handleEditableInput(msg)"
+                  />
+                </template>
+
                 <template v-else-if="msg.type === 'editable-text'">
                   <v-text-field
                     v-model="msg.model"
@@ -81,18 +92,7 @@
                     class="w-100"
                     density="comfortable"
                     autofocus
-                    @keyup.enter="handleUserInput"
-                  />
-                </template>
-
-                <template v-else-if="msg.type === 'editable-textarea'">
-                  <v-textarea
-                    v-model="msg.model"
-                    :label="msg.label"
-                    variant="underlined"
-                    hide-details
-                    rows="4"
-                    @keyup.enter="handleUserInput"
+                    @keyup.enter="handleEditableInput(msg)"
                   />
                 </template>
 
@@ -445,38 +445,16 @@ export default {
     },
 
     handleAction(action) {
-      console.log("Handling action:", action, "at step:", this.step);
-
-      if (this.step === 8) {
-        // Asegúrate que coincida con tu paso de confirmación
-        if (action === "Sí") {
-          // Validación reforzada
-          if (!this.taskData.people || this.taskData.people.length === 0) {
-            this.sendBotMessage("⚠️ Debes seleccionar al menos un participante");
-            return;
-          }
-
-          // Mostrar confirmación
-          const participantCount = this.taskData.people.length;
-          this.sendUserMessage(`Confirmados ${participantCount} participante(s)`);
-
-          // Forzar renderizado
-          this.$forceUpdate();
-
-          // Avanzar y procesar
-          this.step = 9;
-          console.log("Avanzando a paso 9");
-          
-      // Llamar directamente al caso de finalización
-      this.sendBotMessage("✅ ¡Todo listo! Guardando...");
-      setTimeout(() => {
-        console.log("Completando tarea", this.taskData);
-        this.$emit("completed", this.taskData);
-        this.closeDialog();
-      }, 1500);
+      if (this.step === 7) {
+        if (action === "Sí" && this.taskData.people.length > 0) {
+          this.sendUserMessage(
+            `Confirmados ${this.taskData.people.length} participantes`
+          );
+          this.step = 9; // Ir a finalización
+          this.processStep(this.taskData.people);
         } else if (action === "No") {
-          this.sendUserMessage("Modificaré la selección de participantes");
-          // Mantener en el mismo paso para permitir cambios
+          this.sendUserMessage("Modificaré la selección");
+          // No limpiar selecciones, solo permitir modificaciones
         }
       }
     },
@@ -523,20 +501,25 @@ export default {
       let formattedDate = "";
 
       if (typeof value === "string") {
+        // Ya está en formato YYYY-MM-DD
         formattedDate = value;
       } else if (value instanceof Date) {
         const year = value.getFullYear();
         const month = String(value.getMonth() + 1).padStart(2, "0");
         const day = String(value.getDate()).padStart(2, "0");
         formattedDate = `${year}-${month}-${day}`;
+      } else {
+        console.warn("Valor inesperado en updateDate:", value);
+        return;
       }
 
-      //if (this.taskData.start_date !== formattedDate) {
+      if (this.taskData.start_date !== formattedDate) {
         this.dateInput = formattedDate;
         this.taskData.start_date = formattedDate;
         this.sendUserMessage(`Fecha seleccionada: ${formattedDate}`);
-        this.processStep(formattedDate);
-      //}
+        this.step++; // Añade esta línea para avanzar al siguiente paso
+        this.processStep(formattedDate); // Esto ahora procesará el paso 5 (time-picker)
+      }
     },
 
     handleDateConfirmed() {
@@ -599,86 +582,87 @@ export default {
       }
     },*/
     async initialize() {
-      this.data = {};
-      this.data.home_id = this.home_id;
-      this.editedIndex = -1;
-      try {
-        const result = await handleRequest({
-          endpoint: "category-status-priority-apk",
-          method: "POST",
-          data: this.data,
-        });
+  this.data = {};
+  this.data.home_id = this.home_id;
+  this.editedIndex = -1;
+  try {
+    const result = await handleRequest({
+      endpoint: "category-status-priority-apk",
+      method: "POST",
+      data: this.data,
+    });
 
-        if (result.success) {
-          // Asignación de datos
-          this.categories = result.data?.taskcategories || [];
-          this.status = result.data?.taskstatus || [];
-          this.priorities = result.data?.taskpriorities || [];
-          this.recurrences = result.data?.taskrecurrences || [];
-          this.people = result.data?.taskpeople || [];
-          this.roles = result.data?.taskroles || [];
-          this.typetasks = result.data?.tasktype || [];
+    if (result.success) {
+      // Asignación de datos
+      this.categories = result.data?.taskcategories || [];
+      this.status = result.data?.taskstatus || [];
+      this.priorities = result.data?.taskpriorities || [];
+      this.recurrences = result.data?.taskrecurrences || [];
+      this.people = result.data?.taskpeople || [];
+      this.roles = result.data?.taskroles || [];
+      this.typetasks = result.data?.tasktype || [];
 
-          // Inicializar valores por defecto
-          this.setDefaultValues();
-        } else {
-          // Manejo de caso sin datos
-          this.resetData();
-          this.showAlert("info", result.message || "No hay datos disponibles.", 3000);
-        }
-      } catch (error) {
-        this.resetData();
-        this.showAlert("error", "Ocurrió un error inesperado al cargar los datos.", 3000);
-      } finally {
-        this.dialog = true;
-        this.initializeSelections();
-        this.timeSlots = this.generateTimeSlots();
-      }
-    },
-    setDefaultValues() {
-      // Prioridad por defecto (Normal)
-      const normalPriority = this.priorities.find((p) => p.name === "Normal");
-      if (normalPriority) {
-        this.taskData.priority_id = normalPriority.id;
-        this.selectedPriorityId = normalPriority.id;
-      }
+      // Inicializar valores por defecto
+      this.setDefaultValues();
+      
+    } else {
+      // Manejo de caso sin datos
+      this.resetData();
+      this.showAlert("info", result.message || "No hay datos disponibles.", 3000);
+    }
+  } catch (error) {
+    this.resetData();
+    this.showAlert("error", "Ocurrió un error inesperado al cargar los datos.", 3000);
+  } finally {
+    this.dialog = true;
+    this.initializeSelections();
+    this.timeSlots = this.generateTimeSlots();
+  }
+},
+setDefaultValues() {
+  // Prioridad por defecto (Normal)
+  const normalPriority = this.priorities.find(p => p.name === "Normal");
+  if (normalPriority) {
+    this.taskData.priority_id = normalPriority.id;
+    this.selectedPriorityId = normalPriority.id;
+  }
 
-      // Recurrencia por defecto (Diaria)
-      const dailyRecurrence = this.recurrences.find((r) => r.recurrenceName === "Diaria");
-      if (dailyRecurrence) {
-        this.taskData.recurrence = dailyRecurrence.name;
-        this.selectedRecurrence = dailyRecurrence.name;
-      }
+  // Recurrencia por defecto (Diaria)
+  const dailyRecurrence = this.recurrences.find(r => r.recurrenceName === "Diaria");
+  if (dailyRecurrence) {
+    this.taskData.recurrence = dailyRecurrence.name;
+    this.selectedRecurrence = dailyRecurrence.name;
+  }
 
-      // Fecha y hora por defecto
-      const today = new Date().toISOString().split("T")[0];
-      this.taskData.start_date = this.suggestion?.date || today;
-      this.dateInput = this.taskData.start_date;
-    },
-    resetData() {
-      this.categories = [];
-      this.status = [];
-      this.priorities = [];
-      this.recurrences = [];
-      this.people = [];
-      this.roles = [];
-      this.typetasks = [];
-
-      // Resetear taskData con valores básicos
-      this.taskData = {
-        type: "",
-        title: "",
-        description: "",
-        start_date: new Date().toISOString().split("T")[0],
-        start_time: null,
-        estimated_time: "",
-        geo_location: "",
-        recurrence: "",
-        priority_id: null,
-        status_id: null,
-        people: [],
-      };
-    },
+  // Fecha y hora por defecto
+  const today = new Date().toISOString().split('T')[0];
+  this.taskData.start_date = this.suggestion?.date || today;
+  this.dateInput = this.taskData.start_date;
+},
+resetData() {
+  this.categories = [];
+  this.status = [];
+  this.priorities = [];
+  this.recurrences = [];
+  this.people = [];
+  this.roles = [];
+  this.typetasks = [];
+  
+  // Resetear taskData con valores básicos
+  this.taskData = {
+    type: "",
+    title: "",
+    description: "",
+    start_date: new Date().toISOString().split('T')[0],
+    start_time: null,
+    estimated_time: "",
+    geo_location: "",
+    recurrence: "",
+    priority_id: null,
+    status_id: null,
+    people: []
+  };
+},
     /*initializeTaskData() {
       const initialDate = this.suggestion?.date || new Date().toISOString().split("T")[0];
       this.taskData = {
@@ -697,52 +681,49 @@ export default {
       this.dateInput = initialDate;
     },*/
     initializeTaskData() {
-      // Usar valores existentes o iniciales
-      const initialDate =
-        this.taskData.start_date ||
-        this.suggestion?.date ||
-        new Date().toISOString().split("T")[0];
+  // Usar valores existentes o iniciales
+  const initialDate = this.taskData.start_date || 
+                    this.suggestion?.date || 
+                    new Date().toISOString().split('T')[0];
 
-      this.taskData = {
-        ...this.taskData, // Mantener valores ya establecidos (como recurrencia)
-        type: "",
-        title: this.suggestion?.title || "",
-        description: this.suggestion?.description || "",
-        start_date: initialDate,
-        start_time: this.generateTimeSlots()[0],
-        estimated_time: "",
-        geo_location: "",
-        people: this.getInitialPeopleSelection(),
-      };
+  this.taskData = {
+    ...this.taskData, // Mantener valores ya establecidos (como recurrencia)
+    type: "",
+    title: this.suggestion?.title || "",
+    description: this.suggestion?.description || "",
+    start_date: initialDate,
+    start_time: this.generateTimeSlots()[0],
+    estimated_time: "",
+    geo_location: "",
+    people: this.getInitialPeopleSelection()
+  };
 
-      this.dateInput = initialDate;
-    },
-    getInitialPeopleSelection() {
-      // Si ya hay personas seleccionadas (de valores por defecto), mantenerlas
-      if (this.taskData.people?.length > 0) {
-        return [...this.taskData.people];
-      }
+  this.dateInput = initialDate;
+},
+getInitialPeopleSelection() {
+  // Si ya hay personas seleccionadas (de valores por defecto), mantenerlas
+  if (this.taskData.people?.length > 0) {
+    return [...this.taskData.people];
+  }
 
-      // Añadir usuario actual como responsable si existe
-      if (this.person_id && this.people?.length > 0) {
-        const person = this.people.find((p) => p.id === this.person_id);
-        const responsableRole = this.roles?.find((r) => r.name === "Responsable");
-
-        if (person && responsableRole) {
-          return [
-            {
-              id: person.id,
-              name: person.namePerson,
-              image: person.imagePerson,
-              roleId: responsableRole.id,
-              roleName: responsableRole.nameRol,
-            },
-          ];
-        }
-      }
-
-      return [];
-    },
+  // Añadir usuario actual como responsable si existe
+  if (this.person_id && this.people?.length > 0) {
+    const person = this.people.find(p => p.id === this.person_id);
+    const responsableRole = this.roles?.find(r => r.name === "Responsable");
+    
+    if (person && responsableRole) {
+      return [{
+        id: person.id,
+        name: person.namePerson,
+        image: person.imagePerson,
+        roleId: responsableRole.id,
+        roleName: responsableRole.nameRol,
+      }];
+    }
+  }
+  
+  return [];
+},
     /*initializeSelections() {
       // Verificar si person_id no está en taskData.people
       if (this.person_id && !this.taskData.people.some((p) => p.id === this.person_id)) {
@@ -771,84 +752,69 @@ export default {
       });
     },*/
     initializeSelections() {
-      // Inicializar selectedItems para cada rol
-      this.roles.forEach((role) => {
-        this.selectedItems[role.id] = this.taskData.people
-          .filter((p) => p.roleId === role.id)
-          .map((p) => p.id);
+  // Inicializar selectedItems para cada rol
+  this.roles.forEach((role) => {
+    this.selectedItems[role.id] = this.taskData.people
+      .filter((p) => p.roleId === role.id)
+      .map((p) => p.id);
+  });
+
+  // Asegurar que el usuario actual esté incluido si no lo está
+  if (this.person_id && !this.taskData.people.some(p => p.id === this.person_id)) {
+    const responsableRole = this.roles.find(r => r.name === "Responsable");
+    const person = this.people.find(p => p.id === this.person_id);
+    
+    if (responsableRole && person) {
+      this.taskData.people.push({
+        id: person.id,
+        name: person.namePerson,
+        image: person.imagePerson,
+        roleId: responsableRole.id,
+        roleName: responsableRole.nameRol,
       });
-
-      // Asegurar que el usuario actual esté incluido si no lo está
-      if (this.person_id && !this.taskData.people.some((p) => p.id === this.person_id)) {
-        const responsableRole = this.roles.find((r) => r.name === "Responsable");
-        const person = this.people.find((p) => p.id === this.person_id);
-
-        if (responsableRole && person) {
-          this.taskData.people.push({
-            id: person.id,
-            name: person.namePerson,
-            image: person.imagePerson,
-            roleId: responsableRole.id,
-            roleName: responsableRole.nameRol,
-          });
-          // Actualizar selectedItems
-          this.selectedItems[responsableRole.id] = [
-            ...(this.selectedItems[responsableRole.id] || []),
-            person.id,
-          ];
-        }
-      }
+      // Actualizar selectedItems
+      this.selectedItems[responsableRole.id] = [
+        ...(this.selectedItems[responsableRole.id] || []),
+        person.id
+      ];
+    }
+  }
+},
+    handleOptionSelection(value) {
+      this.taskData.type = value;
+      this.sendUserMessage(value);
+      this.messages.push({
+        from: "bot",
+        type: "editable-text",
+        label: "Título de la tarea",
+        model: this.taskData.title,
+        step: 1,
+      });
+      this.step = 1;
     },
     handleEditableInput(msg) {
       if (!msg.model?.trim()) return;
-
       this.sendUserMessage(msg.model);
-
-      // Procesar el paso actual con el valor del campo editable
       this.processStep(msg.model);
     },
     handlePrioritySelection(option) {
       this.taskData.priority_id = option.id;
       this.selectedPriorityId = option.id;
-      this.input = option.name; // Actualizar el input con la selección
-      this.$nextTick(() => {
-        this.handleUserInput(); // Disparar el envío automático
-      });
+      this.processStep(option.id); // Se pasa el ID para que se procese correctamente
     },
 
     handleRecurrenceSelection(option) {
       this.taskData.recurrence = option.name;
       this.selectedRecurrence = option.name;
-      this.sendUserMessage(option.name);
-      this.processStep(option.name); // Avanzar automáticamente
-    },
-
-    handleOptionSelection(value) {
-      this.taskData.type = value;
-      this.sendUserMessage(value);
-      this.step = 1;
-      this.prepareNextStep();
+      this.sendUserMessage(option.name); // Añade esto para mostrar la selección
+      this.step++; // Asegúrate de avanzar al siguiente paso
+      this.processStep(option.name); // Esto ahora procesará el paso 7 (tiempo estimado)
     },
     handleUserInput() {
-      // Para pasos con inputs editables
-      const currentMessage = this.messages[this.messages.length - 1];
-
-      if (
-        currentMessage?.type === "editable-text" ||
-        currentMessage?.type === "editable-textarea"
-      ) {
-        if (!currentMessage.model?.trim()) return;
-        this.sendUserMessage(currentMessage.model);
-        this.processStep(currentMessage.model);
-        currentMessage.model = ""; // Limpiar después de enviar
-        return;
-      }
-
-      // Para input normal
       if (!this.input.trim()) return;
-
-      this.sendUserMessage(this.input.trim());
-      this.processStep(this.input.trim());
+      const userText = this.input.trim();
+      this.sendUserMessage(userText);
+      this.processStep(userText);
       this.input = "";
     },
     generateTimeSlots() {
@@ -939,49 +905,9 @@ export default {
       this.internalDialog = false;
     },
     processStep(response) {
-      // Actualizar los datos según el paso actual
       switch (this.step) {
         case 1: // TÍTULO
           this.taskData.title = response;
-          break;
-        case 2: // DESCRIPCIÓN
-          this.taskData.description = response;
-          break;
-        case 3: // PRIORIDAD
-          this.taskData.priority_id = response;
-          break;
-        case 4: // FECHA
-          this.taskData.start_date = response;
-          break;
-        case 5: // HORA
-          this.taskData.start_time = response;
-          break;
-        case 6: // RECURRENCIA
-          this.taskData.recurrence = response;
-          break;
-        case 7: // TIEMPO ESTIMADO
-          this.taskData.estimated_time = response;
-          break;
-      }
-
-      // Avanzar al siguiente paso
-      this.step++;
-
-      // Preparar la UI para el siguiente paso
-      this.prepareNextStep();
-    },
-    prepareNextStep() {
-      switch (this.step) {
-        case 1: // TÍTULO
-          this.messages.push({
-            from: "bot",
-            type: "editable-text",
-            label: "Título de la tarea",
-            model: this.taskData.title,
-          });
-          break;
-
-        case 2: // DESCRIPCIÓN
           this.messages.push({
             from: "bot",
             type: "editable-textarea",
@@ -990,7 +916,8 @@ export default {
           });
           break;
 
-        case 3: // PRIORIDAD
+        case 2: // DESCRIPCIÓN
+          this.taskData.description = response;
           this.messages.push({
             from: "bot",
             type: "priority-options",
@@ -1003,21 +930,25 @@ export default {
           });
           break;
 
-        case 4: // FECHA
+        case 3: // PRIORIDAD
+          this.taskData.priority_id = response;
           this.messages.push({
             from: "bot",
             type: "date-picker",
           });
           break;
 
-        case 5: // HORA
+        case 4: // FECHA (manejado por updateDate)
+          this.taskData.start_date = response;
           this.messages.push({
             from: "bot",
             type: "time-picker",
           });
+          // Este caso no debería ejecutarse nunca porque updateDate maneja el avance
           break;
 
-        case 6: // RECURRENCIA
+        case 5: // HORA
+          this.taskData.start_time = response;
           this.messages.push({
             from: "bot",
             type: "recurrence-options",
@@ -1028,15 +959,31 @@ export default {
           });
           break;
 
-        case 7: // TIEMPO ESTIMADO
+        case 6: // RECURRENCIA
+          this.taskData.recurrence = response;
           this.sendBotMessage("¿Tiempo estimado? (ej: 1h, 30min)");
           break;
 
-        case 8: // PERSONAS
+        case 7: // TIEMPO ESTIMADO
+          this.taskData.estimated_time = response;
+          this.confirmButtonShown = false;
           this.messages.push({
             from: "bot",
             type: "people-selector",
           });
+
+          // Mensaje inicial con botones (asumiendo que ya hay selección inicial)
+          this.messages.push({
+            from: "bot",
+            text: "Selecciona los participantes y confirma:",
+            actions: ["Sí", "No"],
+          });
+
+          this.scrollToBottom();
+          break;
+
+        case 8: // CONFIRMACIÓN PERSONAS
+          // Este paso ahora es manejado por handleAction
           break;
 
         case 9: // FINALIZACIÓN
@@ -1048,8 +995,12 @@ export default {
           break;
       }
 
-      this.scrollToBottom();
+      // Avanzar solo si no estamos en pasos especiales (3,5,7,8)
+      if (![3, 5, 7, 8].includes(this.step)) {
+        this.step++;
+      }
     },
+
     showAlert(sb_type, sb_message, sb_timeout) {
       this.sb_type = sb_type;
 
@@ -1076,13 +1027,6 @@ export default {
 </script>
 
 <style scoped>
-.v-input__append {
-  margin-left: 8px;
-}
-
-.chat-bubble .v-btn--icon {
-  margin: 0;
-}
 .confirmation-buttons {
   background-color: #f8f9fa;
   border-radius: 8px;

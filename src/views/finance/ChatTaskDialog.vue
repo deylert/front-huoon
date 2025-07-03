@@ -78,9 +78,10 @@
                     :label="msg.label"
                     variant="outlined"
                     hide-details
-                    class="w-100"
                     density="comfortable"
-                    autofocus
+                    class="w-500"
+                    autofocus                    
+                    style="min-width: 250px;"
                     @keyup.enter="handleUserInput"
                   />
                 </template>
@@ -91,7 +92,8 @@
                     :label="msg.label"
                     variant="underlined"
                     hide-details
-                    rows="4"
+                    rows="4"                    
+                    style="min-width: 500px;"
                     @keyup.enter="handleUserInput"
                   />
                 </template>
@@ -382,7 +384,6 @@ export default {
         geo_location: "",
         recurrence: "",
         priority_id: null,
-        status_id: null,
         people: [], // Inicialmente vacío, se llenará con las personas seleccionadas
       },
     };
@@ -546,58 +547,6 @@ export default {
       this.step++;
       this.sendBotMessage("¿Hora de inicio? (HH:mm)");
     },
-    /*async initialize() {
-      this.data = {};
-      this.data.home_id = this.home_id;
-      this.editedIndex = -1;
-      try {
-        const result = await handleRequest({
-          endpoint: "category-status-priority-apk",
-          method: "POST",
-          data: this.data,
-        });
-
-        if (result.success) {
-          // Si la solicitud es exitosa, asignamos las sucursales
-          this.categories = result.data?.taskcategories || [];
-          this.status = result.data?.taskstatus || [];
-          this.priorities = result.data?.taskpriorities || [];
-          const normalPriority = this.priorities.find(
-            (priority) => priority.name === "Normal"
-          );
-          if (normalPriority) {
-            this.taskData.priority_id = normalPriority.id;
-          }
-          this.recurrences = result.data?.taskrecurrences || [];
-          const diaryRecurrence = this.recurrences.find(
-            (recurrence) => recurrence.recurrenceName === "Diaria"
-          );
-          if (diaryRecurrence) {
-            this.taskData.recurrence = diaryRecurrence.name;
-          }
-          this.people = result.data?.taskpeople || [];
-          this.roles = result.data?.taskroles || [];
-          this.typetasks = result.data?.tasktype || [];
-          console.log("typetasks:", this.typetasks);
-          //
-        } else {
-          // Si no hay datos, asignamos un array vacío
-          this.categories = [];
-          this.status = [];
-          this.priorities = [];
-          this.recurrences = [];
-          this.people = [];
-          this.roles = [];
-          this.typetasks = [];
-          this.showAlert("info", result.message || "No hay datos disponibles.", 3000);
-        }
-      } catch (error) {
-        this.showAlert("error", "Ocurrió un error inesperado al cargar los datos.", 3000);
-      } finally {
-        this.dialog = true;
-        this.initializeSelections();
-      }
-    },*/
     async initialize() {
       this.data = {};
       this.data.home_id = this.home_id;
@@ -632,7 +581,7 @@ export default {
       } finally {
         this.dialog = true;
         this.initializeSelections();
-        this.timeSlots = this.generateTimeSlots();
+    //this.timeSlots = this.generateTimeSlots();
       }
     },
     setDefaultValues() {
@@ -675,28 +624,10 @@ export default {
         geo_location: "",
         recurrence: "",
         priority_id: null,
-        status_id: null,
         people: [],
       };
     },
-    /*initializeTaskData() {
-      const initialDate = this.suggestion?.date || new Date().toISOString().split("T")[0];
-      this.taskData = {
-        type: "",
-        title: this.suggestion?.title || "",
-        description: this.suggestion?.description || "",
-        start_date: initialDate,
-        start_time: null,
-        estimated_time: "",
-        geo_location: "",
-        recurrence: "",
-        priority_id: null,
-        status_id: null,
-        people: [], // Inicialmente vacío, se llenará con las personas seleccionadas
-      };
-      this.dateInput = initialDate;
-    },*/
-    initializeTaskData() {
+      initializeTaskData() {
       // Usar valores existentes o iniciales
       const initialDate =
         this.taskData.start_date ||
@@ -743,33 +674,6 @@ export default {
 
       return [];
     },
-    /*initializeSelections() {
-      // Verificar si person_id no está en taskData.people
-      if (this.person_id && !this.taskData.people.some((p) => p.id === this.person_id)) {
-        // Buscar el rol "Responsable" en los roles disponibles
-        const responsableRole = this.roles.find((role) => role.name === "Responsable");
-        // Buscar la persona correspondiente al person_id (asumiendo que tienes acceso a las personas)
-        const person = this.people.find((p) => p.id === this.person_id); // Asegúrate de tener this.people disponible
-
-        if (responsableRole && person) {
-          // Agregar la persona con el rol de Responsable y toda la estructura requerida
-          this.taskData.people.push({
-            id: person.id,
-            name: person.namePerson,
-            image: person.imagePerson,
-            roleId: responsableRole.id,
-            roleName: responsableRole.nameRol,
-          });
-        }
-      }
-
-      // Inicializar selectedItems para cada rol
-      this.roles.forEach((role) => {
-        this.selectedItems[role.id] = this.taskData.people
-          .filter((p) => p.roleId === role.id)
-          .map((p) => p.id);
-      });
-    },*/
     initializeSelections() {
       // Inicializar selectedItems para cada rol
       this.roles.forEach((role) => {
@@ -808,6 +712,7 @@ export default {
       this.processStep(msg.model);
     },
     handlePrioritySelection(option) {
+      console.log('Prioridad seleccionada', option)
       this.taskData.priority_id = option.id;
       this.selectedPriorityId = option.id;
       this.input = option.name; // Actualizar el input con la selección
@@ -913,8 +818,8 @@ export default {
           from: "bot",
           type: "options",
           options: [
-            { label: "Crear como tarea", value: "task" },
-            { label: "Crear como meta", value: "goal" },
+            { label: "Crear como tarea", value: "Tarea" },
+            { label: "Crear como meta", value: "Meta" },
           ],
         });
         this.scrollToBottom();
@@ -948,7 +853,8 @@ export default {
           this.taskData.description = response;
           break;
         case 3: // PRIORIDAD
-          this.taskData.priority_id = response;
+          console.log('prioridad:', response);
+          //this.taskData.priority_id = response;
           break;
         case 4: // FECHA
           this.taskData.start_date = response;

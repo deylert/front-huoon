@@ -802,6 +802,7 @@ import { handleRequest } from "@/utils/api"; // Ruta al archivo
 import Income from "./Income.vue";
 import Spent from "./Spent.vue";
 import ChatTaskDialog from './ChatTaskDialog.vue';
+import _ from "lodash";
 export default {
   components: {
     Income,
@@ -988,9 +989,31 @@ export default {
         date: null,
         image: null,
       },
+      editedItemTask: {
+      id: "",
+      title: "",
+      description: "",
+      start_date: null,
+      end_date: null,
+      start_time: null,
+      end_time: null,
+      type: "Tarea",
+      parent_id: "",
+      status_id: "",
+      category_id: "",
+      person_id: null,
+      home_id: "",
+      recurrence: "",
+      estimated_time: 1,
+      attachments: null,
+      comments: "",
+      geo_location: "",
+      people: [],
+    },
       editedIndex: -1,
       search: "",
       types: [],
+      home_id: "",
       suggestions: [],
       statusuggestions: [],
       movent: {},
@@ -1127,8 +1150,108 @@ export default {
     this.chatDialog = true;
   });
     },
-    handleTaskCompleted(taskData) {
+    async handleTaskCompleted(taskData) {
       console.log('Tarea completada:', taskData);
+      this.editedItemTask = _.cloneDeep(taskData);
+      const fieldsToUpdate = [
+          "title",
+          "description",
+          "start_date",
+          "end_date",
+          "parent_id",
+          "status_id",
+          "category_id",
+          "home_id",
+          "recurrence",
+          "comments",
+          "estimated_time",
+          "attachments",
+          "geo_location",
+          "priority_id",
+          "people",
+          "start_time",
+          "end_time",
+          "type",
+        ];
+        let updatedFields = Object.keys(this.editedItemTask)
+          .filter(
+            (key) =>
+              fieldsToUpdate.includes(key) &&
+              this.editedItemTask[key] !== this.originalItem[key]
+          )
+          .reduce((obj, key) => {
+            if (key === "people") {
+              // Transformar el campo `people`
+              obj[key] = this.editedItemTask.people.map((person) => ({
+                home_id: Number(this.home_id), // Asegurar que sea un número
+                person_id: Number(person.id), // Asegurar que sea un número
+                role_id: Number(person.roleId),
+                roleName: person.roleName
+              }));
+            } else {
+              obj[key] = this.editedItemTask[key];
+            }
+            return obj;
+          }, {});
+
+        // Agregar campos adicionales si es necesario
+        if (Object.keys(updatedFields).length > 0) {
+          updatedFields.home_id = this.home_id;
+          updatedFields.start_date = this.editedItemTask.start_date
+            ? this.editedItemTask.start_date
+            : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(
+              2,
+              "0"
+            )}-${String(new Date().getDate()).padStart(2, "0")}`;
+          updatedFields.estimated_time = this.editedItemTask.estimated_time
+            ? this.editedItemTask.estimated_time
+            : 0;
+          updatedFields.type = this.editedItemTask.type ? this.editedItemTask.type : "Tarea";
+
+          // Crear el objeto FormData
+          const formData = new FormData();
+          for (let key in updatedFields) {
+            if (key === "people") {
+              // Agregar cada elemento del array `people` al FormData
+              updatedFields[key].forEach((person, index) => {
+                for (const [personKey, value] of Object.entries(person)) {
+                  formData.append(`people[${index}][${personKey}]`, value);
+                }
+              });
+            } else {
+              formData.append(key, updatedFields[key]);
+            }
+          }
+
+          try {
+            const result = await handleRequest({
+              endpoint: "task",
+              method: "POST",
+              data: formData,
+            });
+
+            // Manejo de la respuesta según el resultado
+            if (result.success) {
+              this.loading = false;
+              this.showAlert("success", result.message, 3000);
+              this.initialize();
+            } else {
+              this.loading = false;
+              this.showAlert("warning", result.message, 3000);
+            }
+          } catch (error) {
+            this.loading = false;
+            // Este bloque captura errores inesperados fuera del manejo estándar
+            this.showAlert(
+              "error",
+              "Ocurrió un error inesperado al procesar la solicitud.",
+              3000
+            );
+          }
+        } else {
+          this.loading = false;
+          this.showAlert("success", "Debe completar los datos de la tarea.", 3000);
+        }
       // Aquí puedes enviar los datos a tu API o hacer lo que necesites
       this.chatDialog = false;
     },
@@ -1535,6 +1658,27 @@ export default {
         this.imgMiniatura = e.target.result;
       };
       reader.readAsDataURL(file);
+    },
+    showAlert(sb_type, sb_message, sb_timeout) {
+      this.sb_type = sb_type;
+
+      if (sb_type == "success") {
+        this.sb_title = "Éxito";
+        this.sb_icon = "mdi-check-circle";
+      }
+
+      if (sb_type == "error") {
+        this.sb_title = "Error";
+        this.sb_icon = "mdi-check-circle";
+      }
+
+      if (sb_type == "warning") {
+        this.sb_title = "Advertencia";
+        this.sb_icon = "mdi-alert-circle";
+      }
+      this.sb_message = sb_message;
+      this.sb_timeout = sb_timeout;
+      this.snackbar = true;
     },
   },
 };

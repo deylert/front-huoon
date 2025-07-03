@@ -78,7 +78,7 @@
     :label="msg.label"
     variant="outlined"
     hide-details
-    style="min-width: 250px;"
+    style="min-width: 500px;"
     @keyup.enter="handleTitleInput"
   />
 </template>

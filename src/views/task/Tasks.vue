@@ -1482,7 +1482,7 @@ export default {
         this.showAlert("error", "Ocurrió un error inesperado al cargar los datos.", 3000);
       } finally {
         this.initializeSelections();
-        this.timeSlots = this.generateTimeSlots();
+        //this.timeSlots = this.generateTimeSlots();
         this.dialog = true;
       }
     },

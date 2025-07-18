@@ -97,7 +97,7 @@
                 {{ $t("suggestions.fields.status") }}:
               </div>
               <v-chip size="small" :color="getStatusColor(suggestion.status)">
-                {{ $t(`suggestions.statuses.${suggestion.status}`) }}
+                {{ suggestion.status }}
               </v-chip>
             </div>
           </v-col>

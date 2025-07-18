@@ -2,22 +2,44 @@ const english = {
   messages: {
     greet: "Hello', {user}",
     chat: {
-      initialMessage: "Hi 👋 How can I help you today, {name}?",
+      initialMessage: "Hello 👋 How can I help you today, {name}?",
       title: "Task Assistant",
-      placeholder: "Type a reply...",
+      placeholder: "Type a response...",
       askType:
-        "Would you like to create this suggestion as a 'task' or a 'goal'?",
-      askTitle: "What will be the task title? (Current: {current})",
+        "Do you want to register this suggestion as a 'task' or a 'goal'?",
+      askTitle: "What will be the title? (Current: {current})",
       askDescription:
-        "Do you want to edit the description? (Current: {current})",
-      askPriority: "What priority should it have? (e.g., 1, 2, 3)",
+        "Do you want to modify the description? (Current: {current})",
+      askPriority: "What priority do you want to assign? (e.g.: 1, 2, 3)",
       askStartDate: "What is the start date? (Current: {current})",
-      askStartTime: "What time does it start?",
-      askEstimatedTime: "How many minutes will it take approximately?",
+      askStartTime: "What time will it start? (HH:mm)",
+      askEstimatedTime:
+        "How many minutes do you estimate it will take? (e.g.: 1h, 30min)",
       askLocation: "Where will it take place?",
-      askRecurrence: "How often will it repeat? (e.g., daily, weekly)",
-      askStatus: "What is the initial status? (e.g., pending, in progress)",
-      completed: "Task created! You can save it or continue editing.",
+      askRecurrence: "How often will it repeat? (e.g.: daily, weekly)",
+      askStatus:
+        "What will be the initial status? (e.g.: pending, in progress)",
+      completed: "✅ All ready! Saving...",
+      invalidSuggestion: "⚠️ No valid suggestion received.",
+      suggestionMessage:
+        "💡 You have a new suggestion:\n\n📌 {title}\n📝 {description}\n📅 {date}",
+      notAvailable: "Not available",
+      createAsTask: "Create as task",
+      createAsGoal: "Create as goal",
+      taskTitle: "Task title",
+      taskDescription: "Task description",
+      dateSelected: "Selected date: {date}",
+      mustSelectParticipants: "⚠️ You must select at least one participant",
+      confirmedParticipants:
+        "Confirmed {count} participant | Confirmed {count} participants",
+      willModifyParticipants: "I'll modify the participant selection",
+      selectedParticipants:
+        "{count} participant selected | {count} participants selected",
+      inputPlaceholder: "Type a message or dictate...",
+    },
+    general: {
+      yes: "Yes",
+      no: "No",
     },
     vitalSigns: "Vital Signs",
     medicalInformation: "Medical Information",
@@ -68,6 +90,10 @@ const english = {
         title: "Home",
         description: "Household management",
       },
+      suggestions: {
+        title: "Suggestions",
+        description: "Recommendations and proposals",
+      },
     },
     viewTitles: {
       physicalExams: "Physical Exams",
@@ -80,6 +106,8 @@ const english = {
       medicalConsultations: "Medical Consultations",
       incomes: "Income",
       expenses: "Expenses",
+      budget: "Budgets",
+      suggestions: "Suggestions",
     },
     settings: {
       category: "Categories",
@@ -89,8 +117,11 @@ const english = {
       status: "Statuses",
       hometype: "Home Types",
       type: "Health Types",
+      history: "Medical History",
     },
     taskForm: {
+      noTasksToday: "You have no tasks to do today",
+      updateStatus: "Update Status",
       dialogTitle: "Task Details",
       fields: {
         title: "Task title",
@@ -167,9 +198,13 @@ const english = {
     },
     deleteDialog: {
       title: "Delete {item}",
-      message: "Do you want to delete the selected item?",
+      message: "¿Do you want to delete the selected item?",
       confirm: "Confirm deletion",
       items: {
+        file: "file",
+        product: "product",
+        warehouse: "warehouse",
+        wish: "wish",
         task: "task",
         physicalExam: "physical exam",
         treatment: "treatment",
@@ -669,6 +704,438 @@ const english = {
     },
     summary: {
       title: "Summary for",
+    },
+    budget: {
+      formInstructions: "Complete all budget fields",
+      steps: {
+        basic: {
+          title: "Basic Information",
+          subtitle: "Budget main data",
+        },
+        dates: {
+          title: "Dates & Details",
+          subtitle: "Period and description",
+        },
+      },
+      fields: {
+        category: "Category",
+        budget_type: "Budget Type",
+        amount: "Amount",
+        used_amount: "Used Amount",
+        start_date: "Start Date",
+        end_date: "End Date",
+        description: "Description",
+        status: "Status",
+        currency: "Currency",
+        available: "Available",
+        total: "Total",
+      },
+      currencies: {
+        USD: "US Dollar",
+        EUR: "Euro",
+        BRL: "Brazilian Real",
+        MXN: "Mexican Peso",
+        COP: "Colombian Peso",
+      },
+      status: {
+        active: "Active",
+        inactive: "Inactive",
+        completed: "Completed",
+        exceeded: "Exceeded",
+      },
+      titles: {
+        new: "Add New Budget",
+        edit: "Edit Budget",
+        view: "Budgets",
+      },
+      validationMessages: {
+        category: {
+          required: "Category is required",
+        },
+        amount: {
+          required: "Amount is required",
+          invalid: "Amount must be greater than 0",
+        },
+        used_amount: {
+          invalid: "Used amount cannot exceed total amount",
+        },
+        start_date: {
+          invalid: "Start date must be before end date",
+        },
+      },
+      notRecorded: "No data recorded",
+      noRecords: "No budgets found",
+    },
+    suggestedTasks: {
+      dialog: {
+        title: "Suggested tasks",
+        subtitle: "Select the tasks you want to add",
+        closeButton: "Close",
+        createButton: "Create selected tasks",
+        noTasks: "No suggested tasks available",
+        unassigned: "Unassigned",
+      },
+      fields: {
+        date: "Date",
+        time: "Time",
+        duration: "Duration",
+        title: "Title",
+        description: "Description",
+        location: "Location",
+        score: "Score",
+      },
+      selection: {
+        count: "({{count}} selected)",
+      },
+      steps: {
+        selection: {
+          title: "Task selection",
+          subtitle: "Choose relevant tasks",
+        },
+      },
+      scoreTooltip: "Points for completing this task",
+      scoreValues: {
+        low: "Low (1-3 pts)",
+        medium: "Medium (4-7 pts)",
+        high: "High (8-10 pts)",
+      },
+    },
+    warehouse: {
+      formTitle: {
+        create: "Create new warehouse",
+        edit: "Edit warehouse",
+      },
+      formInstructions: "Complete the required information for the warehouse",
+      steps: {
+        basic: {
+          title: "Basic Information",
+          subtitle: "Main details",
+        },
+        configuration: {
+          title: "Additional Configuration",
+          subtitle: "Status and description",
+        },
+      },
+      fields: {
+        warehouse: "Warehouses",
+        name: "Name",
+        home_location: "Home location",
+        status: "Status",
+        description: "Description",
+      },
+      status: {
+        public: "Public",
+        private: "Private",
+      },
+      validation: {
+        required: "{field} is required",
+        min_length: "{field} must be at least {length} characters",
+        max_length: "{field} must be less than {length} characters",
+        invalid_selection: "Please select a valid {field}",
+      },
+      list: {
+        title: "Warehouses List",
+        empty: "No warehouses registered",
+        search: "Search warehouses...",
+        columns: {
+          name: "Name",
+          location: "Location",
+          status: "Status",
+          actions: "Actions",
+        },
+      },
+    },
+    product: {
+      listing: {
+        title: "Products by Warehouses List",
+        addButton: "Add Product",
+        description: "Description",
+        quantity: "Quantity",
+        delete: "Delete",
+        edit: "Edit",
+        noProducts: "No products in this warehouse",
+      },
+      formTitle: {
+        create: "Create new product",
+        edit: "Edit product",
+      },
+      formInstructions: "Complete the required product information",
+      steps: {
+        basic: {
+          title: "Basic Information",
+          subtitle: "Product main details",
+        },
+        purchase: {
+          title: "Purchase Information",
+          subtitle: "Acquisition details",
+        },
+        additional: {
+          title: "Additional Configuration",
+          subtitle: "Complementary options",
+        },
+      },
+      fields: {
+        name: "Name",
+        brand: "Brand",
+        image: "Product image",
+        additional_notes: "Additional notes",
+        unit_price: "Unit price",
+        quantity: "Quantity",
+        total_price: "Total price",
+        status: "Status",
+        category: "Category",
+        purchase_date: "Purchase date",
+        expiration_date: "Expiration date",
+        frequency: "Frequency (hours)",
+        type: "Type",
+        purchase_place: "Purchase place",
+      },
+      types: {
+        winter: "Winter",
+        summer: "Summer",
+      },
+      validation: {
+        required: "{field} is required",
+        min_length: "{field} must be at least {length} characters",
+        invalid_number: "{field} must be a valid number",
+        min_value: "{field} must be greater than or equal to {value}",
+        no_data: "No data available",
+      },
+    },
+    files: {
+      listing: {
+        title: "File Management",
+        addButton: "Add File",
+        search: "Search",
+        noData: "No data available",
+        loading: "Loading data...",
+        itemsPerPage: "Items per page",
+        actions: {
+          view: "View file",
+          edit: "Edit",
+          delete: "Delete",
+        },
+        types: {
+          personal: "Personal",
+          home: "Home",
+          all: "All",
+        },
+      },
+      formTitle: {
+        create: "Create new file",
+        edit: "Edit file",
+      },
+      formInstructions: "Complete the required information for the file",
+      steps: {
+        basic: {
+          title: "Basic information",
+          subtitle: "Main file details",
+        },
+        file_config: {
+          title: "File and type",
+          subtitle: "Document settings",
+        },
+      },
+      fields: {
+        name: "Name",
+        date: "Date",
+        type: "Type",
+        description: "Description",
+        file: "File",
+        preview: "Preview",
+        actions: "Actions",
+      },
+      types: {
+        personal: "Personal",
+        home: "Home",
+      },
+      validation: {
+        required: "{field} is required",
+        invalidFile: "Invalid file format",
+      },
+    },
+    wishes: {
+      steps: {
+        basic: {
+          title: "Basic information",
+          subtitle: "Main wish details",
+        },
+        details: {
+          title: "Dates and priority",
+          subtitle: "Fulfillment settings",
+        },
+        additional: {
+          title: "Additional information",
+          subtitle: "Location and description",
+        },
+      },
+      listing: {
+        title: "Wishes Management",
+        addButton: "Add Wish",
+        search: "Search",
+        noData: "No wishes available",
+        loading: "Loading wishes...",
+        itemsPerPage: "Wishes per page",
+        actions: {
+          edit: "Edit",
+          delete: "Delete",
+        },
+        types: {
+          personal: "Personal",
+          home: "Home",
+          professional: "Professional",
+          all: "All",
+        },
+      },
+      formTitle: {
+        create: "Create new wish",
+        edit: "Edit wish",
+      },
+      formInstructions: "Complete the wish information",
+      fields: {
+        name: "Name",
+        type: "Type",
+        date: "Date",
+        fulfillment_date: "Fulfillment date",
+        priority: "Priority",
+        status: "Status",
+        location: "Location",
+        description: "Description",
+        actions: "Actions",
+      },
+      priorities: {
+        low: "Low",
+        medium: "Medium",
+        high: "High",
+        urgent: "Urgent",
+      },
+      statuses: {
+        pending: "Pending",
+        in_progress: "In progress",
+        completed: "Completed",
+        cancelled: "Cancelled",
+      },
+      validation: {
+        required: "{field} is required",
+        invalid_date: "Invalid date",
+      },
+    },
+    suggestions: {
+      formInstructions: {
+        suggestion: "Complete all suggestion fields",
+      },
+      steps: {
+        suggestionDetails: {
+          title: "Suggestion Details",
+          subtitle: "Basic registration information",
+        },
+        content: {
+          title: "Content",
+          subtitle: "Additional details",
+        },
+      },
+      fields: {
+        title: "Title",
+        description: "Description",
+        content: "Content",
+        date: "Date",
+        status: "Status",
+        type: "Type",
+      },
+      statuses: {
+        Pendiente: "Pending",
+        Revisado: "Reviewed",
+        Completado: "Completed",
+        rejected: "Rejected",
+      },
+      types: {
+        // Types of suggestions you define
+      },
+      titles: {
+        new: "New Suggestion",
+        edit: "Edit Suggestion",
+        view: "Suggestion Records",
+      },
+      validationMessages: {
+        title: {
+          maxLength: "Title must not exceed 255 characters",
+        },
+        description: {
+          maxLength: "Description cannot exceed 500 characters",
+        },
+        content: {
+          maxLength: "Content cannot exceed 1000 characters",
+        },
+        date: {
+          required: "Date is required",
+          invalid: "Date must be valid",
+        },
+        status: {
+          invalid:
+            "Status must be one of: pending, reviewed, approved, rejected",
+        },
+      },
+      noRecords: "No suggestions found",
+      header: {
+        title: "Home Suggestions",
+        subtitle: "Family recommendations and proposals",
+      },
+    },
+    home: {
+      create: {
+        title: "Create a new home",
+        instructions: "Please fill in all required fields to create your home",
+        steps: {
+          basic: {
+            title: "Basic Information",
+            subtitle: "Main home details",
+          },
+          details: {
+            title: "Additional Details",
+            subtitle: "Home configurations",
+          },
+          members: {
+            title: "Home Members",
+            subtitle: "Add people to your home",
+          },
+        },
+        fields: {
+          name: "Home name",
+          address: "Address",
+          type: "Home type",
+          code: "Access code",
+          geoLocation: "Geolocation",
+          timezone: "Timezone",
+          residents: "Number of residents",
+          image: "Home image",
+          status: "Status",
+        },
+        membersTable: {
+          avatar: "Avatar",
+          name: "Name",
+          email: "Email",
+          role: "Role",
+          actions: "Actions",
+        },
+        actions: {
+          cancel: "Cancel",
+          previous: "Previous",
+          next: "Next",
+          create: "Create Home",
+          addMembers: "Add Members",
+        },
+        validation: {
+          nameRequired: "Home name is required",
+          nameMinLength: "Name must be at least 3 characters",
+          codeRequired: "Access code is required",
+          codeMinLength: "Code must be at least 8 characters",
+        },
+      },
+      types: {
+        house: "House",
+        apartment: "Apartment",
+        other: "Other",
+      },
     },
   },
 };

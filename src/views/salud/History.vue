@@ -862,7 +862,7 @@ export default {
 
         // 7. Consultas médicas (nuevo elemento)
         {
-          name: this.$t("viewTitles.medicalConsultations"), // Asegúrate de añadir la traducción
+          name: this.$t("viewTitles.consultations"), // Asegúrate de añadir la traducción
           action: () => this.showAddConsultations(),
         },
       ];

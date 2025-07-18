@@ -139,7 +139,7 @@
       <v-col cols="12" class="text-center py-8 pa-0">
         <v-icon size="64" color="grey-lighten-1">mdi-wallet-outline</v-icon>
         <div class="text-h6 text-grey mt-4">
-          {{ $t("finances.noIncomes") }}
+          {{ $t("finances.noRecords") }}
         </div>
       </v-col>
     </template>

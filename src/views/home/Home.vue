@@ -11,8 +11,8 @@
       </v-col>
     </v-row>
   </v-snackbar>
-  <!--<v-container fluid fill-height>-->
-  <v-card elevation="6" class="mx-2">
+  <v-container>
+  <v-card elevation="4" class="mx-2 rounded-lg">
     <v-toolbar color="#03626C">
       <v-row align="center">
         <v-col cols="12" md="8" class="grow ml-4">
@@ -83,7 +83,7 @@
       </v-data-table>
     </v-card-text>
   </v-card>
-  <!--</v-container>-->
+  </v-container>
 
   <!--<v-dialog v-model="dialog" max-width="600px">
     <v-form ref="form" v-model="valid">
@@ -157,7 +157,7 @@
                   <v-text-field v-model="editedItem.address" clearable label="Dirección"
                     prepend-icon="mdi-map-marker-outline" variant="underlined"></v-text-field>
                 </v-col>
-                <v-col cols="12" md="6">
+                <v-col cols="12" :md="editedIndex === -1 ? 4 : 6">
                   <v-autocomplete :no-data-text="'No hay datos disponibles'" v-model="editedItem.status_id"
                     :items="status" label="Estado" prepend-icon="mdi-flag-outline" item-title="nameStatus"
                     item-value="id" variant="underlined" density="compact" :rules="selectRules">
@@ -172,7 +172,7 @@
                     </template>
                   </v-autocomplete>
                 </v-col>
-                <v-col cols="12" md="6">
+                <v-col cols="12" :md="editedIndex === -1 ? 4 : 6">
                   <v-select v-model="editedItem.home_type_id" :items="hometypes" item-title="name" item-value="id"
                     label="Tipo de Hogar" variant="underlined" density="compact" :rules="selectRules"
                     prepend-icon="mdi-home-outline">
@@ -180,6 +180,11 @@
                       <v-list-item v-bind="props" :subtitle="item.raw.description"></v-list-item>
                     </template>
                   </v-select>
+                </v-col>
+                <v-col cols="12" md="4" v-if="editedIndex === -1">
+                  <v-text-field v-model="editedItem.code" label="Código" variant="underlined" placeholder="minimum 8 characters"
+          :type="showCode ? 'text' : 'password'" :append-inner-icon="showCode ? 'mdi-eye-off' : 'mdi-eye'" :rules="codeRules"
+          @click:append-inner="showCode = !showCode" density="compact" class="mb-5" prepend-icon="mdi-key-chain-variant"/>
                 </v-col>
               </v-row>
               <v-row>
@@ -372,6 +377,7 @@ export default {
     snackbar: false,
     sb_type: '',
     sb_message: '',
+    showCode: false,
     sb_timeout: 2000,
     sb_title: '',
     sb_icon: '',
@@ -423,6 +429,7 @@ export default {
       timezone: '',
       image: null,
       people: [],
+      code: ''
     },
 
     defaultItem: {
@@ -437,6 +444,7 @@ export default {
       timezone: '',
       image: null,
       people: [],
+      code: ''
     },
 
     originalItem: {
@@ -451,6 +459,7 @@ export default {
       timezone: '',
       image: null,
       people: [],
+      code: ''
     },
 
     tab: null,
@@ -468,6 +477,10 @@ export default {
         "El campo debe tener al menos de 3 caracteres",
     ],
     selectRules: [(v) => !!v || "Seleccionar al menos un elemento"],
+     codeRules: [
+      v => !v || v.length >= 8 || 'El código debe tener al menos 8 caracteres',
+      //v => !v || /^[a-zA-Z0-9]+$/.test(v) || 'Solo se permiten letras y números'
+    ],
   }),
   computed: {
     formTitle() {

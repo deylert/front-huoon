@@ -1,6 +1,14 @@
 <template>
-  <v-snackbar class="mt-12" location="right top" :timeout="sb_timeout" :color="sb_type" elevation="24"
-    :multi-line="true" vertical v-model="snackbar">
+  <v-snackbar
+    class="mt-12"
+    location="right top"
+    :timeout="sb_timeout"
+    :color="sb_type"
+    elevation="24"
+    :multi-line="true"
+    vertical
+    v-model="snackbar"
+  >
     <v-row>
       <v-col md="2">
         <v-avatar :icon="sb_icon" color="sb_type" size="40"></v-avatar>
@@ -10,18 +18,26 @@
         {{ sb_message }}
       </v-col>
     </v-row>
-  </v-snackbar>  
-  <!--<v-container style="min-width: 100%; min-height: 100%;">-->
+  </v-snackbar>
+  <v-container class="pa-4">
     <v-card elevation="6" class="mx-2">
       <v-toolbar color="#03626C">
         <v-row align="center">
           <v-col cols="12" md="8" class="grow ml-4">
-            <span class="text-subtitle-1"><strong>Deseos</strong></span>
+            <span class="text-subtitle-1"
+              ><strong>{{ $t("wishes.listing.title") }}</strong></span
+            >
           </v-col>
           <v-col cols="12" md="3" class="text-right">
-            <v-btn class="text-subtitle-1 ml-12" color="white" variant="tonal" elevation="2"
-              prepend-icon="mdi-plus-circle" @click="showAdd">
-              Agregar Deseo
+            <v-btn
+              class="text-subtitle-1 ml-12"
+              color="white"
+              variant="tonal"
+              elevation="2"
+              prepend-icon="mdi-plus-circle"
+              @click="showAdd"
+            >
+              {{ $t("wishes.listing.addButton") }}
             </v-btn>
           </v-col>
         </v-row>
@@ -29,78 +45,188 @@
 
       <v-card-text>
         <v-tabs v-model="tab" vertical>
-          <v-tab value="personal" :class="tab === 'personal' ? 'selected-tab' : ''">Personales</v-tab>
-          <v-tab value="hogar" :class="tab === 'hogar' ? 'selected-tab' : ''">Hogar</v-tab>
-          <v-tab value="profesional" :class="tab === 'profesional' ? 'selected-tab' : ''">Profesional</v-tab>
-          <v-tab value="todas" :class="tab === 'todas' ? 'selected-tab' : ''">Todas</v-tab>
+          <v-tab value="personal" :class="tab === 'personal' ? 'selected-tab' : ''">{{
+            $t("wishes.listing.types.personal")
+          }}</v-tab>
+          <v-tab value="hogar" :class="tab === 'hogar' ? 'selected-tab' : ''">{{
+            $t("wishes.listing.types.home")
+          }}</v-tab>
+          <v-tab
+            value="profesional"
+            :class="tab === 'profesional' ? 'selected-tab' : ''"
+            >{{ $t("wishes.listing.types.professional") }}</v-tab
+          >
+          <v-tab value="todas" :class="tab === 'todas' ? 'selected-tab' : ''">{{
+            $t("wishes.listing.types.all")
+          }}</v-tab>
         </v-tabs>
 
         <v-window v-model="tab" min-height="50vh" class="mt-2">
           <v-window-item value="personal">
-            <v-text-field class="mt-1 mb-1" v-model="search" append-icon="mdi-magnify" label="Buscar" single-line
-              hide-details>
+            <v-text-field
+              class="mt-1 mb-1"
+              v-model="search"
+              append-icon="mdi-magnify"
+              :label="$t('wishes.listing.search')"
+              single-line
+              hide-details
+            >
             </v-text-field>
-            <v-data-table :headers="headers" :search="search" :items="filteredPersonalWishes" class="elevation-1"
-              style="max-height: 68vh; overflow-y: auto;" :items-per-page-text="'Elementos por páginas'"
-              no-data-text="No hay datos disponibles" :loading="loading" loading-text="Cargando datos...">
+            <v-data-table
+              :headers="translatedHeaders"
+              :search="search"
+              :items="filteredPersonalWishes"
+              class="elevation-1"
+              style="max-height: 68vh; overflow-y: auto"
+              :loading="loading"
+            >
               <template v-slot:item.actions="{ item }">
-                <v-btn density="comfortable" icon="mdi-pencil" @click="editItem(item)" color="#1976D2" variant="tonal"
-                  elevation="1" title="Editar Deseo"></v-btn>
-                <v-btn density="comfortable" icon="mdi-delete" @click="deleteItem(item)" color="#DA7171" variant="tonal"
-                  elevation="1" title="Eliminar Deseo"></v-btn>
+                <v-btn
+                  density="comfortable"
+                  icon="mdi-pencil"
+                  @click="editItem(item)"
+                  color="#1976D2"
+                  variant="tonal"
+                  elevation="1"
+                  title="Editar Deseo"
+                ></v-btn>
+                <v-btn
+                  density="comfortable"
+                  icon="mdi-delete"
+                  @click="deleteItem(item)"
+                  color="#DA7171"
+                  variant="tonal"
+                  elevation="1"
+                  title="Eliminar Deseo"
+                ></v-btn>
               </template>
             </v-data-table>
           </v-window-item>
           <v-window-item value="hogar" class="mt-4">
-            <v-text-field class="mt-1 mb-1" v-model="search" append-icon="mdi-magnify" label="Buscar" single-line
-          hide-details>
-        </v-text-field>
-        <v-data-table :headers="headers" :search="search" :items="filteredHomeWishes" class="elevation-1"
-          style="max-height: 68vh; overflow-y: auto;" :items-per-page-text="'Elementos por páginas'"
-          no-data-text="No hay datos disponibles" :loading="loading" loading-text="Cargando datos...">
-          <template v-slot:item.actions="{ item }">
-            <v-btn density="comfortable" icon="mdi-pencil" @click="editItem(item)" color="#1976D2" variant="tonal"
-              elevation="1" title="Editar Deseo"></v-btn>
-            <v-btn density="comfortable" icon="mdi-delete" @click="deleteItem(item)" color="#DA7171" variant="tonal"
-              elevation="1" title="Eliminar Deseo"></v-btn>
-          </template>
-        </v-data-table>
+            <v-text-field
+              class="mt-1 mb-1"
+              v-model="search"
+              append-icon="mdi-magnify"
+              :label="$t('wishes.listing.search')"
+              single-line
+              hide-details
+            >
+            </v-text-field>
+            <v-data-table
+              :headers="translatedHeaders"
+              :search="search"
+              :items="filteredHomeWishes"
+              class="elevation-1"
+              style="max-height: 68vh; overflow-y: auto"
+              :loading="loading"
+            >
+              <template v-slot:item.actions="{ item }">
+                <v-btn
+                  density="comfortable"
+                  icon="mdi-pencil"
+                  @click="editItem(item)"
+                  color="#1976D2"
+                  variant="tonal"
+                  elevation="1"
+                  title="Editar Deseo"
+                ></v-btn>
+                <v-btn
+                  density="comfortable"
+                  icon="mdi-delete"
+                  @click="deleteItem(item)"
+                  color="#DA7171"
+                  variant="tonal"
+                  elevation="1"
+                  title="Eliminar Deseo"
+                ></v-btn>
+              </template>
+            </v-data-table>
           </v-window-item>
           <v-window-item value="profesional" class="mt-4">
-            <v-text-field class="mt-1 mb-1" v-model="search" append-icon="mdi-magnify" label="Buscar" single-line
-          hide-details>
-        </v-text-field>
-        <v-data-table :headers="headers" :search="search" :items="filteredProfessionalWishes" class="elevation-1"
-          style="max-height: 68vh; overflow-y: auto;" :items-per-page-text="'Elementos por páginas'"
-          no-data-text="No hay datos disponibles" :loading="loading" loading-text="Cargando datos...">
-          <template v-slot:item.actions="{ item }">
-            <v-btn density="comfortable" icon="mdi-pencil" @click="editItem(item)" color="#1976D2" variant="tonal"
-              elevation="1" title="Editar Deseo"></v-btn>
-            <v-btn density="comfortable" icon="mdi-delete" @click="deleteItem(item)" color="#DA7171" variant="tonal"
-              elevation="1" title="Eliminar Deseo"></v-btn>
-          </template>
-        </v-data-table>
+            <v-text-field
+              class="mt-1 mb-1"
+              v-model="search"
+              append-icon="mdi-magnify"
+              :label="$t('wishes.listing.search')"
+              single-line
+              hide-details
+            >
+            </v-text-field>
+            <v-data-table
+              :headers="translatedHeaders"
+              :search="search"
+              :items="filteredProfessionalWishes"
+              class="elevation-1"
+              style="max-height: 68vh; overflow-y: auto"
+              :loading="loading"
+            >
+              <template v-slot:item.actions="{ item }">
+                <v-btn
+                  density="comfortable"
+                  icon="mdi-pencil"
+                  @click="editItem(item)"
+                  color="#1976D2"
+                  variant="tonal"
+                  elevation="1"
+                  title="Editar Deseo"
+                ></v-btn>
+                <v-btn
+                  density="comfortable"
+                  icon="mdi-delete"
+                  @click="deleteItem(item)"
+                  color="#DA7171"
+                  variant="tonal"
+                  elevation="1"
+                  title="Eliminar Deseo"
+                ></v-btn>
+              </template>
+            </v-data-table>
           </v-window-item>
           <v-window-item value="todas">
-            <v-text-field class="mt-1 mb-1" v-model="search" append-icon="mdi-magnify" label="Buscar" single-line
-          hide-details>
-        </v-text-field>
-        <v-data-table :headers="headers" :search="search" :items="wishes" class="elevation-1"
-          style="max-height: 68vh; overflow-y: auto;" :items-per-page-text="'Elementos por páginas'"
-          no-data-text="No hay datos disponibles" :loading="loading" loading-text="Cargando datos...">
-          <template v-slot:item.actions="{ item }">
-            <v-btn density="comfortable" icon="mdi-pencil" @click="editItem(item)" color="#1976D2" variant="tonal"
-              elevation="1" title="Editar Deseo"></v-btn>
-            <v-btn density="comfortable" icon="mdi-delete" @click="deleteItem(item)" color="#DA7171" variant="tonal"
-              elevation="1" title="Eliminar Deseo"></v-btn>
-          </template>
-        </v-data-table>
+            <v-text-field
+              class="mt-1 mb-1"
+              v-model="search"
+              append-icon="mdi-magnify"
+              :label="$t('wishes.listing.search')"
+              single-line
+              hide-details
+            >
+            </v-text-field>
+            <v-data-table
+              :headers="translatedHeaders"
+              :search="search"
+              :items="wishes"
+              class="elevation-1"
+              style="max-height: 68vh; overflow-y: auto"
+              :loading="loading"
+            >
+              <template v-slot:item.actions="{ item }">
+                <v-btn
+                  density="comfortable"
+                  icon="mdi-pencil"
+                  @click="editItem(item)"
+                  color="#1976D2"
+                  variant="tonal"
+                  elevation="1"
+                  title="Editar Deseo"
+                ></v-btn>
+                <v-btn
+                  density="comfortable"
+                  icon="mdi-delete"
+                  @click="deleteItem(item)"
+                  color="#DA7171"
+                  variant="tonal"
+                  elevation="1"
+                  title="Eliminar Deseo"
+                ></v-btn>
+              </template>
+            </v-data-table>
           </v-window-item>
         </v-window>
       </v-card-text>
     </v-card>
-  <!--</v-container>-->
-  <v-dialog v-model="dialog" max-width="600px">
+  </v-container>
+  <!--<v-dialog v-model="dialog" max-width="600px">
     <v-form ref="form" v-model="valid" enctype="multipart/form-data">
       <v-card>
         <v-toolbar color="#03626C">
@@ -114,7 +240,6 @@
                     variant="underlined" density="compact" :rules="nameRules"></v-text-field>
               </v-col>
 
-              <!-- Campo para Ingreso -->
               <v-col cols="12" md="6">
                 <v-select v-model="editedItem.type" :items="types" item-title="name" item-value="id"
                     label="Tipo de Deseo" variant="underlined" density="compact" :rules="selectRules"
@@ -195,25 +320,243 @@
         </v-card-actions>
       </v-card>
     </v-form>
+  </v-dialog>-->
+  <v-dialog
+    v-model="dialog"
+    fullscreen
+    persistent
+    transition="dialog-bottom-transition"
+    content-class="fullscreen-dialog"
+  >
+    <v-form ref="form" v-model="valid" class="h-100">
+      <v-card class="pa-10">
+        <v-card-text class="pt-12">
+          <!-- Encabezado -->
+          <h5 class="text-grey-darken-2 font-weight-medium">
+            {{ $t(`wishes.formTitle.${editedIndex === -1 ? "create" : "edit"}`) }}
+          </h5>
+          <p class="text-grey-lighten-1">{{ $t("wishes.formInstructions") }}</p>
+
+          <v-row class="mt-12">
+            <!-- Pasos laterales -->
+            <v-col cols="3">
+              <v-timeline align="start" side="end" dense>
+                <v-timeline-item
+                  v-for="(s, index) in steps"
+                  :key="index"
+                  :dot-color="
+                    step > index
+                      ? 'green'
+                      : step === index
+                      ? 'deep-purple'
+                      : 'grey-lighten-1'
+                  "
+                  :icon="
+                    step >= index
+                      ? step === index
+                        ? `mdi-numeric-${index + 1}`
+                        : 'mdi-check'
+                      : null
+                  "
+                  size="large"
+                >
+                  <template #opposite>
+                    <div class="text-end">
+                      <strong>{{ $t(`wishes.steps.${s.key}.title`) }}</strong>
+                      <div class="text-caption text-grey">
+                        {{ $t(`wishes.steps.${s.key}.subtitle`) }}
+                      </div>
+                    </div>
+                  </template>
+                </v-timeline-item>
+              </v-timeline>
+            </v-col>
+
+            <!-- Contenido dinámico según paso -->
+            <v-col cols="9">
+              <h3 class="text-deep-purple-accent-3 mb-8">
+                {{ $t(`wishes.steps.${steps[step].key}.title`) }}
+              </h3>
+
+              <!-- Paso 1: Información básica -->
+              <v-row dense v-if="step === 0">
+                <v-col cols="12" md="12">
+                  <v-text-field
+                    v-model="editedItem.name"
+                    :label="$t('wishes.fields.name')"
+                    variant="underlined"
+                    :rules="[
+                      (v) =>
+                        !!v ||
+                        $t('wishes.validation.required', {
+                          field: $t('wishes.fields.name'),
+                        }),
+                    ]"
+                  ></v-text-field>
+                </v-col>
+
+                <v-col cols="12" md="6">
+                  <v-select
+                    v-model="editedItem.type"
+                    :items="types"
+                    item-title="name"
+                    item-value="id"
+                    :label="$t('wishes.fields.type')"
+                    variant="underlined"
+                    :rules="[
+                      (v) =>
+                        !!v ||
+                        $t('wishes.validation.required', {
+                          field: $t('wishes.fields.type'),
+                        }),
+                    ]"
+                  ></v-select>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-select
+                    v-model="editedItem.priority_id"
+                    :items="priorities"
+                    item-title="namePriority"
+                    item-value="id"
+                    :label="$t('wishes.fields.priority')"
+                    variant="underlined"
+                    :rules="[
+                      (v) =>
+                        !!v ||
+                        $t('wishes.validation.required', {
+                          field: $t('wishes.fields.priority'),
+                        }),
+                    ]"
+                  >
+                    <template v-slot:item="{ props, item }">
+                      <v-list-item
+                        v-bind="props"
+                        :subtitle="item.raw.descriptionPriority"
+                      ></v-list-item>
+                    </template>
+                  </v-select>
+                </v-col>
+                <v-col cols="12" md="6">
+                <v-menu v-model="menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
+                  offset-y min-width="290px">
+                  <template v-slot:activator="{ props }">
+                    <v-text-field v-bind="props" :modelValue="dateFormatted" variant="underlined" :label="$t('wishes.fields.date')"></v-text-field>
+                  </template>
+                  <v-locale-provider>
+                    <v-date-picker color="#03626C" :modelValue="input"
+                      @update:model-value="updateDate" format="yyyy-MM-dd"
+                      :min="new Date().toISOString().split('T')[0]"></v-date-picker>
+                  </v-locale-provider>
+                </v-menu>
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-menu v-model="menu1" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
+                  offset-y min-width="290px">
+                  <template v-slot:activator="{ props }">
+                    <v-text-field v-bind="props" :modelValue="dateFormatted1" variant="underlined" :label="$t('wishes.fields.fulfillment_date')"></v-text-field>
+                  </template>
+                  <v-locale-provider>
+                    <v-date-picker color="#03626C" :modelValue="input1"
+                      @update:model-value="updateDate1" format="yyyy-MM-dd"
+                      :min="new Date().toISOString().split('T')[0]"></v-date-picker>
+                  </v-locale-provider>
+                </v-menu>
+              </v-col>
+              </v-row>
+              <!-- Paso 3: Información adicional -->
+              <v-row dense v-if="step === 1">
+              <v-col cols="12" md="12" v-if="showStatus">
+                  <v-autocomplete
+                    v-model="editedItem.status_id"
+                    :items="status"
+                    :label="$t('wishes.fields.status')"
+                    item-title="nameStatus"
+                    item-value="id"
+                    variant="underlined"
+                    :no-data-text="$t('wishes.noData')"
+                  >
+                    <template v-slot:item="{ props, item }">
+                      <v-list-item v-bind="props">
+                        <template v-slot:prepend>
+                          <v-avatar size="24">
+                            <v-icon>{{ item.raw.iconStatus }}</v-icon>
+                          </v-avatar>
+                        </template>
+                        <v-list-item-subtitle>
+                          {{ item.raw.descriptionStatus }}
+                        </v-list-item-subtitle>
+                      </v-list-item>
+                    </template>
+                  </v-autocomplete>
+                </v-col>
+                <v-col cols="12" md="12">
+                  <v-text-field
+                    v-model="editedItem.location"
+                    :label="$t('wishes.fields.location')"
+                    variant="underlined"
+                  ></v-text-field>
+                </v-col>
+
+                <v-col cols="12" md="12">
+                  <v-textarea
+                    v-model="editedItem.description"
+                    :label="$t('wishes.fields.description')"
+                    variant="underlined"
+                    rows="3"
+                  ></v-textarea>
+                </v-col>
+              </v-row>
+
+              <!-- Navegación -->
+              <div class="d-flex justify-space-between mt-8">
+                <v-btn
+                  variant="text"
+                  class="text-grey-darken-1"
+                  @click="step > 0 ? step-- : close()"
+                >
+                  {{ step === 0 ? $t("buttons.close") : $t("buttons.previous") }}
+                </v-btn>
+
+                <v-btn
+                  variant="text"
+                  class="text-deep-purple-accent-3"
+                  @click="nextStep"
+                  :disabled="!validStep"
+                >
+                  {{
+                    step === steps.length - 1 ? $t("buttons.saveAndClose") : $t("buttons.next")
+                  }}
+                </v-btn>
+              </div>
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
+    </v-form>
   </v-dialog>
   <v-dialog v-model="dialogDelete" max-width="500px">
     <v-card>
-
       <v-toolbar color="#DA7171">
-        <span class="text-subtitle-2 ml-4"> Eliminar Deseo</span>
+        <span class="text-subtitle-2 ml-4">
+          {{ $t("deleteDialog.title", { item: $t(`deleteDialog.items.wish`) }) }}</span
+        >
       </v-toolbar>
 
-      <v-card-text class="mt-2 mb-2"> ¿Desea eliminar el deseo?</v-card-text>
+      <v-card-text class="mt-2 mb-2"> {{ $t("deleteDialog.message") }}</v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="#DA7171" variant="flat" @click="closeDelete">
-          Cancelar
-        </v-btn>
-        <v-btn color="#1976D2" variant="flat" @click="deleteItemConfirm">
-          Aceptar
-        </v-btn>
-
+        <v-btn color="#DA7171" variant="flat" @click="closeDelete">{{
+          $t("taskForm.buttons.cancel")
+        }}</v-btn>
+        <v-btn
+          color="#03626C"
+          variant="flat"
+          :loading="loading"
+          @click="deleteItemConfirm"
+        >
+          {{ $t("taskForm.buttons.confirmDelete") }}</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -244,22 +587,24 @@
 <script>
 import LocalStorageService from "@/LocalStorageService";
 import { handleRequest } from "@/utils/api"; // Ruta al archivo
-import { format } from 'date-fns';
+import { format } from "date-fns";
 export default {
   data: () => ({
+    steps: [{ key: "basic" }, { key: "additional" }],
+    step: 0,
     snackbar: false,
-    sb_type: '',
-    sb_message: '',
+    sb_type: "",
+    sb_message: "",
     sb_timeout: 2000,
-    sb_title: '',
-    sb_icon: '',
+    sb_title: "",
+    sb_icon: "",
     valid: true,
-    person_id: '',
+    person_id: "",
     tab: null,
     loading: false,
     mostrar: false,
     file: null,
-    imgMiniatura: '',
+    imgMiniatura: "",
     dialog: false,
     dialogDelete: false,
     wishes: [],
@@ -269,73 +614,71 @@ export default {
     filteredHomeWishes: [],
     filteredProfessionalWishes: [],
     data: {},
-    home_id: '',
+    home_id: "",
     showStatus: false,
     dialogPhoto: false,
     loadingImage: false,
-    selectedImageUrl: '',
+    selectedImageUrl: "",
     headers: [
       //{ title: 'Sucursal', value: 'branchName', width: '20%' },
-      { title: 'Nombre', value: 'name', },
-      { title: 'Fecha', value: 'date', },
-      { title: 'Fecha a Cumplir', value: 'end', },
-      { title: 'Estado', value: 'nameStatus', },
-      { title: 'Prioridad', value: 'namePriority', },
-      { title: 'Tipo', value: 'type', },
-      { title: 'Descripción', value: 'description', },
-      { title: 'Acciones', value: 'actions', sortable: false, width: '15%' },
+      { title: "wishes.fields.name", value: "name" },
+      { title: "wishes.fields.date", value: "date" },
+      { title: "wishes.fields.fulfillment_date", value: "end" },
+      { title: "wishes.fields.status", value: "nameStatus" },
+      { title: "wishes.fields.priority", value: "namePriority" },
+      { title: "wishes.fields.type", value: "type" },
+      { title: "wishes.fields.description", value: "description" },
+      { title: "wishes.fields.actions", value: "actions", sortable: false, width: "15%" },
     ],
     editedItem: {
-      id: '',
-      home_id: '',
-      name: '',
-      location: '',
+      id: "",
+      home_id: "",
+      name: "",
+      location: "",
       date: null,
       end: null,
-      description: '',
-      type: '',
-      priority_id: '',
-      status_id: '',
-      parent_id: '',
+      description: "",
+      type: "",
+      priority_id: "",
+      status_id: "",
+      parent_id: "",
     },
     originalItem: {
-      id: '',
-      home_id: '',
-      name: '',
-      location: '',
+      id: "",
+      home_id: "",
+      name: "",
+      location: "",
       date: null,
       end: null,
-      description: '',
-      type: '',
-      priority_id: '',
-      status_id: '',
-      parent_id: '',
+      description: "",
+      type: "",
+      priority_id: "",
+      status_id: "",
+      parent_id: "",
     },
     defaultItem: {
-      id: '',
-      home_id: '',
-      name: '',
-      location: '',
+      id: "",
+      home_id: "",
+      name: "",
+      location: "",
       date: null,
       end: null,
-      description: '',
-      type: '',
-      priority_id: '',
-      status_id: '',
-      parent_id: '',
+      description: "",
+      type: "",
+      priority_id: "",
+      status_id: "",
+      parent_id: "",
     },
     editedIndex: -1,
-    search: '',
+    search: "",
     menu: false,
     input: null,
     menu1: false,
     input1: null,
     nameRules: [
       (v) => !!v || "El campo es requerido",
-      (v) => (v && v.length <= 50) ||
-        "El campo debe tener menos de 51 caracteres",
-      (v) => (v && v.length >= 3) ||
-        "El campo debe tener al menos de 3 caracteres",
+      (v) => (v && v.length <= 50) || "El campo debe tener menos de 51 caracteres",
+      (v) => (v && v.length >= 3) || "El campo debe tener al menos de 3 caracteres",
     ],
     selectRules: [(v) => !!v || "Seleccionar al menos un elemento"],
     priceRules: [
@@ -348,7 +691,7 @@ export default {
   }),
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? 'Agregar Deseo' : 'Editar Deseo';
+      return this.editedIndex === -1 ? "Agregar Deseo" : "Editar Deseo";
     },
     imgedit() {
       return this.imgMiniatura;
@@ -373,13 +716,41 @@ export default {
     getDate1() {
       return this.input1 ? new Date(this.input1) : new Date();
     },
+    validStep() {
+      // Validación específica por paso
+      switch (this.step) {
+        case 0:
+          return (
+      !!this.editedItem.name && 
+      !!this.editedItem.type && 
+      !!this.editedItem.priority_id
+    );
+        case 1:
+           return true; // El último paso no requiere validación obligatoria
+        default:
+          return false;
+      }
+    },
+    translatedHeaders() {
+      return this.headers.map((header) => ({
+        ...header,
+        title: this.$t(header.title),
+      }));
+    },
   },
   mounted() {
-    this.person_id = JSON.parse(LocalStorageService.getItem('person_id'));
-    this.home_id = JSON.parse(LocalStorageService.getItem('home_id'));
+    this.person_id = JSON.parse(LocalStorageService.getItem("person_id"));
+    this.home_id = JSON.parse(LocalStorageService.getItem("home_id"));
     this.initialize();
   },
   methods: {
+    nextStep() {
+      if (this.step < this.steps.length - 1) {
+        this.step++;
+      } else {
+        this.save();
+      }
+    },
     openModal(imageUrl) {
       this.dialogPhoto = true;
       this.loadingImage = true;
@@ -393,7 +764,7 @@ export default {
       };
 
       img.onerror = () => {
-        this.selectedImageUrl = '';
+        this.selectedImageUrl = "";
         this.dialogPhoto = false; // Abre el modal incluso si la carga falla, puede mostrar un mensaje de error o una imagen de respaldo
         this.loadingImage = false;
       };
@@ -401,21 +772,27 @@ export default {
     formatNumber(value) {
       // Si el valor es menor que 1000, devuelve el valor original con dos decimales
       if (value < 1000) {
-        return (Math.round((value + Number.EPSILON) * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return (Math.round((value + Number.EPSILON) * 100) / 100).toLocaleString(
+          "en-US",
+          { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        );
       }
 
       // Primero, redondea el valor a dos decimales
       value = Math.round((value + Number.EPSILON) * 100) / 100;
 
       // Convierte el valor a cadena con formato de número local (en-US)
-      let formattedValue = value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      let formattedValue = value.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
 
       return formattedValue;
     },
     clearFields() {
       // Limpiar los valores de ingreso y gasto al cambiar el tipo
-      this.editedItem.income = '';
-      this.editedItem.spent = '';
+      this.editedItem.income = "";
+      this.editedItem.spent = "";
       this.showType = !this.showType;
     },
     updateDate(val) {
@@ -434,9 +811,9 @@ export default {
       this.editedIndex = -1;
       try {
         const result = await handleRequest({
-          endpoint: 'status-priority-type-apk',
-          method: 'POST',
-          data: this.data
+          endpoint: "status-priority-type-apk",
+          method: "POST",
+          data: this.data,
         });
 
         if (result.success) {
@@ -447,10 +824,10 @@ export default {
           // Si no hay datos, asignamos un array vacío
           this.priorities = [];
           this.types = [];
-          this.showAlert('info', result.message || 'No hay datos disponibles.', 3000);
+          this.showAlert("info", result.message || "No hay datos disponibles.", 3000);
         }
       } catch (error) {
-        this.showAlert('error', 'Ocurrió un error inesperado al cargar los datos.', 3000);
+        this.showAlert("error", "Ocurrió un error inesperado al cargar los datos.", 3000);
       } finally {
         this.dialog = true;
       }
@@ -462,36 +839,37 @@ export default {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.originalItem = Object.assign({}, this.defaultItem);
       });
-      this.editedIndex = -1
+      this.editedIndex = -1;
       this.file = null;
-      this.imgMiniatura = '';
+      this.imgMiniatura = "";
     },
     async initialize() {
       try {
         this.data = {};
         this.data.home_id = this.home_id;
-        this.data.type = 'Todas';
+        this.data.type = "Todas";
         this.loading = true;
         const result = await handleRequest({
-          endpoint: 'get-type-wishes',
-          method: 'POST',
-          data: this.data
+          endpoint: "get-type-wishes",
+          method: "POST",
+          data: this.data,
         });
 
         if (result.success) {
           // Si la solicitud es exitosa, asignamos las sucursales
           this.wishes = result.data?.wishes || [];
           // Filtro 1: donde person_id sea igual a this.person_id y type sea igual a 'Personal'
-          this.filteredPersonalWishes = this.wishes.filter(wish =>
-            wish.idType === 'Personal')
+          this.filteredPersonalWishes = this.wishes.filter(
+            (wish) => wish.idType === "Personal"
+          );
 
           // Filtro 2: donde home_id sea igual a this.home_id
-          this.filteredHomeWishes = this.wishes.filter(wish =>
-            wish.idType === 'Hogar');
+          this.filteredHomeWishes = this.wishes.filter((wish) => wish.idType === "Hogar");
 
-            // Filtro 3: donde home_id sea igual a this.home_id
-          this.filteredProfessionalWishes = this.wishes.filter(wish =>
-            wish.idType === 'Profesional');
+          // Filtro 3: donde home_id sea igual a this.home_id
+          this.filteredProfessionalWishes = this.wishes.filter(
+            (wish) => wish.idType === "Profesional"
+          );
         } else {
           // Si no hay datos, asignamos un array vacío
           this.wishse = [];
@@ -499,7 +877,11 @@ export default {
       } catch (error) {
         this.loading = false;
         // Captura de errores no controlados
-        this.showAlert('error', 'Ocurrió un error inesperado al cargar los deseos.', 3000);
+        this.showAlert(
+          "error",
+          "Ocurrió un error inesperado al cargar los deseos.",
+          3000
+        );
       } finally {
         this.loading = false;
       }
@@ -508,27 +890,46 @@ export default {
       this.loading = true;
       if (this.editedIndex === -1) {
         this.valid = false;
-        const fieldsToUpdate = ['home_id', 'name', 'location', 'end', 'date', 'description', 'status_id', 'priority_id', 'parent_id', 'type'];
+        const fieldsToUpdate = [
+          "home_id",
+          "name",
+          "location",
+          "end",
+          "date",
+          "description",
+          "status_id",
+          "priority_id",
+          "parent_id",
+          "type",
+        ];
 
         let updatedFields = Object.keys(this.editedItem)
-          .filter((key) => fieldsToUpdate.includes(key) && this.editedItem[key] !== this.originalItem[key])
+          .filter(
+            (key) =>
+              fieldsToUpdate.includes(key) &&
+              this.editedItem[key] !== this.originalItem[key]
+          )
           .reduce((obj, key) => {
             obj[key] = this.editedItem[key];
             return obj;
           }, {});
         if (Object.keys(updatedFields).length > 0) {
-          updatedFields.date = this.editedItem.date ? this.editedItem.date : format(new Date(), 'yyyy-MM-dd');
-          updatedFields.end = this.editedItem.end ? this.editedItem.end : format(new Date(), 'yyyy-MM-dd');
+          updatedFields.date = this.editedItem.date
+            ? this.editedItem.date
+            : format(new Date(), "yyyy-MM-dd");
+          updatedFields.end = this.editedItem.end
+            ? this.editedItem.end
+            : format(new Date(), "yyyy-MM-dd");
           updatedFields.home_id = this.editedItem.home_id;
           if (this.file) {
             updatedFields.image = this.editedItem.image;
           }
-         
+
           try {
             const result = await handleRequest({
-              endpoint: 'wish',
-              method: 'POST',
-              data: updatedFields
+              endpoint: "wish",
+              method: "POST",
+              data: updatedFields,
             });
 
             // Manejo de la respuesta según el resultado
@@ -545,7 +946,11 @@ export default {
             this.loading = false;
             this.close();
             // Este bloque captura errores inesperados fuera del manejo estándar
-            this.showAlert("error", "Ocurrió un error inesperado al procesar la solicitud.", 3000);
+            this.showAlert(
+              "error",
+              "Ocurrió un error inesperado al procesar la solicitud.",
+              3000
+            );
           }
         } else {
           this.loading = false;
@@ -554,20 +959,35 @@ export default {
         }
       } else {
         this.valid = false;
-        const fieldsToUpdate = ['home_id', 'name', 'location', 'end', 'date', 'description', 'status_id', 'priority_id', 'parent_id', 'type'];
+        const fieldsToUpdate = [
+          "home_id",
+          "name",
+          "location",
+          "end",
+          "date",
+          "description",
+          "status_id",
+          "priority_id",
+          "parent_id",
+          "type",
+        ];
         let updatedFields = Object.keys(this.editedItem)
-          .filter((key) => fieldsToUpdate.includes(key) && this.editedItem[key] !== this.originalItem[key])
+          .filter(
+            (key) =>
+              fieldsToUpdate.includes(key) &&
+              this.editedItem[key] !== this.originalItem[key]
+          )
           .reduce((obj, key) => {
             obj[key] = this.editedItem[key];
             return obj;
           }, {});
         if (Object.keys(updatedFields).length > 0) {
           updatedFields.id = this.editedItem.id;
-            try {
+          try {
             const result = await handleRequest({
-              endpoint: 'wish',
-              method: 'PUT',
-              data: updatedFields
+              endpoint: "wish",
+              method: "PUT",
+              data: updatedFields,
             });
 
             // Manejo de la respuesta según el resultado
@@ -584,7 +1004,11 @@ export default {
             this.loading = false;
             this.close();
             // Este bloque captura errores inesperados fuera del manejo estándar
-            this.showAlert("error", "Ocurrió un error inesperado al procesar la solicitud.", 3000);
+            this.showAlert(
+              "error",
+              "Ocurrió un error inesperado al procesar la solicitud.",
+              3000
+            );
           }
         } else {
           this.loading = false;
@@ -601,9 +1025,9 @@ export default {
 
       try {
         const result = await handleRequest({
-          endpoint: 'status-priority-type-apk',
-          method: 'POST',
-          data: this.data
+          endpoint: "status-priority-type-apk",
+          method: "POST",
+          data: this.data,
         });
 
         if (result.success) {
@@ -616,10 +1040,10 @@ export default {
           this.priorities = [];
           this.types = [];
           this.status = [];
-          this.showAlert('info', result.message || 'No hay datos disponibles.', 3000);
+          this.showAlert("info", result.message || "No hay datos disponibles.", 3000);
         }
       } catch (error) {
-        this.showAlert('error', 'Ocurrió un error inesperado al cargar los datos.', 3000);
+        this.showAlert("error", "Ocurrió un error inesperado al cargar los datos.", 3000);
       } finally {
         this.dialog = true;
         this.showStatus = true;
@@ -646,20 +1070,20 @@ export default {
       this.dialogDelete = true;
     },
     closeDelete() {
-      this.dialogDelete = false
+      this.dialogDelete = false;
       this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem)
-      })
+        this.editedItem = Object.assign({}, this.defaultItem);
+      });
     },
     async deleteItemConfirm() {
       try {
         let request = {
-          id: this.editedItem.id
+          id: this.editedItem.id,
         };
         const result = await handleRequest({
-          endpoint: 'wish-destroy',
-          method: 'POST',
-          data: request
+          endpoint: "wish-destroy",
+          method: "POST",
+          data: request,
         });
 
         // Manejo de la respuesta según el resultado
@@ -671,7 +1095,11 @@ export default {
         }
       } catch (error) {
         // Este bloque captura errores inesperados fuera del manejo estándar
-        this.showAlert("error", "Ocurrió un error inesperado al procesar la solicitud.", 3000);
+        this.showAlert(
+          "error",
+          "Ocurrió un error inesperado al procesar la solicitud.",
+          3000
+        );
       } finally {
         this.closeDelete();
       }
@@ -738,7 +1166,7 @@ export default {
 
 <style scoped>
 .selected-tab {
-  background-color: #03626C;
+  background-color: #03626c;
   /* Fondo del tab seleccionado */
   color: white;
   /* Texto blanco */

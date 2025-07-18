@@ -19,14 +19,31 @@
       </v-col>
     </v-row>
   </v-snackbar>
+  
   <v-dialog
     :model-value="internalDialog"
     @update:model-value="(val) => (internalDialog = val)"
     fullscreen
     transition="dialog-bottom-transition"
-    class="bg-grey-lighten-4"
   >
-    <v-sheet class="fill-height bg-grey-lighten-4 d-flex flex-column" width="100%">
+    <div class="bg-white fill-height" style="position: relative">
+    <!-- Botón de cierre -->
+    <v-btn
+      icon="mdi-close"
+      color="grey-darken-2"
+      variant="text"
+      style="position: fixed; top: 16px; right: 16px; z-index: 1000; background-color: white"
+      @click="internalDialog = false"
+    />
+     <v-container>
+    <!-- Botón de cierre absoluto -->
+    <v-btn
+      icon="mdi-close"
+      color="grey-darken-2"
+      variant="text"
+      style="position: absolute; top: 16px; right: 16px; z-index: 1000"
+      @click="internalDialog = false"
+    />
       <v-card class="fill-height bg-grey-lighten-4 d-flex flex-column" elevation="0">
         <!-- Chat Body -->
         <div ref="chatBody" class="chat-body px-4 py-2 flex-grow-1 overflow-y-auto">
@@ -73,27 +90,27 @@
                 </template>
 
                 <template v-else-if="msg.type === 'editable-text'">
-  <v-text-field
-    v-model="taskData.title"
-    :label="msg.label"
-    variant="outlined"
-    hide-details
-    style="min-width: 500px;"
-    @keyup.enter="handleTitleInput"
-  />
-</template>
+                  <v-text-field
+                    v-model="taskData.title"
+                    :label="msg.label"
+                    variant="outlined"
+                    hide-details
+                    style="min-width: 500px"
+                    @keyup.enter="handleTitleInput"
+                  />
+                </template>
 
-<template v-else-if="msg.type === 'editable-textarea'">
-  <v-textarea
-    v-model="taskData.description"
-    :label="msg.label"
-    variant="underlined"
-    hide-details
-    rows="4"
-    style="min-width: 500px;"
-    @keyup.enter="handleDescriptionInput"
-  />
-</template>
+                <template v-else-if="msg.type === 'editable-textarea'">
+                  <v-textarea
+                    v-model="taskData.description"
+                    :label="msg.label"
+                    variant="underlined"
+                    hide-details
+                    rows="4"
+                    style="min-width: 500px"
+                    @keyup.enter="handleDescriptionInput"
+                  />
+                </template>
 
                 <template v-else-if="msg.type === 'priority-options'">
                   <v-slide-group show-arrows class="pa-2">
@@ -253,18 +270,26 @@
                   <!-- Botones de confirmación fijos -->
                   <div class="confirmation-buttons mt-4">
                     <div class="text-caption mb-2">
-                      {{ taskData.people.length }} participante(s) seleccionado(s)
+                      {{
+                        $t("chat.selectedParticipants", taskData.people.length, {
+                          count: taskData.people.length,
+                        })
+                      }}
                     </div>
                     <div class="d-flex justify-end gap-2">
-                      <v-btn color="error" variant="outlined" @click="handleAction('No')">
-                        No
+                      <v-btn
+                        color="error"
+                        variant="outlined"
+                        @click="handleAction($t('general.no'))"
+                      >
+                        {{ $t("general.no") }}
                       </v-btn>
                       <v-btn
                         color="primary"
-                        @click="handleAction('Sí')"
+                        @click="handleAction($t('general.yes'))"
                         :disabled="taskData.people.length === 0"
                       >
-                        Sí
+                        {{ $t("general.yes") }}
                       </v-btn>
                     </div>
                   </div>
@@ -309,7 +334,8 @@
           <v-btn icon="mdi-send" color="primary" @click="handleUserInput" />
         </v-card-actions>
       </v-card>
-    </v-sheet>
+      </v-container>
+      </div>
   </v-dialog>
 </template>
 
@@ -414,6 +440,49 @@ export default {
     //this.timeSlots = this.generateTimeSlots(); // Genera los horarios al montar el componente
   },
   methods: {
+    handleAction(action) {
+      console.log("Handling action:", action, "at step:", this.step);
+
+      if (this.step === 8) {
+        // Asegúrate que coincida con tu paso de confirmación
+        if (action === this.$t("general.yes")) {
+          // Validación reforzada
+          if (!this.taskData.people || this.taskData.people.length === 0) {
+            this.sendBotMessage(this.$t("chat.mustSelectParticipants"));
+            return;
+          }
+
+          // Mostrar confirmación
+          const participantCount = this.taskData.people.length;
+          this.sendUserMessage(
+            this.$t("chat.confirmedParticipants", participantCount, {
+              count: participantCount,
+            })
+          );
+
+          // Forzar renderizado
+          this.$forceUpdate();
+
+          // Avanzar y procesar
+          this.step = 9;
+          console.log("Avanzando a paso 9");
+
+          // Llamar directamente al caso de finalización
+          this.sendBotMessage(this.$t("chat.completed"));
+          setTimeout(() => {
+            console.log("Completando tarea", this.taskData);
+            this.$emit("completed",{
+      taskData: this.taskData,  // Todos los datos de la tarea
+      people: this.people       // Array de personas separado
+    });
+            this.closeDialog();
+          }, 1500);
+        } else if (action === this.$t("general.no")) {
+          this.sendUserMessage(this.$t("chat.willModifyParticipants"));
+          // Mantener en el mismo paso para permitir cambios
+        }
+      }
+    },
     updateSelection(role, selectedIds) {
       // Actualizar selecciones
       this.taskData.people = this.taskData.people.filter(
@@ -440,43 +509,6 @@ export default {
 
       // Forzar actualización de la UI
       this.$forceUpdate();
-    },
-
-    handleAction(action) {
-      console.log("Handling action:", action, "at step:", this.step);
-
-      if (this.step === 8) {
-        // Asegúrate que coincida con tu paso de confirmación
-        if (action === "Sí") {
-          // Validación reforzada
-          if (!this.taskData.people || this.taskData.people.length === 0) {
-            this.sendBotMessage("⚠️ Debes seleccionar al menos un participante");
-            return;
-          }
-
-          // Mostrar confirmación
-          const participantCount = this.taskData.people.length;
-          this.sendUserMessage(`Confirmados ${participantCount} participante(s)`);
-
-          // Forzar renderizado
-          this.$forceUpdate();
-
-          // Avanzar y procesar
-          this.step = 9;
-          console.log("Avanzando a paso 9");
-          
-      // Llamar directamente al caso de finalización
-      this.sendBotMessage("✅ ¡Todo listo! Guardando...");
-      setTimeout(() => {
-        console.log("Completando tarea", this.taskData);
-        this.$emit("completed", this.taskData);
-        this.closeDialog();
-      }, 1500);
-        } else if (action === "No") {
-          this.sendUserMessage("Modificaré la selección de participantes");
-          // Mantener en el mismo paso para permitir cambios
-        }
-      }
     },
 
     filteredPeople(roleId) {
@@ -530,19 +562,19 @@ export default {
       }
 
       //if (this.taskData.start_date !== formattedDate) {
-        this.dateInput = formattedDate;
-        this.taskData.start_date = formattedDate;
-        this.sendUserMessage(`Fecha seleccionada: ${formattedDate}`);
-        this.processStep(formattedDate);
+      this.dateInput = formattedDate;
+      this.taskData.start_date = formattedDate;
+      this.sendUserMessage(this.$t("chat.dateSelected", { date: formattedDate }));
+      this.processStep(formattedDate);
       //}
     },
 
     handleDateConfirmed() {
       if (!this.dateInput) return;
       this.taskData.start_date = this.dateInput;
-      this.sendUserMessage(`Fecha seleccionada: ${this.dateInput}`);
+      this.sendUserMessage(this.$t("chat.dateSelected", { date: this.dateInput }));
       this.step++;
-      this.sendBotMessage("¿Hora de inicio? (HH:mm)");
+      this.sendBotMessage(this.$t("chat.askStartTime"));
     },
     async initialize() {
       this.data = {};
@@ -578,7 +610,7 @@ export default {
       } finally {
         this.dialog = true;
         this.initializeSelections();
-    //this.timeSlots = this.generateTimeSlots();
+        //this.timeSlots = this.generateTimeSlots();
       }
     },
     setDefaultValues() {
@@ -753,22 +785,22 @@ export default {
       this.input = "";
     },
     handleTitleInput() {
-    if (!this.taskData.title?.trim()) return;
-    
-    this.sendUserMessage(this.taskData.title);
-    this.processStep(this.taskData.title);
-    //this.step++; // Avanzar al siguiente paso
-    //this.prepareNextStep();
-  },
+      if (!this.taskData.title?.trim()) return;
 
-  handleDescriptionInput() {
-    if (!this.taskData.description?.trim()) return;
-    
-    this.sendUserMessage(this.taskData.description);
-    this.processStep(this.taskData.description);
-    //this.step++; // Avanzar al siguiente paso
-    //this.prepareNextStep();
-  },
+      this.sendUserMessage(this.taskData.title);
+      this.processStep(this.taskData.title);
+      //this.step++; // Avanzar al siguiente paso
+      //this.prepareNextStep();
+    },
+
+    handleDescriptionInput() {
+      if (!this.taskData.description?.trim()) return;
+
+      this.sendUserMessage(this.taskData.description);
+      this.processStep(this.taskData.description);
+      //this.step++; // Avanzar al siguiente paso
+      //this.prepareNextStep();
+    },
     generateTimeSlots() {
       const now = new Date();
       const currentHour = now.getHours();
@@ -818,21 +850,23 @@ export default {
     },
     showSuggestion() {
       if (!this.suggestion || !this.suggestion.title) {
-        this.sendBotMessage("⚠️ No se recibió una sugerencia válida.");
+        this.sendBotMessage(this.$t("chat.invalidSuggestion"));
         return;
       }
       this.sendBotMessage(
-        `💡 Tienes una nueva sugerencia:\n\n📌 ${this.suggestion.title}\n📝 ${
-          this.suggestion.description
-        }\n📅 ${this.suggestion.date || "No disponible"}`
+        this.$t("chat.suggestionMessage", {
+          title: this.suggestion.title,
+          description: this.suggestion.description,
+          date: this.suggestion.date || this.$t("chat.notAvailable"),
+        })
       );
       setTimeout(() => {
         this.messages.push({
           from: "bot",
           type: "options",
           options: [
-            { label: "Crear como tarea", value: "Tarea" },
-            { label: "Crear como meta", value: "Meta" },
+            { label: this.$t("chat.createAsTask"), value: "Tarea" },
+            { label: this.$t("chat.createAsGoal"), value: "Meta" },
           ],
         });
         this.scrollToBottom();
@@ -866,7 +900,7 @@ export default {
           //this.taskData.description = response;
           break;
         case 3: // PRIORIDAD
-          console.log('prioridad:', response);
+          console.log("prioridad:", response);
           //this.taskData.priority_id = response;
           break;
         case 4: // FECHA
@@ -895,7 +929,7 @@ export default {
           this.messages.push({
             from: "bot",
             type: "editable-text",
-            label: "Título de la tarea",
+            label: this.$t("chat.taskTitle"),
             //model: this.taskData.title,
           });
           break;
@@ -904,7 +938,7 @@ export default {
           this.messages.push({
             from: "bot",
             type: "editable-textarea",
-            label: "Descripción de la tarea",
+            label: this.$t("chat.taskDescription"),
             //model: this.taskData.description,
           });
           break;
@@ -948,7 +982,7 @@ export default {
           break;
 
         case 7: // TIEMPO ESTIMADO
-          this.sendBotMessage("¿Tiempo estimado? (ej: 1h, 30min)");
+          this.sendBotMessage(this.$t("chat.askEstimatedTime"));
           break;
 
         case 8: // PERSONAS
@@ -959,9 +993,12 @@ export default {
           break;
 
         case 9: // FINALIZACIÓN
-          this.sendBotMessage("✅ ¡Todo listo! Guardando...");
+          this.sendBotMessage(this.$t("chat.completed"));
           setTimeout(() => {
-            this.$emit("completed", this.taskData);
+            this.$emit("completed",{
+      taskData: this.taskData,  // Todos los datos de la tarea
+      people: this.people       // Array de personas separado
+    });
             this.closeDialog();
           }, 1500);
           break;

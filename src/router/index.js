@@ -11,12 +11,20 @@ const routes = [
     name: "Login",
     component: () => import(/* webpackChunkName: "home" */ "@/views/Login.vue"),
   },
+  
   {
     path: "/dashboard",
     name: "Dashboard",
     component: () =>
       import(/* webpackChunkName: "home" */ "@/views/DashboardView.vue"),
     children: [
+      {
+        path: "/onboarding",
+        name: "Onboarding",
+        component: () =>
+          import(/* webpackChunkName: "onboarding" */ "@/views/onboarding/Onboarding.vue"),
+        //meta: { requiresAuth: true } // Si usas protección de rutas
+      },
       {
         path: "/home",
         name: "Home",
@@ -132,6 +140,18 @@ const routes = [
         name: "Chat",
         component: () =>
           import(/* webpackChunkName: "home" */ "@/views/chat/Chat.vue"),
+      },
+      {
+        path: "/chatTask",
+        name: "ChatTask",
+        component: () =>
+          import(/* webpackChunkName: "home" */ "@/views/chat/ChatTask.vue"),
+      },
+      {
+        path: "/suggestions",
+        name: "Suggestions",
+        component: () =>
+          import(/* webpackChunkName: "home" */ "@/views/suggestion/Suggestion.vue"),
       },
       {
         path: "/homes",

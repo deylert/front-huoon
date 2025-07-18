@@ -105,19 +105,18 @@
 
                 <!-- Nombre y rol con tooltip -->
                 <v-col style="min-width: 0">
-                  <v-tooltip top>
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-list-item-title v-bind="attrs" v-on="on" class="text-truncate">{{
+                  <v-tooltip location="top">
+                    <template v-slot:activator="{ props }">
+                      <v-list-item-title v-bind="props" class="text-truncate">{{
                         home.name
                       }}</v-list-item-title>
                     </template>
                     <span>{{ home.name }}</span>
                   </v-tooltip>
-                  <v-tooltip top>
-                    <template v-slot:activator="{ on, attrs }">
+                  <v-tooltip location="top">
+                    <template v-slot:activator="{ props }">
                       <v-list-item-subtitle
-                        v-bind="attrs"
-                        v-on="on"
+                        v-bind="props"
                         class="text-truncate"
                         >{{ home.nameRole }}</v-list-item-subtitle
                       >
@@ -199,33 +198,31 @@
                 <!-- Contenido textual -->
                 <v-col style="min-width: 0">
                   <!-- Título con tooltip -->
-                  <v-tooltip top>
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-list-item-title
-                        v-bind="attrs"
-                        v-on="on"
-                        :class="{ 'unread-title': notification.status === 0 }"
-                        class="text-truncate title-text"
-                      >
-                        {{ notification.title }}
-                      </v-list-item-title>
-                    </template>
-                    <span>{{ notification.title }}</span>
-                  </v-tooltip>
+                  <v-tooltip location="top">
+  <template v-slot:activator="{ props }">
+    <v-list-item-title
+      v-bind="props"
+      :class="{ 'unread-title': notification.status === 0 }"
+      class="text-truncate title-text"
+    >
+      {{ notification.title }}
+    </v-list-item-title>
+  </template>
+  <span>{{ notification.title }}</span>
+</v-tooltip>
 
-                  <!-- Descripción con tooltip -->
-                  <v-tooltip top>
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-list-item-subtitle
-                        v-bind="attrs"
-                        v-on="on"
-                        class="text-truncate description-text"
-                      >
-                        {{ notification.description }}
-                      </v-list-item-subtitle>
-                    </template>
-                    <span>{{ notification.description }}</span>
-                  </v-tooltip>
+<!-- Descripción con tooltip -->
+<v-tooltip location="top">
+  <template v-slot:activator="{ props }">
+    <v-list-item-subtitle
+      v-bind="props"
+      class="text-truncate description-text"
+    >
+      {{ notification.description }}
+    </v-list-item-subtitle>
+  </template>
+  <span>{{ notification.description }}</span>
+</v-tooltip>
                 </v-col>
               </v-row>
             </v-list-item>
@@ -233,7 +230,7 @@
             <!-- Botón de carga adicional -->
             <v-list-item v-if="hasMore" @click="getNotifications" class="load-more-item">
               <v-btn variant="text" color="primary" block class="load-more-btn">
-                Ver más
+                {{$t("buttons.seeMore")}}
                 <v-icon right>mdi-chevron-down</v-icon>
               </v-btn>
             </v-list-item>
@@ -399,11 +396,10 @@
                 >
                   <v-list-item-subtitle class="d-flex flex-column">
                     <v-tooltip bottom>
-                      <template v-slot:activator="{ on, attrs }">
+                      <template v-slot:activator="{ props }">
                         <div
                           class="description-text"
-                          v-bind="attrs"
-                          v-on="on"
+                          v-bind="props"
                           :title="item.raw.nameHomeType"
                         >
                           Tipo: {{ item.raw.nameHomeType }}
@@ -412,11 +408,10 @@
                       <!-- Tooltip con el texto completo -->
                     </v-tooltip>
                     <v-tooltip bottom>
-                      <template v-slot:activator="{ on, attrs }">
+                      <template v-slot:activator="{ props }">
                         <div
                           class="description-text"
-                          v-bind="attrs"
-                          v-on="on"
+                          v-bind="props"
                           :title="item.raw.nameRole"
                         >
                           Rol: {{ item.raw.nameRole }}
@@ -765,13 +760,13 @@ export default {
       { title: "Tipos de Hogar", icon: "mdi-home-group", to: "/hometype" },
       { title: "Tipos de Salud", icon: "mdi-heart-pulse", to: "/type" },
       { title: "Historias Clínicas", icon: "mdi-clipboard-text-outline", to: "/history" },
-      { title: "Consultas Médicas", icon: "mdi-stethoscope", to: "/consultation" },
+      /*{ title: "Consultas Médicas", icon: "mdi-stethoscope", to: "/consultation" },
       { title: "Exámenes Médicos", icon: "mdi-microscope", to: "/exam" },
       {
         title: "Emergencias Médicas",
         icon: "mdi-alert-circle-outline",
         to: "/emergency",
-      },
+      },*/
     ],
     visible: false,
     visible1: false,
@@ -977,7 +972,12 @@ export default {
     //this.role = JSON.parse(LocalStorageService.getItem('role'));
     this.imageUrl = LocalStorageService.getItem("image").replace(/['"]+/g, "");
     // Aquí se debe usar una función
-    this.$router.push({ path: "home" });
+    if(this.home_id){
+      this.$router.push({ path: "home" });
+    }else{
+      this.$router.push({ path: "onboarding" });
+    }
+
     this.initialize();
     this.getNotifications();
   },

@@ -19,7 +19,7 @@
       </v-col>
     </v-row>
   </v-snackbar>
-  
+
   <v-container class="pa-4">
     <!-- Encabezado -->
     <v-row justify="space-between" align="center" class="mb-6">
@@ -51,17 +51,28 @@
           </v-col>
 
           <!-- Columna 2: Tipo y Método -->
-          <v-col cols="3" md="2" class="px-2 py-3">
-          <div class="text-caption font-weight-bold text-grey-darken-2 mb-1">
-                {{ $t("finances.fields.type") }}:
-              </div>
+          <v-col cols="2" md="2" class="px-2 py-3">
+            <div class="text-caption font-weight-bold text-grey-darken-2 mb-1">
+              {{ $t("finances.fields.type") }}:
+            </div>
             <div class="text-subtitle-1 font-weight-bold text-blue-darken-4">
               {{ spent.type || $t("finances.notRecorded") }}
             </div>
           </v-col>
 
+          <v-col cols="2" md="2" class="px-1 py-3" v-if="spent.categoryName">
+            <div class="h-100">
+              <div class="text-caption font-weight-bold text-grey-darken-2 mb-1">
+                {{ $t("budget.fields.category") }}:
+              </div>
+              <div class="text-body-2 text-purple-darken-2">
+                {{ spent.categoryName || $t("finances.notAssigned") }}
+              </div>
+            </div>
+          </v-col>
+
           <!-- Columna 3: Ingresos -->
-          <v-col cols="2" md="2" class="px-1 py-3">
+          <v-col cols="1" md="2" class="px-1 py-3">
             <div class="h-100">
               <div class="text-caption font-weight-bold text-grey-darken-2 mb-1">
                 {{ $t("finances.fields.spent") }}:
@@ -73,14 +84,14 @@
           </v-col>
 
           <!-- Columna 4: Descripción -->
-          <v-col cols="3" md="4" class="px-1 py-3">
+          <v-col cols="2" md="3" class="px-1 py-3">
             <div v-if="spent.description" class="h-100">
               <div class="text-caption font-weight-bold text-grey-darken-2 mb-1">
                 {{ $t("finances.fields.description") }}:
               </div>
               <v-tooltip bottom max-width="400px">
                 <template v-slot:activator="{ props }">
-                  <div 
+                  <div
                     v-bind="props"
                     class="text-body-2 text-grey-darken-3 text-truncate-3-lines"
                   >
@@ -93,20 +104,23 @@
           </v-col>
 
           <!-- Columna 5: Archivo y Acciones -->
-          <v-col cols="2" md="3" class="px-2 py-3 d-flex justify-end align-center">
+          <v-col cols="3" md="2" class="px-2 py-3 d-flex justify-end align-center">
             <!-- Archivo -->
-            <div v-if="spent.image && spent.image !== 'finances/default.jpg'" class="mr-2">
-              <v-btn 
-                density="comfortable" 
-                icon="mdi-eye" 
+            <div
+              v-if="spent.image && spent.image !== 'finances/default.jpg'"
+              class="mr-2"
+            >
+              <v-btn
+                density="comfortable"
+                icon="mdi-eye"
                 color="green"
-                @click="openModal(spent.image)" 
-                variant="tonal" 
+                @click="openModal(spent.image)"
+                variant="tonal"
                 size="small"
                 title="Ver archivo adjunto"
               ></v-btn>
             </div>
-            
+
             <!-- Acciones -->
             <div class="d-flex">
               <v-btn
@@ -134,12 +148,12 @@
         </v-row>
       </v-card>
     </template>
-    
+
     <template v-else>
       <v-col cols="12" class="text-center py-8 pa-0">
         <v-icon size="64" color="grey-lighten-1">mdi-wallet-outline</v-icon>
         <div class="text-h6 text-grey mt-4">
-          {{ $t("finances.noIncomes") }}
+          {{ $t("finances.noRecords") }}
         </div>
       </v-col>
     </template>
@@ -204,13 +218,13 @@
               <!-- Paso 1: Detalles del ingreso -->
               <v-row dense v-if="step === 0">
                 <v-col cols="12" sm="6">
-                  <v-autocomplete 
+                  <v-autocomplete
                     v-model="editedItem.type"
-                    :items="types" 
-                    :label="$t('finances.fields.type')" 
+                    :items="types"
+                    :label="$t('finances.fields.type')"
                     item-title="name"
-                    item-value="id" 
-                    variant="underlined" 
+                    item-value="id"
+                    variant="underlined"
                     :rules="typeRules"
                   >
                     <template v-slot:item="{ props, item }">
@@ -218,10 +232,14 @@
                         <v-list-item-subtitle class="d-flex flex-column">
                           <v-tooltip bottom>
                             <template v-slot:activator="{ props: tooltipProps }">
-                              <div 
-                                class="truncate" 
+                              <div
+                                class="truncate"
                                 v-bind="tooltipProps"
-                                style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                                style="
+                                  white-space: nowrap;
+                                  overflow: hidden;
+                                  text-overflow: ellipsis;
+                                "
                               >
                                 {{ item.raw.description }}
                               </div>
@@ -253,6 +271,47 @@
                     :rules="incomeRules"
                     required
                   />
+                </v-col>
+                <v-col cols="12" sm="12">
+                  <v-autocomplete
+                    v-model="editedItem.budget_id"
+                    :items="budgets"
+                    :label="$t('budget.fields.category')"
+                    item-title="categoryName"
+                    item-value="id"
+                    variant="underlined"
+                    :rules="selectRules"
+                  >
+                    <template v-slot:item="{ props, item }">
+                      <v-list-item v-bind="props">
+                        <template v-slot:prepend>
+                          <v-avatar size="24">
+                            <template v-if="isImage(item.raw.icon)">
+                              <img
+                                :src="`${this.$axios.defaults.baseURL}images/${
+                                  item.raw.icon
+                                }?t=${Date.now()}`"
+                                alt="icon"
+                              />
+                            </template>
+                            <template v-else>
+                              <v-icon>{{ getIconName(item.raw.icon) }}</v-icon>
+                            </template>
+                          </v-avatar>
+                        </template>
+                        <v-list-item-subtitle class="d-flex flex-column">
+                          <div>
+                            {{ $t("finances.fields.available") }}:
+                            {{ formatCurrency(item.raw.amount - item.raw.used_amount) }}
+                          </div>
+                          <div>
+                            {{ $t("finances.fields.total") }}:
+                            {{ formatCurrency(item.raw.amount) }}
+                          </div>
+                        </v-list-item-subtitle>
+                      </v-list-item>
+                    </template>
+                  </v-autocomplete>
                 </v-col>
 
                 <v-col cols="12" md="6">
@@ -300,28 +359,28 @@
                 </v-col>
 
                 <v-col cols="12">
-                <v-menu
-                  v-model="dateMenu"
-                  :close-on-content-click="false"
-                  transition="scale-transition"
-                  offset-y
-                  min-width="auto"
-                >
-                  <template v-slot:activator="{ props }">
-                    <v-text-field
-                      v-bind="props"
-                      :model-value="dateInput" 
-                      :label="$t('finances.fields.date')"
-                      variant="underlined"
-                      readonly
-                    ></v-text-field>
-                  </template>
-                  <v-date-picker
-                    color="#03626C"
-                    :model-value="parseDateString(dateInput)" 
-                    @update:model-value="updateDate"
-                  ></v-date-picker>
-                </v-menu>
+                  <v-menu
+                    v-model="dateMenu"
+                    :close-on-content-click="false"
+                    transition="scale-transition"
+                    offset-y
+                    min-width="auto"
+                  >
+                    <template v-slot:activator="{ props }">
+                      <v-text-field
+                        v-bind="props"
+                        :model-value="dateInput"
+                        :label="$t('finances.fields.date')"
+                        variant="underlined"
+                        readonly
+                      ></v-text-field>
+                    </template>
+                    <v-date-picker
+                      color="#03626C"
+                      :model-value="parseDateString(dateInput)"
+                      @update:model-value="updateDate"
+                    ></v-date-picker>
+                  </v-menu>
                 </v-col>
               </v-row>
 
@@ -380,7 +439,7 @@
         >
           {{ $t("taskForm.buttons.confirmDelete") }}</v-btn
         >
-        </v-card-actions>
+      </v-card-actions>
     </v-card>
   </v-dialog>
 
@@ -411,7 +470,6 @@
     </v-card>
   </v-dialog>
 </template>
-
 
 <script>
 import { ref } from "vue";
@@ -456,6 +514,7 @@ export default {
     dialog: false,
     dialogDelete: false,
     financialRecords: [],
+    budgets: [],
     dialogPhoto: false,
     loadingImage: false,
     selectedImageUrl: "",
@@ -472,6 +531,7 @@ export default {
       description: "",
       date: null,
       image: null,
+      budget_id: "",
     },
     defaultItem: {
       id: "",
@@ -482,6 +542,7 @@ export default {
       description: "",
       date: null,
       image: null,
+      budget_id: "",
     },
     originalItem: {
       id: "",
@@ -492,6 +553,7 @@ export default {
       description: "",
       date: null,
       image: null,
+      budget_id: "",
     },
     editedIndex: -1,
     search: "",
@@ -499,39 +561,60 @@ export default {
   }),
 
   computed: {
-     filteredSpents() {
-      return this.financialRecords.filter(record => record.spent && record.spent > 0);
+    filteredSpents() {
+      return this.financialRecords.filter((record) => record.spent && record.spent > 0);
     },
-   typeRules() {
-  return [
-    v => !!v || this.$t('finances.validationMessages.type.required'), // Validación de requerido
-    v => !v || v.length <= 50 || this.$t('finances.validationMessages.type.maxLength') // Validación de longitud máxima
-  ];
-},
+    typeRules() {
+      return [
+        (v) => !!v || this.$t("finances.validationMessages.type.required"), // Validación de requerido
+        (v) =>
+          !v || v.length <= 50 || this.$t("finances.validationMessages.type.maxLength"), // Validación de longitud máxima
+      ];
+    },
     methodRules() {
       return [
-        v => !v || v.length <= 50 || this.$t('finances.validationMessages.method.maxLength')
+        (v) =>
+          !v || v.length <= 50 || this.$t("finances.validationMessages.method.maxLength"),
       ];
     },
     incomeRules() {
       return [
-        v => v === null || v === '' || !isNaN(v) || this.$t('finances.validationMessages.income.number'),
-        v => v === null || v === '' || /^-?\d+(\.\d{1,2})?$/.test(v) || this.$t('finances.validationMessages.income.precision')
+        (v) =>
+          v === null ||
+          v === "" ||
+          !isNaN(v) ||
+          this.$t("finances.validationMessages.income.number"),
+        (v) =>
+          v === null ||
+          v === "" ||
+          /^-?\d+(\.\d{1,2})?$/.test(v) ||
+          this.$t("finances.validationMessages.income.precision"),
       ];
     },
     spentRules() {
       return [
-        v => v === null || v === '' || !isNaN(v) || this.$t('finances.validationMessages.spent.number'),
-        v => v === null || v === '' || /^-?\d+(\.\d{1,2})?$/.test(v) || this.$t('finances.validationMessages.spent.precision')
+        (v) =>
+          v === null ||
+          v === "" ||
+          !isNaN(v) ||
+          this.$t("finances.validationMessages.spent.number"),
+        (v) =>
+          v === null ||
+          v === "" ||
+          /^-?\d+(\.\d{1,2})?$/.test(v) ||
+          this.$t("finances.validationMessages.spent.precision"),
       ];
     },
     descriptionRules() {
       return [
-        v => !v || v.length <= 255 || this.$t('finances.validationMessages.description.maxLength')
+        (v) =>
+          !v ||
+          v.length <= 255 ||
+          this.$t("finances.validationMessages.description.maxLength"),
       ];
     },
     dateRules() {
-      return [v => !!v || this.$t("finances.validationMessages.date.required")];
+      return [(v) => !!v || this.$t("finances.validationMessages.date.required")];
     },
     formTitle() {
       return this.editedIndex === -1
@@ -560,30 +643,50 @@ export default {
   },
 
   methods: {
+    isImage(icon) {
+      // Validar si el valor es una URL válida (puedes personalizar esta lógica)
+      return (
+        typeof icon === "string" &&
+        (icon.startsWith("http") || /\.(png|jpe?g|gif|svg|webp)$/i.test(icon))
+      );
+    },
+    getIconName(icon) {
+      if (!icon) return "mdi-help-circle"; // Ícono por defecto si no hay valor
+      // Si el ícono tiene el prefijo "MdiIcons.", extraer solo el nombre
+      if (icon.startsWith("MdiIcons.")) {
+        return `mdi-${icon.split(".")[1].toLowerCase()}`;
+      }
+      // Si el ícono ya está en formato "mdi-*", devolverlo tal cual
+      if (icon.startsWith("mdi-")) {
+        return icon;
+      }
+      // En otros casos, devolver un ícono por defecto
+      return "mdi-help-circle";
+    },
     updateDate(value) {
-    // value viene como objeto Date desde el date-picker
-    // Convertimos a formato YYYY-MM-DD
-    const year = value.getFullYear();
-    const month = String(value.getMonth() + 1).padStart(2, '0');
-    const day = String(value.getDate()).padStart(2, '0');
-    this.dateInput = `${year}-${month}-${day}`;
-    this.editedItem.date = this.dateInput;
-    this.dateMenu = false;
-  },
-  
-  // Método para convertir string a Date (solo cuando sea necesario)
-  parseDateString(dateString) {
-    if (!dateString) return null;
-    const [year, month, day] = dateString.split('-');
-    return new Date(year, month - 1, day);
-  },
+      // value viene como objeto Date desde el date-picker
+      // Convertimos a formato YYYY-MM-DD
+      const year = value.getFullYear();
+      const month = String(value.getMonth() + 1).padStart(2, "0");
+      const day = String(value.getDate()).padStart(2, "0");
+      this.dateInput = `${year}-${month}-${day}`;
+      this.editedItem.date = this.dateInput;
+      this.dateMenu = false;
+    },
+
+    // Método para convertir string a Date (solo cuando sea necesario)
+    parseDateString(dateString) {
+      if (!dateString) return null;
+      const [year, month, day] = dateString.split("-");
+      return new Date(year, month - 1, day);
+    },
     formatCurrency(value) {
       if (value === null || value === undefined) return "";
-      return new Intl.NumberFormat('es-ES', { 
-        style: 'currency', 
-        currency: 'EUR',
+      return new Intl.NumberFormat("es-ES", {
+        style: "currency",
+        currency: "EUR",
         minimumFractionDigits: 2,
-        maximumFractionDigits: 2
+        maximumFractionDigits: 2,
       }).format(value);
     },
     openModal(imageUrl) {
@@ -625,17 +728,23 @@ export default {
       this.imgMiniatura = "";
       try {
         const result = await handleRequest({
-          endpoint: 'get-finances-data',
-          method: 'POST',
+          endpoint: "get-finances-data",
+          method: "POST",
         });
 
         if (result.success) {
           this.types = result.data?.types || [];
+          this.budgets = result.data?.budgets || [];
         } else {
           this.types = [];
+          this.butgets = [];
         }
       } catch (error) {
-        this.showAlert('error', 'Ocurrió un error inesperado al cargar los tipos de consulta.', 3000);
+        this.showAlert(
+          "error",
+          "Ocurrió un error inesperado al cargar los tipos de consulta.",
+          3000
+        );
       } finally {
         this.dialog = true;
       }
@@ -655,14 +764,14 @@ export default {
 
     async initialize() {
       this.data = {};
-        this.data.home_id = this.home_id;
-        this.data.type = 'Todas';
+      this.data.home_id = this.home_id;
+      this.data.type = "Todas";
       try {
         this.loading = true;
         const result = await handleRequest({
           endpoint: "get-type-finance-range",
           method: "POST",
-          data: this.data
+          data: this.data,
         });
 
         if (result.success) {
@@ -672,7 +781,11 @@ export default {
         }
       } catch (error) {
         this.loading = false;
-        this.showAlert("error", "Ocurrió un error al cargar los registros financieros.", 3000);
+        this.showAlert(
+          "error",
+          "Ocurrió un error al cargar los registros financieros.",
+          3000
+        );
       } finally {
         this.loading = false;
       }
@@ -692,10 +805,24 @@ export default {
       this.loading = true;
       if (this.editedIndex === -1) {
         this.valid = false;
-        const fieldsToUpdate = ['home_id', 'spent', 'income', 'image', 'date', 'description', 'image', 'type', 'method'];
+        const fieldsToUpdate = [
+          "home_id",
+          "spent",
+          "income",
+          "image",
+          "date",
+          "description",
+          "image",
+          "type",
+          "method",
+        ];
 
         let updatedFields = Object.keys(this.editedItem)
-          .filter((key) => fieldsToUpdate.includes(key) && this.editedItem[key] !== this.originalItem[key])
+          .filter(
+            (key) =>
+              fieldsToUpdate.includes(key) &&
+              this.editedItem[key] !== this.originalItem[key]
+          )
           .reduce((obj, key) => {
             obj[key] = this.editedItem[key];
             return obj;
@@ -713,9 +840,9 @@ export default {
 
           try {
             const result = await handleRequest({
-              endpoint: 'finance',
-              method: 'POST',
-              data: formData
+              endpoint: "finance",
+              method: "POST",
+              data: formData,
             });
 
             // Manejo de la respuesta según el resultado
@@ -730,7 +857,11 @@ export default {
           } catch (error) {
             this.loading = false;
             // Este bloque captura errores inesperados fuera del manejo estándar
-            this.showAlert("error", "Ocurrió un error inesperado al procesar la solicitud.", 3000);
+            this.showAlert(
+              "error",
+              "Ocurrió un error inesperado al procesar la solicitud.",
+              3000
+            );
           }
         } else {
           this.loading = false;
@@ -738,9 +869,23 @@ export default {
         }
       } else {
         this.valid = false;
-        const fieldsToUpdate = ['home_id', 'spent', 'income', 'image', 'date', 'description', 'image', 'type', 'method'];
+        const fieldsToUpdate = [
+          "home_id",
+          "spent",
+          "income",
+          "image",
+          "date",
+          "description",
+          "image",
+          "type",
+          "method",
+        ];
         let updatedFields = Object.keys(this.editedItem)
-          .filter((key) => fieldsToUpdate.includes(key) && this.editedItem[key] !== this.originalItem[key])
+          .filter(
+            (key) =>
+              fieldsToUpdate.includes(key) &&
+              this.editedItem[key] !== this.originalItem[key]
+          )
           .reduce((obj, key) => {
             obj[key] = this.editedItem[key];
             return obj;
@@ -756,9 +901,9 @@ export default {
           }
           try {
             const result = await handleRequest({
-              endpoint: 'finance-update',
-              method: 'POST',
-              data: formData
+              endpoint: "finance-update",
+              method: "POST",
+              data: formData,
             });
 
             // Manejo de la respuesta según el resultado
@@ -773,7 +918,11 @@ export default {
           } catch (error) {
             this.loading = false;
             // Este bloque captura errores inesperados fuera del manejo estándar
-            this.showAlert("error", "Ocurrió un error inesperado al procesar la solicitud.", 3000);
+            this.showAlert(
+              "error",
+              "Ocurrió un error inesperado al procesar la solicitud.",
+              3000
+            );
           }
         } else {
           this.loading = false;
@@ -790,7 +939,7 @@ export default {
       this.originalItem = Object.assign({}, item);
       this.editedItem = Object.assign({}, item);
       this.dateInput = item.date || null;
-      console.log('this.dateInput');
+      console.log("this.dateInput");
       console.log(this.dateInput);
       this.file = null;
 
@@ -809,17 +958,23 @@ export default {
       }
       try {
         const result = await handleRequest({
-          endpoint: 'get-finances-data',
-          method: 'POST',
+          endpoint: "get-finances-data",
+          method: "POST",
         });
 
         if (result.success) {
           this.types = result.data?.types || [];
+          this.budgets = result.data?.budgets || [];
         } else {
           this.types = [];
+          this.butgets = [];
         }
       } catch (error) {
-        this.showAlert('error', 'Ocurrió un error inesperado al cargar los tipos de consulta.', 3000);
+        this.showAlert(
+          "error",
+          "Ocurrió un error inesperado al cargar los tipos de consulta.",
+          3000
+        );
       } finally {
         this.dialog = true;
       }
@@ -855,7 +1010,11 @@ export default {
           this.showAlert("warning", result.message, 3000);
         }
       } catch (error) {
-        this.showAlert("error", "Ocurrió un error al eliminar el registro financiero.", 3000);
+        this.showAlert(
+          "error",
+          "Ocurrió un error al eliminar el registro financiero.",
+          3000
+        );
       } finally {
         this.loading = false;
         this.closeDelete();
@@ -923,7 +1082,7 @@ export default {
       this.imgMiniatura = "";
       let file = event.target.files[0];
       const maxSize = 500 * 1024; // 500 KB en bytes
-      
+
       if (file && file.size > maxSize) {
         this.valid = false;
         this.showAlert("warning", "El archivo de imagen debe ser de máximo 500 KB", 3000);
@@ -934,8 +1093,10 @@ export default {
       const extension = file.name.split(".").pop().toLowerCase();
       const imageExtensions = ["jpg", "jpeg", "png", "gif"];
 
-      if ((mimeType.startsWith("image/") || imageExtensions.includes(extension)) && 
-          imageExtensions.includes(extension)) {
+      if (
+        (mimeType.startsWith("image/") || imageExtensions.includes(extension)) &&
+        imageExtensions.includes(extension)
+      ) {
         this.cargarImage(file);
         this.showImage = true;
       } else {

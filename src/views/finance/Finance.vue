@@ -51,8 +51,8 @@
                 </div>
                 <div class="text-caption text-grey-darken-1">
                   {{
-                    $t("finances.suggestions.alerts.message", alertasHoy, {
-                      count: alertasHoy,
+                    $t("finances.suggestions.alerts.message", 5, {
+                      count: 5,
                     })
                   }}
                 </div>
@@ -82,12 +82,12 @@
                   {{ $t("finances.titles.new.finance") }}
                 </v-list-item-title>
               </v-list-item>
-              <!--<v-list-item @click="showAddSpent()">
+              <v-list-item @click="showAddBuget()">
                 <v-list-item-title class="text-red">
                   <v-icon start color="red">mdi-minus</v-icon>
-                  {{ $t("finances.titles.new.expense") }}
+                  Agregar Presupuesto
                 </v-list-item-title>
-              </v-list-item>-->
+              </v-list-item>
             </v-list>
           </v-menu>
         </v-row>
@@ -223,13 +223,19 @@
                       v-bind="props"
                       style="max-width: 220px"
                     >
-                      <v-icon size="14" class="me-1" color="grey"> {{ movent.lastMovement?.icon }} </v-icon>
-                      ${{ movent.lastMovement?.amount ? formatCurrency(movent.lastMovement.amount) : '0' }}
-      {{ movent.lastMovement?.description }}
+                      <v-icon size="14" class="me-1" color="grey">
+                        {{ movent.lastMovement?.icon }}
+                      </v-icon>
+                      ${{
+                        movent.lastMovement?.amount
+                          ? formatCurrency(movent.lastMovement.amount)
+                          : "0"
+                      }}
+                      {{ movent.lastMovement?.description }}
                     </div>
                   </template>
                   <span>
-                  {{ movent.lastMovement?.description }}
+                    {{ movent.lastMovement?.description }}
                   </span>
                 </v-tooltip>
               </div>
@@ -254,12 +260,12 @@
             >
               <v-row no-gutters class="ma-0">
                 <!-- Fecha -->
-                <v-col cols="1" class="pa-4 d-flex flex-column align-center">
+                <v-col cols="auto" class="pa-4 d-flex flex-column align-center">
                   <div class="date">{{ formatDate(financeTask.date) }}</div>
                 </v-col>
 
                 <!-- Contenido principal -->
-                <v-col cols="7" class="d-flex align-center pe-4 gap-2">
+                <v-col cols="8" class="d-flex align-center pe-4 gap-2">
                   <v-row align="center" no-gutters>
                     <v-icon
                       class="me-2"
@@ -280,7 +286,7 @@
                 </v-col>
 
                 <!-- Estado -->
-                <v-col cols="2" class="d-flex align-center justify-end pe-4">
+                <v-col cols="auto" class="d-flex align-center justify-end pe-4">
                   <v-chip
                     :color="getFinanceStatusColor(financeTask.status)"
                     size="small"
@@ -290,25 +296,25 @@
                   </v-chip>
                 </v-col>
 
-                 <v-col cols="2" class="d-flex align-center justify-end pe-4 gap-2">
+                <v-col cols="auto" class="d-flex align-center justify-end pe-4 gap-2">
                   <div>
-    <!-- Tu contenido actual de la tarjeta -->
-    <v-btn
-      variant="text"
-      size="small"
-      color="primary"
-      @click="openChatbot(financeTask)"
-    >
-      {{ $t('buttons.seeMore') }}
-    </v-btn>
+                    <!-- Tu contenido actual de la tarjeta -->
+                    <v-btn
+                      variant="text"
+                      size="small"
+                      color="primary"
+                      @click="openChatbot(financeTask)"
+                    >
+                      {{ $t("buttons.seeMore") }}
+                    </v-btn>
 
-    <!-- Componente del chatbot -->
-    <ChatTaskDialog
-      v-model="chatDialog"
-      :suggestion="currentTask"
-      @completed="handleTaskCompleted"
-    />
-  </div>
+                    <!-- Componente del chatbot -->
+                    <ChatTaskDialog
+                      v-model="chatDialog"
+                      :suggestion="currentTask"
+                      @completed="handleTaskCompleted"
+                    />
+                  </div>
                 </v-col>
               </v-row>
             </v-card>
@@ -357,6 +363,7 @@
     <v-form ref="form" v-model="valid" class="h-100">
       <v-card class="pa-10">
         <v-card-text class="pt-12">
+          <h5 class="text-grey-darken-2 font-weight-medium">{{ formTitle }}</h5>
           <p :class="[isIncome ? 'text-green' : 'text-red', 'text-grey-lighten-1']">
             {{
               isIncome
@@ -408,7 +415,6 @@
 
               <!-- Paso 1: Detalles del ingreso -->
               <v-row dense v-if="step === 0">
-
                 <v-col cols="12" sm="12">
                   <v-switch
                     v-model="isIncome"
@@ -489,6 +495,48 @@
                     required
                     :color="'red'"
                   />
+                </v-col>
+
+                <v-col cols="12" sm="12" v-if="!isIncome">
+                  <v-autocomplete
+                    v-model="editedItem.budget_id"
+                    :items="budgets"
+                    :label="$t('budget.fields.category')"
+                    item-title="categoryName"
+                    item-value="id"
+                    variant="underlined"
+                    :rules="selectRules"
+                  >
+                    <template v-slot:item="{ props, item }">
+                      <v-list-item v-bind="props">
+                        <template v-slot:prepend>
+                          <v-avatar size="24">
+                            <template v-if="isImage(item.raw.icon)">
+                              <img
+                                :src="`${this.$axios.defaults.baseURL}images/${
+                                  item.raw.icon
+                                }?t=${Date.now()}`"
+                                alt="icon"
+                              />
+                            </template>
+                            <template v-else>
+                              <v-icon>{{ getIconName(item.raw.icon) }}</v-icon>
+                            </template>
+                          </v-avatar>
+                        </template>
+                        <v-list-item-subtitle class="d-flex flex-column">
+                          <div>
+                            {{ $t("finances.fields.available") }}:
+                            {{ formatCurrency(item.raw.amount - item.raw.used_amount) }}
+                          </div>
+                          <div>
+                            {{ $t("finances.fields.total") }}:
+                            {{ formatCurrency(item.raw.amount) }}
+                          </div>
+                        </v-list-item-subtitle>
+                      </v-list-item>
+                    </template>
+                  </v-autocomplete>
                 </v-col>
 
                 <v-col cols="12" md="6">
@@ -794,6 +842,292 @@
       </v-card>
     </v-form>
   </v-dialog>
+
+  <v-dialog v-model="dialogBugets" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-text>
+        <!-- Aquí pasamos el 'selectedWorker' al componente dentro del diálogo -->
+        <Budget />
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn variant="flat" color="grey-lighten-1" @click="closeDialogBugets"
+          >Cerrar</v-btn
+        >
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <!--<v-dialog v-model="showSuggestedTasksDialog" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-title class="d-flex justify-space-between align-center">
+        <span>{{ $t('suggestedTasks.dialog.title') }}</span>
+        <v-btn icon @click="showSuggestedTasksDialog = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-card-title>
+
+      <v-card-text>
+        <v-card
+          v-for="(task, index) in suggestedTasks"
+          :key="index"
+          class="mb-3 rounded-lg"
+          elevation="2"
+          :class="{ 'selected-task': task.selected }"
+          @click="task.selected = !task.selected"
+        >
+          <v-row no-gutters>
+            <v-col cols="1" class="d-flex align-center justify-center">
+              <v-checkbox
+                v-model="task.selected"
+                hide-details
+                class="ma-0 pa-0"
+                @click.stop
+              ></v-checkbox>
+            </v-col>
+            <v-col cols="2" class="pa-4 d-flex flex-column align-center">
+              <div class="text-body-2 font-weight-medium">
+                {{ formatDate(task.start_date) }}
+              </div>
+              <div v-if="task.start_time" class="mt-2 text-body-2 font-weight-medium">
+                {{ formatTime(task.start_time) }}
+              </div>
+              <div
+                v-if="task.estimated_time"
+                class="mt-2 text-caption text-grey-darken-1"
+              >
+                {{ formatDuration(task.estimated_time) }}
+              </div>
+            </v-col>
+
+            <v-col cols="7" class="d-flex align-center pe-4 gap-2">
+              <div>
+                <div class="font-weight-semibold text-body-1">{{ task.title }}</div>
+                <div class="text-caption d-flex align-center text-grey-darken-1">
+                  {{ task.description }}
+                </div>
+                <div
+                  v-if="task.geo_location"
+                  class="text-caption d-flex align-center text-grey-darken-1"
+                >
+                  <v-icon small>mdi-map-marker</v-icon>
+                  {{ task.geo_location }}
+                </div>
+              </div>
+            </v-col>
+
+            <v-col cols="2" class="d-flex align-center pe-4 gap-2">
+              <div class="avatar-row d-flex flex-wrap justify-end gap-1">
+                <template v-if="task.people && task.people.length > 0">
+                  <v-tooltip
+                    v-for="(person, personIndex) in task.people"
+                    :key="personIndex"
+                    bottom
+                  >
+                    <template v-slot:activator="{ props }">
+                      <v-avatar class="avatar-item hover-expand" size="32" v-bind="props">
+                      <v-img :src="`${this.$axios.defaults.baseURL}images/${person.image}?t=${Date.now()}`"
+                        alt="avatar" />
+                    </v-avatar>
+                    </template>
+                    <span>{{ person.name }}<br>{{ person.roleName }}</span>
+                  </v-tooltip>
+                </template>
+                <v-chip v-else small color="grey" class="mt-1"> {{ $t('suggestedTasks.dialog.unassigned') }} </v-chip>
+              </div>
+            </v-col>
+          </v-row>
+        </v-card>
+      </v-card-text>
+
+      <v-card-actions class="d-flex justify-end">
+        <v-btn
+          color="primary"
+          @click="sendSuggestedTasksToAPI"
+          :disabled="selectedSuggestedTasksCount === 0"
+        >
+          {{ $t('suggestedTasks.dialog.createButton') }}
+        {{ $t('suggestedTasks.selection.count', { count: selectedSuggestedTasksCount }) }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>-->
+  <v-dialog
+    v-model="showSuggestedTasksDialog"
+    fullscreen
+    persistent
+    transition="dialog-bottom-transition"
+    content-class="fullscreen-dialog"
+  >
+    <v-form ref="form" v-model="valid" class="h-100">
+      <v-card class="pa-10">
+        <v-card-title class="d-flex justify-space-between align-center pt-12">
+          <div>
+            <h5 class="text-grey-darken-2 font-weight-medium">
+              {{ $t("suggestedTasks.dialog.title") }}
+            </h5>
+            <p class="text-grey-lighten-1 mb-0">
+              {{ $t("suggestedTasks.dialog.subtitle") }}
+            </p>
+          </div>
+        </v-card-title>
+
+        <v-card-text>
+          <v-row class="mt-6">
+            <!-- Timeline lateral con un solo paso -->
+            <v-col cols="3">
+              <v-timeline align="start" side="end" dense>
+                <v-timeline-item
+                  dot-color="deep-purple"
+                  icon="mdi-numeric-1"
+                  size="large"
+                >
+                  <template #opposite>
+                    <div class="text-end">
+                      <strong>{{ $t("suggestedTasks.steps.selection.title") }}</strong>
+                      <div class="text-caption text-grey">
+                        {{ $t("suggestedTasks.steps.selection.subtitle") }}
+                      </div>
+                    </div>
+                  </template>
+                </v-timeline-item>
+              </v-timeline>
+            </v-col>
+
+            <!-- Contenido principal -->
+            <v-col cols="9">
+              <h3 class="text-deep-purple-accent-3 mb-8">
+                {{ $t("suggestedTasks.steps.selection.title") }}
+              </h3>
+
+              <!-- Lista de tareas sugeridas -->
+              <div class="task-list-container">
+                <v-card
+                  v-for="(task, index) in suggestedTasks"
+                  :key="index"
+                  class="mb-3 rounded-lg"
+                  elevation="2"
+                  :class="{ 'selected-task': task.selected }"
+                  @click="task.selected = !task.selected"
+                >
+                  <v-row no-gutters class="align-center">
+                    <!-- Checkbox 
+                    <v-col cols="auto" class="d-flex justify-center">
+                      <v-checkbox
+                        v-model="task.selected"
+                        hide-details
+                        class="ma-0"
+                        @click.stop
+                      ></v-checkbox>
+                    </v-col>-->
+
+                    <!-- Fecha y hora -->
+                    <v-col
+                      cols="auto"
+                      class="pa-2 d-flex flex-column align-center date-time-col"
+                    >
+                      <div
+                        class="text-body-2 font-weight-medium text-center date-time-text"
+                      >
+                        {{ formatDate(task.start_date) }}
+                      </div>
+                      <div
+                        v-if="task.start_time"
+                        class="text-body-2 font-weight-medium text-center mt-1 date-time-text"
+                      >
+                        {{ formatTime(task.start_time) }}
+                      </div>
+                    </v-col>
+
+                    <!-- Detalles de la tarea -->
+                    <v-col cols="8" class="py-3 px-4 task-details">
+                      <div class="font-weight-semibold text-body-1">{{ task.title }}</div>
+                      <div class="text-caption text-grey-darken-1 mt-1">
+                        {{ task.description }}
+                      </div>
+                    </v-col>
+
+                    <v-col cols="auto" class="d-flex align-center px-2">
+                        <v-chip
+                            color="amber"
+                            variant="outlined"
+                            class="score-chip"
+                            :title="$t('suggestedTasks.scoreTooltip')"
+                        >
+                            <v-icon left size="small">mdi-star</v-icon>
+                            {{ task.score }}
+                        </v-chip>
+                    </v-col>
+
+                    <v-col cols="1" class="d-flex align-center pe-4 gap-2">
+                      <div>
+                        <span class="text-black">{{ task.priority_name_translated }}</span>
+                      </div>
+                  </v-col>
+
+                    <!-- Participantes -->
+                    <v-col cols="auto" class="d-flex align-center pe-4 gap-2">
+                      <div class="avatar-row d-flex flex-wrap justify-end gap-1">
+                        <template v-if="task.people && task.people.length > 0">
+                          <v-tooltip
+                            v-for="(person, personIndex) in task.people"
+                            :key="personIndex"
+                            bottom
+                          >
+                            <template v-slot:activator="{ props }">
+                              <v-avatar
+                                class="avatar-item hover-expand"
+                                size="32"
+                                v-bind="props"
+                              >
+                                <v-img
+                                  :src="`${this.$axios.defaults.baseURL}images/${
+                                    person.image
+                                  }?t=${Date.now()}`"
+                                  alt="avatar"
+                                />
+                              </v-avatar>
+                            </template>
+                            <span>{{ person.name }}<br />{{ person.roleName }}</span>
+                          </v-tooltip>
+                        </template>
+                        <v-chip v-else small color="grey" class="mt-1">
+                          {{ $t("suggestedTasks.dialog.unassigned") }}
+                        </v-chip>
+                      </div>
+                    </v-col>
+                  </v-row>
+                </v-card>
+              </div>
+
+              <!-- Acciones del formulario -->
+              <div class="d-flex justify-space-between mt-8">
+                <v-btn
+                  variant="text"
+                  class="text-grey-darken-1"
+                  @click="showSuggestedTasksDialog = false"
+                >
+                  {{ $t("buttons.close") }}
+                </v-btn>
+
+                <v-btn
+                  variant="text"
+                  class="text-deep-purple-accent-3"
+                  @click="sendSuggestedTasksToAPI"
+                  :disabled="selectedSuggestedTasksCount === 0"
+                >
+                  {{ $t("buttons.saveAndClose") }}
+                  <v-chip color="deep-purple" small class="ml-2">
+                    {{ selectedSuggestedTasksCount }}
+                  </v-chip>
+                </v-btn>
+              </div>
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
+    </v-form>
+  </v-dialog>
 </template>
 
 <script>
@@ -801,19 +1135,23 @@ import LocalStorageService from "@/LocalStorageService";
 import { handleRequest } from "@/utils/api"; // Ruta al archivo
 import Income from "./Income.vue";
 import Spent from "./Spent.vue";
-import ChatTaskDialog from './ChatTaskDialog.vue';
+import ChatTaskDialog from "./ChatTaskDialog.vue";
 import _ from "lodash";
+import Budget from "./Budget.vue";
 export default {
   components: {
     Income,
     Spent,
-    ChatTaskDialog
+    ChatTaskDialog,
+    Budget,
   },
   data() {
     return {
       chatDialog: false,
+      dialogBugets: false,
       currentTask: null,
       selectedSuggestion: null,
+      showSuggestedTasksDialog: false,
       dialogIncome: false,
       dialogSpent: false,
       dialogAddFinance: false,
@@ -968,6 +1306,7 @@ export default {
         description: "",
         date: null,
         image: null,
+        budget_id: "",
       },
       defaultItem: {
         id: "",
@@ -978,6 +1317,7 @@ export default {
         description: "",
         date: null,
         image: null,
+        budget_id: "",
       },
       originalItem: {
         id: "",
@@ -988,34 +1328,38 @@ export default {
         description: "",
         date: null,
         image: null,
+        budget_id: "",
       },
       editedItemTask: {
-      id: "",
-      title: "",
-      description: "",
-      start_date: null,
-      end_date: null,
-      start_time: null,
-      end_time: null,
-      type: "Tarea",
-      parent_id: "",
-      status_id: "",
-      category_id: "",
-      person_id: null,
-      home_id: "",
-      recurrence: "",
-      estimated_time: 1,
-      attachments: null,
-      comments: "",
-      geo_location: "",
-      people: [],
-    },
+        id: "",
+        title: "",
+        description: "",
+        start_date: null,
+        end_date: null,
+        start_time: null,
+        end_time: null,
+        type: "Tarea",
+        parent_id: "",
+        status_id: "",
+        category_id: "",
+        person_id: null,
+        home_id: "",
+        recurrence: "",
+        estimated_time: 1,
+        attachments: null,
+        comments: "",
+        geo_location: "",
+        people: [],
+      },
       editedIndex: -1,
       search: "",
       types: [],
+      budgets: [],
+      suggestedTasks: [],
       home_id: "",
       suggestions: [],
       statusuggestions: [],
+      people: [],
       movent: {},
       finances: {
         incomeCard: {
@@ -1068,6 +1412,9 @@ export default {
     };
   },
   computed: {
+    selectedSuggestedTasksCount() {
+      return this.suggestedTasks?.filter((task) => task.selected).length || 0;
+    },
     formattedCurrentMonth() {
       const date = new Date();
       return date.toLocaleDateString(this.$vuetify.locale.current, {
@@ -1129,8 +1476,8 @@ export default {
     },
     formTitle() {
       return this.editedIndex === -1
-        ? this.$t("consultations.titles.new")
-        : this.$t("consultations.titles.edit");
+        ? this.$t("finances.titles.edit.finance")
+        : this.$t("finances.titles.new.finance");
     },
     imgedit() {
       return this.imgMiniatura;
@@ -1142,116 +1489,302 @@ export default {
     this.initialize();
   },
   methods: {
-    openChatbot(task) {
-     this.chatDialog = false;
-  this.currentTask = null;
-  this.$nextTick(() => {
-    this.currentTask = task;
-    this.chatDialog = true;
-  });
+    enrichPeopleData(taskPeople) {
+      // 1. Verificar y extraer datos del Proxy
+      const peopleProxy = this.people; // El Proxy recibido
+      const rawPeople = peopleProxy
+        ? peopleProxy.__v_raw || JSON.parse(JSON.stringify(peopleProxy))
+        : [];
+
+      // 2. Validar que taskPeople sea un array
+      if (!Array.isArray(taskPeople)) {
+        //console.error('taskPeople no es un array válido:', taskPeople);
+        return [];
+      }
+
+      // 3. Recorrer y enriquecer los datos
+      return taskPeople.map((person) => {
+        // 3.1. Verificar que tenga person_id
+        if (!person.person_id) {
+          //console.warn('Persona sin person_id:', person);
+          return person;
+        }
+
+        // 3.2. Buscar en los datos reales
+        const fullPersonData = rawPeople.find((p) => p.id === Number(person.person_id));
+
+        // 3.3. Mostrar información de debug si no se encuentra
+        /*if (!fullPersonData) {
+      console.warn(`No se encontró persona con ID ${person.person_id}`);
+      console.log('IDs disponibles:', rawPeople.map(p => p.id));
+    }*/
+
+        // 3.4. Retornar objeto enriquecido
+        return {
+          ...person,
+          name: fullPersonData?.namePerson || person.name || "Sin nombre",
+          image: fullPersonData?.imagePerson || person.image || "default.jpg",
+        };
+      });
     },
-    async handleTaskCompleted(taskData) {
-      console.log('Tarea completada:', taskData);
+    formatTime(timeString) {
+      if (!timeString) return "";
+      // Asume formato HH:mm
+      return timeString;
+    },
+
+    formatDuration(duration) {
+      if (!duration) return "";
+
+      // Si es un número (horas)
+      if (typeof duration === "number") {
+        return `${duration} ${duration === 1 ? "hora" : "horas"}`;
+      }
+
+      // Si es un string con formato de tiempo
+      if (typeof duration === "string") {
+        // Puedes añadir lógica para formatear strings como "2 hours" o "120 mins"
+        return duration;
+      }
+
+      return "Duración no especificada";
+    },
+
+    // Método para debug (puedes eliminarlo después)
+    logTaskPeople(task) {
+      console.log("People data for task:", task.people);
+    },
+    getPersonAvatar(person) {
+      // Si la persona tiene imagen, usarla, sino una por defecto
+      return person.image
+        ? `${this.$axios.defaults.baseURL}images/${person.image}?t=${Date.now()}`
+        : require("@/assets/default-avatar.png");
+    },
+
+    async sendSuggestedTasksToAPI() {
+      try {
+        this.loading = true;
+
+        // Filtrar y formatear las tareas seleccionadas
+        const tasksToCreate = this.suggestedTasks
+          .filter((task) => task.selected)
+          .map((task) => {
+            const { selected, statusDialog, ...cleanTask } = task;
+
+            // Convertir campos numéricos
+            return {
+              ...cleanTask,
+              home_id: Number(cleanTask.home_id) || 0,
+              parent_id: Number(cleanTask.parent_id) || null,
+              priority_id: Number(cleanTask.priority_id) || 0,
+              status_id: Number(cleanTask.status_id) || 1,
+              estimated_time: this.convertEstimatedTime(cleanTask.estimated_time),
+              people: cleanTask.people
+                ? cleanTask.people.map((person) => ({
+                    home_id: Number(person.home_id) || 0,
+                    person_id: Number(person.person_id) || 0,
+                    role_id: Number(person.role_id) || 0,
+                    roleName: person.roleName,
+                  }))
+                : [],
+            };
+          });
+
+        // Enviar al endpoint que maneja la creación múltiple
+        const result = await handleRequest({
+          endpoint: "task-bulk",
+          method: "POST",
+          data: { tasks: tasksToCreate },
+        });
+
+        if (result.success) {
+          this.showAlert(
+            "success",
+            `${tasksToCreate.length} tareas creadas exitosamente`,
+            3000
+          );
+          this.showSuggestedTasksDialog = false;
+          this.initialize(); // Refrescar datos
+        } else {
+          this.showAlert("warning", result.message, 3000);
+        }
+      } catch (error) {
+        this.showAlert("error", "Error al crear las tareas", 3000);
+        console.error("Error creating tasks:", error);
+      } finally {
+        this.loading = false;
+      }
+    },
+    convertEstimatedTime(time) {
+      if (!time) return 0;
+
+      // Si ya es un número, devolverlo
+      if (typeof time === "number") return time;
+
+      // Si es string con formato "X horas"
+      const match = time.toString().match(/(\d+)\s*horas?/i);
+      if (match) return parseInt(match[1], 10);
+
+      // Si es string con formato "HH:mm"
+      const timeParts = time.toString().split(":");
+      if (timeParts.length === 2) {
+        return parseInt(timeParts[0], 10) + parseInt(timeParts[1], 10) / 60;
+      }
+
+      // Intentar convertir a número
+      return Number(time) || 0;
+    },
+    isImage(icon) {
+      // Validar si el valor es una URL válida (puedes personalizar esta lógica)
+      return (
+        typeof icon === "string" &&
+        (icon.startsWith("http") || /\.(png|jpe?g|gif|svg|webp)$/i.test(icon))
+      );
+    },
+    getIconName(icon) {
+      if (!icon) return "mdi-help-circle"; // Ícono por defecto si no hay valor
+      // Si el ícono tiene el prefijo "MdiIcons.", extraer solo el nombre
+      if (icon.startsWith("MdiIcons.")) {
+        return `mdi-${icon.split(".")[1].toLowerCase()}`;
+      }
+      // Si el ícono ya está en formato "mdi-*", devolverlo tal cual
+      if (icon.startsWith("mdi-")) {
+        return icon;
+      }
+      // En otros casos, devolver un ícono por defecto
+      return "mdi-help-circle";
+    },
+    openChatbot(task) {
+      this.chatDialog = false;
+      this.currentTask = null;
+      this.$nextTick(() => {
+        this.currentTask = task;
+        this.chatDialog = true;
+      });
+    },
+    async handleTaskCompleted(payload) {
+      const taskData = payload.taskData || {};
+      const people = payload.people || [];
+      //console.log("Tarea completada:", taskData);
+      //console.log("Personas asignadas:", people);
+      (this.people = []), (this.people = _.cloneDeep(people));
       this.editedItemTask = _.cloneDeep(taskData);
       const fieldsToUpdate = [
-          "title",
-          "description",
-          "start_date",
-          "end_date",
-          "parent_id",
-          "status_id",
-          "category_id",
-          "home_id",
-          "recurrence",
-          "comments",
-          "estimated_time",
-          "attachments",
-          "geo_location",
-          "priority_id",
-          "people",
-          "start_time",
-          "end_time",
-          "type",
-        ];
-        let updatedFields = Object.keys(this.editedItemTask)
-          .filter(
-            (key) =>
-              fieldsToUpdate.includes(key) &&
-              this.editedItemTask[key] !== this.originalItem[key]
-          )
-          .reduce((obj, key) => {
-            if (key === "people") {
-              // Transformar el campo `people`
-              obj[key] = this.editedItemTask.people.map((person) => ({
-                home_id: Number(this.home_id), // Asegurar que sea un número
-                person_id: Number(person.id), // Asegurar que sea un número
-                role_id: Number(person.roleId),
-                roleName: person.roleName
-              }));
-            } else {
-              obj[key] = this.editedItemTask[key];
-            }
-            return obj;
-          }, {});
+        "title",
+        "description",
+        "start_date",
+        "end_date",
+        "parent_id",
+        "status_id",
+        "category_id",
+        "home_id",
+        "recurrence",
+        "comments",
+        "estimated_time",
+        "attachments",
+        "geo_location",
+        "priority_id",
+        "people",
+        "start_time",
+        "end_time",
+        "type",
+      ];
+      let updatedFields = Object.keys(this.editedItemTask)
+        .filter(
+          (key) =>
+            fieldsToUpdate.includes(key) &&
+            this.editedItemTask[key] !== this.originalItem[key]
+        )
+        .reduce((obj, key) => {
+          if (key === "people") {
+            // Transformar el campo `people`
+            obj[key] = this.editedItemTask.people.map((person) => ({
+              home_id: Number(this.home_id), // Asegurar que sea un número
+              person_id: Number(person.id), // Asegurar que sea un número
+              role_id: Number(person.roleId),
+              roleName: person.roleName,
+            }));
+          } else {
+            obj[key] = this.editedItemTask[key];
+          }
+          return obj;
+        }, {});
 
-        // Agregar campos adicionales si es necesario
-        if (Object.keys(updatedFields).length > 0) {
-          updatedFields.home_id = this.home_id;
-          updatedFields.start_date = this.editedItemTask.start_date
-            ? this.editedItemTask.start_date
-            : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(
+      // Agregar campos adicionales si es necesario
+      if (Object.keys(updatedFields).length > 0) {
+        updatedFields.home_id = this.home_id;
+        updatedFields.start_date = this.editedItemTask.start_date
+          ? this.editedItemTask.start_date
+          : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(
               2,
               "0"
             )}-${String(new Date().getDate()).padStart(2, "0")}`;
-          updatedFields.estimated_time = this.editedItemTask.estimated_time
-            ? this.editedItemTask.estimated_time
-            : 0;
-          updatedFields.type = this.editedItemTask.type ? this.editedItemTask.type : "Tarea";
+        updatedFields.estimated_time = this.editedItemTask.estimated_time
+          ? this.editedItemTask.estimated_time
+          : 0;
+        updatedFields.type = this.editedItemTask.type
+          ? this.editedItemTask.type
+          : "Tarea";
 
-          // Crear el objeto FormData
-          const formData = new FormData();
-          for (let key in updatedFields) {
-            if (key === "people") {
-              // Agregar cada elemento del array `people` al FormData
-              updatedFields[key].forEach((person, index) => {
-                for (const [personKey, value] of Object.entries(person)) {
-                  formData.append(`people[${index}][${personKey}]`, value);
-                }
-              });
-            } else {
-              formData.append(key, updatedFields[key]);
-            }
-          }
-
-          try {
-            const result = await handleRequest({
-              endpoint: "task",
-              method: "POST",
-              data: formData,
+        // Crear el objeto FormData
+        const formData = new FormData();
+        for (let key in updatedFields) {
+          if (key === "people") {
+            // Agregar cada elemento del array `people` al FormData
+            updatedFields[key].forEach((person, index) => {
+              for (const [personKey, value] of Object.entries(person)) {
+                formData.append(`people[${index}][${personKey}]`, value);
+              }
             });
-
-            // Manejo de la respuesta según el resultado
-            if (result.success) {
-              this.loading = false;
-              this.showAlert("success", result.message, 3000);
-              this.initialize();
-            } else {
-              this.loading = false;
-              this.showAlert("warning", result.message, 3000);
-            }
-          } catch (error) {
-            this.loading = false;
-            // Este bloque captura errores inesperados fuera del manejo estándar
-            this.showAlert(
-              "error",
-              "Ocurrió un error inesperado al procesar la solicitud.",
-              3000
-            );
+          } else {
+            formData.append(key, updatedFields[key]);
           }
-        } else {
-          this.loading = false;
-          this.showAlert("success", "Debe completar los datos de la tarea.", 3000);
         }
+
+        try {
+          const result = await handleRequest({
+            endpoint: "task",
+            method: "POST",
+            data: formData,
+          });
+
+          // Manejo de la respuesta según el resultado
+          if (result.success) {
+            this.loading = false;
+            if (
+              result.data &&
+              result.data.suggestedTasks &&
+              result.data.suggestedTasks.length > 0
+            ) {
+              // Aquí puedes manejar las sugerencias de tareas
+              // Por ejemplo, mostrarlas en un diálogo o procesarlas automáticamente
+              console.log("Tareas sugeridas:", result.data.suggestedTasks);
+
+              this.suggestedTasks = result.data.suggestedTasks.map((task) => ({
+                ...task,
+                people: this.enrichPeopleData(task.people || []),
+              }));
+              this.showSuggestedTasksDialog = true;
+            }
+            this.showAlert("success", result.message, 3000);
+            this.initialize();
+          } else {
+            this.loading = false;
+            this.showAlert("warning", result.message, 3000);
+          }
+        } catch (error) {
+          this.loading = false;
+          // Este bloque captura errores inesperados fuera del manejo estándar
+          this.showAlert(
+            "error",
+            "Ocurrió un error inesperado al procesar la solicitud.",
+            3000
+          );
+        }
+      } else {
+        this.loading = false;
+        this.showAlert("success", "Debe completar los datos de la tarea.", 3000);
+      }
       // Aquí puedes enviar los datos a tu API o hacer lo que necesites
       this.chatDialog = false;
     },
@@ -1359,10 +1892,24 @@ export default {
     },
 
     formatDate(dateStr) {
-      const options = { day: "2-digit", month: "short" };
-      const date = new Date(dateStr);
-      return date.toLocaleDateString("es-CL", options);
-    },
+  if (!dateStr) return '';
+  
+  // Solución 1: Parseo manual (recomendado)
+  const [year, month, day] = dateStr.split('-');
+  const date = new Date(year, month - 1, day); // Los meses son 0-based
+  
+  // Solución 2: Ajustar a UTC (alternativa)
+  // const date = new Date(dateStr + 'T00:00:00Z');
+  
+  const options = { 
+    day: '2-digit', 
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC' // Asegura consistencia
+  };
+  
+  return date.toLocaleDateString('es-CL', options);
+},
 
     resetFiltros() {
       this.filtroDesde = "";
@@ -1459,6 +2006,7 @@ export default {
     close() {
       this.dialogIncome = false;
       this.dialogSpent = false;
+      this.initialize();
     },
     async showAddFinance() {
       this.editedIndex = 1;
@@ -1466,16 +2014,21 @@ export default {
       this.originalItem = Object.assign({}, this.defaultItem);
       this.file = null;
       this.imgMiniatura = "";
+      this.data = {};
+      this.data.home_id = this.home_id;
       try {
         const result = await handleRequest({
           endpoint: "get-finances-data",
           method: "POST",
+          data: this.data,
         });
 
         if (result.success) {
           this.types = result.data?.types || [];
+          this.budgets = result.data?.budgets || [];
         } else {
           this.types = [];
+          this.butgets = [];
         }
       } catch (error) {
         this.showAlert(
@@ -1554,6 +2107,7 @@ export default {
         "image",
         "type",
         "method",
+        "budget_id",
       ];
 
       let updatedFields = Object.keys(this.editedItem)
@@ -1659,6 +2213,15 @@ export default {
       };
       reader.readAsDataURL(file);
     },
+
+    //Diagnosticos
+    showAddBuget() {
+      this.dialogBugets = true; // Abrimos el diálogo
+    },
+    closeDialogBugets() {
+      this.dialogBugets = false; // Cerramos el diálogo
+      this.initialize();
+    },
     showAlert(sb_type, sb_message, sb_timeout) {
       this.sb_type = sb_type;
 
@@ -1695,5 +2258,69 @@ export default {
 
 .text-blue {
   color: #1565c0;
+}
+
+/* Estilos para el texto en tareas seleccionadas */
+.selected-task {
+  background-color: #03626c;
+}
+
+.selected-task .date-time-text,
+.selected-task .font-weight-semibold,
+.selected-task .text-caption,
+.selected-task .text-grey-darken-1,
+.selected-task .v-icon {
+  color: white !important;
+}
+
+.selected-task .text-caption {
+  opacity: 0.9;
+}
+
+/* Opcional: para mantener consistencia en el hover */
+.selected-task:hover .date-time-text {
+  opacity: 0.95;
+}
+
+.avatar-border {
+  border: 2px solid #000;
+  /* Aquí se define el borde */
+}
+
+.avatar-row {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: start;
+}
+
+.avatar-col {
+  margin-right: -10px;
+  /* Reduce the space between avatars */
+}
+
+.avatar-item {
+  margin-right: -5px;
+  /* Cambia el color del borde según desees */
+  border-radius: 50%;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  /* Para que siga siendo redondo */
+  box-sizing: border-box;
+  /* Asegura que el borde no afecte el tamaño del avatar */
+  /* Optional: reduce the space even further between avatars */
+  /* Optional: reduce the space even further between avatars */
+}
+
+.hover-expand {
+  transition: transform 0.2s;
+}
+
+.hover-expand:hover {
+  transform: scale(1.2);
+  z-index: 2;
+}
+
+/* Estilo para el texto de duración */
+.text-caption.text-grey-darken-1 {
+  font-size: 0.7rem;
 }
 </style>

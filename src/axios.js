@@ -4,6 +4,10 @@ const instance = axios.create({
   baseURL: 'http://127.0.0.1:8000/api/',
   //baseURL: 'https://huoon.api.wezen.cl/api/',
   timeout: 30000,
+   headers: {
+    'Accept': 'application/json; charset=utf-8',
+    'Content-Type': 'application/json; charset=utf-8'
+  }
 });
 
 // Interceptor para agregar el token y manejar el `Content-Type` dinámicamente

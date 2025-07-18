@@ -24,19 +24,23 @@
       <v-card v-for="(meeting, index) in tasks" :key="index" class="mb-3 rounded-lg" elevation="2" :class="{'smooth-hover': true}">
         <v-row no-gutters class="ma-0">
           <!-- Barra lateral de color e info -->
-          <v-col cols="1" class="pa-4 d-flex flex-column align-center">
-            <div class="date">{{ formatDate(meeting.start_date) }}</div>
-            <div class="time">{{ meeting.start_time }}</div>
+          <v-col cols="auto" class="pa-2 d-flex flex-column align-center">
+          <div class="icono-concavo d-flex flex-column justify-center align-center mr-2"
+                      :class="`bg-${getTypeColor(meeting.type)}`" 
+                      style="min-height: 48px; min-width: 48px;">
+            <div>{{ formatIntuitiveDate(meeting.start_date) }}</div>
+            <div>{{ formatTime(meeting.start_time) }}</div>
+            </div>
           </v-col>
 
           <!-- Contenido principal -->
-          <v-col cols="5" class="d-flex align-center pe-4 gap-2">
+          <v-col cols="7" class="d-flex align-center pe-4 gap-2">
             <v-row align="center" justify="space-between" no-gutters>
 
               <v-row align="center" class="gap-3" no-gutters>
 
                 <div>
-                  <div class="font-weight-semibold text-body-1">{{ meeting.title }}</div>
+                  <div class="font-weight-bold text-body-2">{{ meeting.title }}</div>
                   <div class="text-caption d-flex align-center text-grey-darken-1">
 
                     {{ meeting.description }}
@@ -49,7 +53,7 @@
               </v-row>
             </v-row>
           </v-col>
-          <v-col cols="3" class="d-flex align-center pe-4 gap-2">
+          <v-col cols="auto" class="d-flex align-center justify-end pe-4 gap-2">
             <!-- Info usuario -->
             <v-row align="center" class="gap-3" no-gutters>
               <div class="avatar-row d-flex flex-wrap justify-end gap-1">
@@ -65,7 +69,21 @@
               </div>
             </v-row>
           </v-col>
-          <v-col cols="2" class="d-flex align-center pe-4 gap-2">
+          <v-col cols="auto" class="d-flex align-center pe-4 gap-2">
+                      <div>
+                        <v-icon :color="getTypeColor(meeting.type)" style="
+                              font-size: 10px;
+                              filter: drop-shadow(0 0 2px currentColor);
+                            " icon="mdi-circle" class="mr-0"></v-icon>
+                        <span class="text-black">{{ meeting.typeName }}</span>
+                      </div>
+                  </v-col>
+                  <v-col cols="auto" class="d-flex align-center pe-4 gap-2">
+                      <div>
+                        <span class="text-black">{{ meeting.namePriority }}</span>
+                      </div>
+                  </v-col>
+          <v-col cols="auto" class="d-flex align-center justify-end pe-4 gap-2">
             <v-row>
               <!-- Fecha y estado -->
               <div class="text-end">
@@ -79,7 +97,7 @@
                   </template>
                   <v-card>
                     <v-card-title class="pa-4 text-center">
-                      Actualizar Estado
+                      {{ $t('taskForm.updateStatus') }}
                     </v-card-title>
                     <v-divider></v-divider>
                     <v-card-text class="pa-0">
@@ -117,7 +135,7 @@
                     <v-card-actions>
                       <v-spacer></v-spacer>
                       <v-btn variant="flat" color="#03626C" @click="meeting.statusDialog = false">
-                        Cancelar
+                        {{ $t("buttons.cancel") }}
                       </v-btn>
                     </v-card-actions>
                   </v-card>
@@ -127,7 +145,7 @@
           </v-col>
 
           <!-- Acciones -->
-          <v-col cols="1" class="d-flex align-center pe-4 gap-2">
+          <v-col cols="auto" class="d-flex align-center ml-auto justify-end pe-4 gap-2">
             <v-btn icon variant="text" color="green-darken-2" size="small" @click="editItem(meeting)">
               <v-icon>mdi-pencil</v-icon>
             </v-btn>
@@ -141,7 +159,7 @@
     <template v-else>
       <v-col cols="12" class="text-center py-8 pa-0">
         <v-icon size="64" color="grey-lighten-1">mdi-check-circle-outline</v-icon>
-        <div class="text-h6 text-grey mt-4">No tienes tareas para realizar en el día de hoy</div>
+        <div class="text-h6 text-grey mt-4">{{ $t('taskForm.noTasksToday') }}</div>
       </v-col>
     </template>
   </v-container>
@@ -208,34 +226,44 @@
                     <v-list v-model:selected="selectedItems[role.id]" @update:selected="updateSelection(role, $event)"
                       select-strategy="leaf" multiple>
                       <v-list-subheader>{{ role.nameRol }}</v-list-subheader>
-                      <v-list-item v-for="person in filteredPeople(role.id)" :key="`${role.id}-${person.id}`"
-                        :value="person.id" active-class="text-green"
-                        :prepend-avatar="`${$axios.defaults.baseURL}images/${person.imagePerson}`" class="py-3">
+                      <v-list-item
+                      v-for="person in filteredPeople(role.id)"
+                      :key="`${role.id}-${person.id}`"
+                      :value="person.id"
+                      active-class="text-green"
+                      :prepend-avatar="`${$axios.defaults.baseURL}images/${person.imagePerson}`"
+                      class="py-3"
+                    >
+                      <!-- Contenido del ítem - Nueva estructura Vuetify 3 -->
+                      <template v-slot:prepend>
+                        <v-avatar>
+                          <v-img :src="`${$axios.defaults.baseURL}images/${person.imagePerson}`" />
+                        </v-avatar>
+                      </template>
 
-                        <!-- Nombre y rol -->
-                        <v-list-item-content>
-                          <v-list-item-title>{{ person.namePerson }}</v-list-item-title>
-                          <v-list-item-subtitle class="mb-1 text-high-emphasis opacity-100">
-                            {{ person.roleName }}
-                          </v-list-item-subtitle>
-                        </v-list-item-content>
+                      <!-- Nombre y rol -->
+                      <v-list-item-title>{{ person.namePerson }}</v-list-item-title>
+                      <v-list-item-subtitle class="mb-1 text-high-emphasis opacity-100">
+                        {{ person.roleName }}
+                      </v-list-item-subtitle>
 
-                        <!-- Icono de selección (estrella para responsables, círculo para otros) -->
-                        <template v-slot:append="{ isSelected }">
-                          <v-list-item-action class="flex-column align-end">
-                            <v-spacer></v-spacer>
-                            <v-icon v-if="isSelected || isPersonSelected(person.id, role.id)"
-                              :color="getRoleIcon(role.id) === 'mdi-star' ? 'green-darken-3' : 'green-darken-3'">
-                              {{ getRoleIcon(role.id) === 'mdi-star' ? 'mdi-star' : 'mdi-circle-slice-8' }}
-                            </v-icon>
-                            <v-icon v-else class="opacity-30"
-                              :color="getRoleIcon(role.id) === 'mdi-star' ? 'green-darken-3' : undefined">
-                              {{ getRoleIcon(role.id) === 'mdi-star' ? 'mdi-star-outline' :
-                              'mdi-checkbox-blank-circle-outline' }}
-                            </v-icon>
-                          </v-list-item-action>
-                        </template>
-                      </v-list-item>
+                      <!-- Icono de selección -->
+                      <template v-slot:append>
+                        <v-icon
+                          v-if="isPersonSelected(person.id, role.id)"
+                          :color="getRoleIcon(role.id) === 'mdi-star' ? 'green-darken-3' : 'green-darken-3'"
+                        >
+                          {{ getRoleIcon(role.id) === 'mdi-star' ? 'mdi-star' : 'mdi-circle-slice-8' }}
+                        </v-icon>
+                        <v-icon
+                          v-else
+                          class="opacity-30"
+                          :color="getRoleIcon(role.id) === 'mdi-star' ? 'green-darken-3' : undefined"
+                        >
+                          {{ getRoleIcon(role.id) === 'mdi-star' ? 'mdi-star-outline' : 'mdi-checkbox-blank-circle-outline' }}
+                        </v-icon>
+                      </template>
+                    </v-list-item>
                     </v-list>
                   </v-card>
                 </v-col>
@@ -309,7 +337,7 @@
                           </v-avatar>
                         </template>
                         <v-list-item-subtitle class="d-flex flex-column">
-                          <div>Descripción: {{ item.raw.descriptionStatus }}</div>
+                          <div>{{ item.raw.descriptionStatus }}</div>
                         </v-list-item-subtitle>
                       </v-list-item>
                     </template>
@@ -354,13 +382,12 @@
       <v-toolbar color="#DA7171">
         <span class="text-subtitle-2 ml-4"> {{ $t('deleteDialog.title', { item: $t(`deleteDialog.items.task`) }) }}</span>
       </v-toolbar>
-      <v-card-text class="mt-2 mb-2"> ¿{{ $t('deleteDialog.message') }}</v-card-text>
+      <v-card-text class="mt-2 mb-2"> {{ $t('deleteDialog.message') }}</v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn color="#DA7171" variant="flat" @click="closeDelete">{{ $t('taskForm.buttons.cancel') }}</v-btn>
-        <v-btn color="#03626C" variant="flat" :loading="loading" @click="deleteItemConfirm"> {{
-          $t('taskForm.buttons.confirmDelete') }}</v-btn>
+        <v-btn color="#03626C" variant="flat" :loading="loading" @click="deleteItemConfirm"> {{ $t('taskForm.buttons.confirmDelete') }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -690,6 +717,46 @@ export default {
     this.timeSlots = this.generateTimeSlots(); // Genera los horarios al montar el componente
   },
   methods: {
+    formatIntuitiveDate(dateString) {
+        if (!dateString) return 'Sin fecha';
+
+        // 1. Parsear la fecha de entrada (formato YYYY-MM-DD)
+        const [year, month, day] = dateString.split('-');
+        const inputDate = new Date(year, month - 1, day); // Mes es 0-based
+
+        // 2. Obtener fecha actual (sin horas/minutos/segundos)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // 3. Normalizar ambas fechas a UTC para evitar problemas de zona horaria
+        const inputUTC = Date.UTC(inputDate.getFullYear(), inputDate.getMonth(), inputDate.getDate());
+        const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+
+        // 4. Calcular diferencia en días
+        const diffDays = Math.floor((inputUTC - todayUTC) / (1000 * 60 * 60 * 24));
+
+        // 5. Determinar el texto a mostrar
+        switch (diffDays) {
+          case 0: return 'Hoy';
+          case 1: return 'Mañana';
+          case 2: return 'Pasado mañana';
+          case -1: return 'Ayer';
+          case -2: return 'Anteayer';
+          default:
+            return inputDate.toLocaleDateString('es-ES', {
+              weekday: 'short',
+              day: 'numeric',
+              month: 'short'
+            }).replace(/\./g, '');
+        }
+      },
+
+      formatTime(timeString) {
+        if (!timeString) return "";
+
+        const [hours, minutes] = timeString.split(":");
+        return `${hours}:${minutes}`;
+      },
     formatDate(dateString) {
     const [year, month, day] = dateString.split('-');
     return `${day}-${month}-${year}`;
@@ -1582,6 +1649,20 @@ export default {
 };
 </script>
 <style scoped>
+.icono-concavo {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  margin-right: 5px;
+  color: white;
+  /* Mantenemos solo el efecto cóncavo en el ícono 
+  box-shadow: inset;*/
+  position: relative;
+  overflow: hidden;
+}
 .date-time-display .date {
   font-size: 0.9rem;
   font-weight: 500; /* medium */

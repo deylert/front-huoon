@@ -4,19 +4,40 @@ const portuguese = {
     chat: {
       initialMessage: "Olá 👋 Como posso te ajudar hoje, {name}?",
       title: "Assistente de Tarefas",
-      placeholder: "Digite uma resposta...",
-      askType:
-        "Você quer registrar essa sugestão como uma 'tarefa' ou uma 'meta'?",
-      askTitle: "Qual será o título da tarefa? (Atual: {current})",
+      placeholder: "Escreva uma resposta...",
+      askType: "Deseja registrar esta sugestão como 'tarefa' ou 'meta'?",
+      askTitle: "Qual será o título? (Atual: {current})",
       askDescription: "Deseja modificar a descrição? (Atual: {current})",
-      askPriority: "Qual prioridade deseja definir? (Ex: 1, 2, 3)",
+      askPriority: "Qual prioridade deseja atribuir? (ex.: 1, 2, 3)",
       askStartDate: "Qual é a data de início? (Atual: {current})",
-      askStartTime: "Qual é o horário de início?",
-      askEstimatedTime: "Quantos minutos aproximadamente irá durar?",
-      askLocation: "Onde será realizada?",
-      askRecurrence: "Com que frequência se repetirá? (Ex: diária, semanal)",
-      askStatus: "Qual será o status inicial? (Ex: pendente, em andamento)",
-      completed: "Tarefa criada! Você pode salvar ou continuar editando.",
+      askStartTime: "A que horas começará? (HH:mm)",
+      askEstimatedTime:
+        "Quantos minutos você estima que levará? (ex.: 1h, 30min)",
+      askLocation: "Onde será realizado?",
+      askRecurrence: "Com que frequência se repetirá? (ex.: diária, semanal)",
+      askStatus: "Qual será o estado inicial? (ex.: pendente, em progresso)",
+      completed: "✅ Tudo pronto! Salvando...",
+      invalidSuggestion: "⚠️ Nenhuma sugestão válida recebida.",
+      suggestionMessage:
+        "💡 Você tem uma nova sugestão:\n\n📌 {title}\n📝 {description}\n📅 {date}",
+      notAvailable: "Não disponível",
+      createAsTask: "Criar como tarefa",
+      createAsGoal: "Criar como meta",
+      taskTitle: "Título da tarefa",
+      taskDescription: "Descrição da tarefa",
+      dateSelected: "Data selecionada: {date}",
+      mustSelectParticipants:
+        "⚠️ Você deve selecionar pelo menos um participante",
+      confirmedParticipants:
+        "Confirmado {count} participante | Confirmados {count} participantes",
+      willModifyParticipants: "Vou modificar a seleção de participantes",
+      selectedParticipants:
+        "{count} participante selecionado | {count} participantes selecionados",
+      inputPlaceholder: "Escreva uma mensagem ou dite...",
+    },
+    general: {
+      yes: "Sim",
+      no: "Não",
     },
     vitalSigns: "Sinais Vitais",
     medicalInformation: "Informação Médica",
@@ -68,6 +89,10 @@ const portuguese = {
         title: "Casa",
         description: "Gestão da casa",
       },
+      suggestions: {
+        title: "Sugestões",
+        description: "Recomendações e propostas",
+      },
     },
     viewTitles: {
       physicalExams: "Exames Físicos",
@@ -80,6 +105,8 @@ const portuguese = {
       medicalConsultations: "Consultas Médicas",
       incomes: "Receitas",
       expenses: "Despesas",
+      budget: "Orçamentos",
+      suggestions: "Sugestões",
     },
     settings: {
       category: "Categorias",
@@ -89,8 +116,11 @@ const portuguese = {
       status: "Estados",
       hometype: "Tipos de Casa",
       type: "Tipos de Saúde",
+      history: "Histórico Médico",
     },
     taskForm: {
+      noTasksToday: "Você não tem tarefas para hoje",
+      updateStatus: "Atualizar Status",
       dialogTitle: "Detalhes da Tarefa",
       fields: {
         title: "Título da tarefa",
@@ -167,9 +197,13 @@ const portuguese = {
     },
     deleteDialog: {
       title: "Excluir {item}",
-      message: "Você deseja excluir o item seleccionado?",
+      message: "¿Você deseja excluir o item seleccionado?",
       confirm: "Confirmar exclusão",
       items: {
+        file: "arquivo",
+        product: "produto",
+        warehouse: "armazém",
+        wish: "desejo",
         task: "tarefa",
         physicalExam: "exame físico",
         treatment: "tratamento",
@@ -591,6 +625,8 @@ const portuguese = {
         date: "Data",
         file: "Comprovante",
         attach_file: "Anexar Comprovante",
+        available: "Disponível",
+        total: "Total",
       },
       actions: {
         viewFile: "Ver Comprovante",
@@ -668,6 +704,437 @@ const portuguese = {
     },
     summary: {
       title: "Resumo de",
+    },
+    budget: {
+      formInstructions: "Preencha todos os campos do orçamento",
+      steps: {
+        basic: {
+          title: "Informação Básica",
+          subtitle: "Dados principais do orçamento",
+        },
+        dates: {
+          title: "Datas e Detalhes",
+          subtitle: "Período e descrição",
+        },
+      },
+      fields: {
+        category: "Categoria",
+        budget_type: "Tipo de Orçamento",
+        amount: "Valor",
+        used_amount: "Valor Utilizado",
+        start_date: "Data de Início",
+        end_date: "Data de Término",
+        description: "Descrição",
+        status: "Status",
+        currency: "Moeda",
+      },
+      currencies: {
+        USD: "Dólar Americano",
+        EUR: "Euro",
+        BRL: "Real Brasileiro",
+        MXN: "Peso Mexicano",
+        COP: "Peso Colombiano",
+      },
+      status: {
+        active: "Ativo",
+        inactive: "Inativo",
+        completed: "Concluído",
+        exceeded: "Excedido",
+      },
+      titles: {
+        new: "Adicionar Orçamento",
+        edit: "Editar Orçamento",
+        view: "Orçamentos",
+      },
+      validationMessages: {
+        category: {
+          required: "A categoria é obrigatória",
+        },
+        amount: {
+          required: "O valor é obrigatório",
+          invalid: "O valor deve ser maior que 0",
+        },
+        used_amount: {
+          invalid: "O valor utilizado não pode exceder o valor total",
+        },
+        start_date: {
+          invalid: "A data de início deve ser anterior à data de término",
+        },
+      },
+      notRecorded: "Nenhum dado registrado",
+      noRecords: "Nenhum orçamento encontrado",
+    },
+    suggestedTasks: {
+      dialog: {
+        title: "Tarefas sugeridas",
+        subtitle: "Selecione as tarefas que deseja adicionar",
+        closeButton: "Fechar",
+        createButton: "Criar tarefas selecionadas",
+        noTasks: "Nenhuma tarefa sugerida disponível",
+        unassigned: "Não atribuído",
+      },
+      fields: {
+        date: "Data",
+        time: "Hora",
+        duration: "Duração",
+        title: "Título",
+        description: "Descrição",
+        location: "Localização",
+        score: "Pontuação",
+      },
+      selection: {
+        count: "({{count}} selecionadas)",
+      },
+      steps: {
+        selection: {
+          title: "Seleção de tarefas",
+          subtitle: "Escolha as tarefas relevantes",
+        },
+      },
+      scoreTooltip: "Pontos por completar esta tarefa",
+      scoreValues: {
+        low: "Baixa (1-3 pts)",
+        medium: "Média (4-7 pts)",
+        high: "Alta (8-10 pts)",
+      },
+    },
+    warehouse: {
+      formTitle: {
+        create: "Criar novo armazém",
+        edit: "Editar armazém",
+      },
+      formInstructions: "Preencha as informações necessárias para o armazém",
+      steps: {
+        basic: {
+          title: "Informação Básica",
+          subtitle: "Detalhes principais",
+        },
+        configuration: {
+          title: "Configuração Adicional",
+          subtitle: "Estado e descrição",
+        },
+      },
+      fields: {
+        warehouse: "Armazéns",
+        name: "Nome",
+        home_location: "Localização em casa",
+        status: "Estado",
+        description: "Descrição",
+      },
+      status: {
+        public: "Público",
+        private: "Privado",
+      },
+      validation: {
+        required: "{field} é obrigatório",
+        min_length: "{field} deve ter pelo menos {length} caracteres",
+        max_length: "{field} deve ter menos de {length} caracteres",
+        invalid_selection: "Por favor selecione um {field} válido",
+      },
+      list: {
+        title: "Lista de Armazéns",
+        empty: "Nenhum armazém registrado",
+        search: "Pesquisar armazéns...",
+        columns: {
+          name: "Nome",
+          location: "Localização",
+          status: "Estado",
+          actions: "Ações",
+        },
+      },
+    },
+    product: {
+      listing: {
+        title: "Listagem de Produtos por Armazéns",
+        addButton: "Adicionar Produto",
+        description: "Descrição",
+        quantity: "Quantidade",
+        delete: "Eliminar",
+        edit: "Editar",
+        noProducts: "Não há produtos neste armazém",
+      },
+      formTitle: {
+        create: "Criar novo produto",
+        edit: "Editar produto",
+      },
+      formInstructions: "Preencha as informações necessárias para o produto",
+      steps: {
+        basic: {
+          title: "Informação Básica",
+          subtitle: "Detalhes principais do produto",
+        },
+        purchase: {
+          title: "Informação de Compra",
+          subtitle: "Detalhes de aquisição",
+        },
+        additional: {
+          title: "Configuração Adicional",
+          subtitle: "Opções complementares",
+        },
+      },
+      fields: {
+        name: "Nome",
+        brand: "Marca",
+        image: "Imagem do produto",
+        additional_notes: "Notas adicionais",
+        unit_price: "Preço unitário",
+        quantity: "Quantidade",
+        total_price: "Preço total",
+        status: "Estado",
+        category: "Categoria",
+        purchase_date: "Data de compra",
+        expiration_date: "Data de expiração",
+        frequency: "Frequência (horas)",
+        type: "Tipo",
+        purchase_place: "Local de compra",
+      },
+      types: {
+        winter: "Inverno",
+        summer: "Verão",
+      },
+      validation: {
+        required: "{field} é obrigatório",
+        min_length: "{field} deve ter pelo menos {length} caracteres",
+        invalid_number: "{field} deve ser um número válido",
+        min_value: "{field} deve ser maior ou igual a {value}",
+        no_data: "Nenhum dado disponível",
+      },
+    },
+    files: {
+      listing: {
+        title: "Gestão de Arquivos",
+        addButton: "Adicionar Arquivo",
+        search: "Pesquisar",
+        noData: "Nenhum dado disponível",
+        loading: "Carregando dados...",
+        itemsPerPage: "Itens por página",
+        actions: {
+          view: "Ver arquivo",
+          edit: "Editar",
+          delete: "Excluir",
+        },
+        types: {
+          personal: "Pessoal",
+          home: "Casa",
+          all: "Todos",
+        },
+      },
+      formTitle: {
+        create: "Criar novo arquivo",
+        edit: "Editar arquivo",
+      },
+      formInstructions: "Preencha as informações necessárias para o arquivo",
+      steps: {
+        basic: {
+          title: "Informação básica",
+          subtitle: "Detalhes principais do arquivo",
+        },
+        file_config: {
+          title: "Arquivo e tipo",
+          subtitle: "Configuração do documento",
+        },
+      },
+      fields: {
+        name: "Nome",
+        date: "Data",
+        type: "Tipo",
+        description: "Descrição",
+        file: "Arquivo",
+        preview: "Visualização",
+        actions: "Ações",
+      },
+      types: {
+        personal: "Pessoal",
+        home: "Casa",
+      },
+      validation: {
+        required: "{field} é obrigatório",
+        invalidFile: "Formato de arquivo inválido",
+      },
+    },
+    wishes: {
+      steps: {
+        basic: {
+          title: "Informação básica",
+          subtitle: "Detalhes principais do desejo",
+        },
+        details: {
+          title: "Datas e prioridade",
+          subtitle: "Configuração de realização",
+        },
+        additional: {
+          title: "Informação adicional",
+          subtitle: "Localização e descrição",
+        },
+      },
+      listing: {
+        title: "Gestão de Desejos",
+        addButton: "Adicionar Desejo",
+        search: "Pesquisar",
+        noData: "Nenhum desejo disponível",
+        loading: "Carregando desejos...",
+        itemsPerPage: "Desejos por página",
+        actions: {
+          edit: "Editar",
+          delete: "Excluir",
+        },
+        types: {
+          personal: "Pessoal",
+          home: "Casa",
+          professional: "Profissional",
+          all: "Todos",
+        },
+      },
+      formTitle: {
+        create: "Criar novo desejo",
+        edit: "Editar desejo",
+      },
+      formInstructions: "Preencha as informações do desejo",
+      fields: {
+        name: "Nome",
+        type: "Tipo",
+        date: "Data",
+        fulfillment_date: "Data de realização",
+        priority: "Prioridade",
+        status: "Status",
+        location: "Localização",
+        description: "Descrição",
+        actions: "Ações",
+      },
+      priorities: {
+        low: "Baixa",
+        medium: "Média",
+        high: "Alta",
+        urgent: "Urgente",
+      },
+      statuses: {
+        pending: "Pendente",
+        in_progress: "Em progresso",
+        completed: "Concluído",
+        cancelled: "Cancelado",
+      },
+      validation: {
+        required: "{field} é obrigatório",
+        invalid_date: "Data inválida",
+      },
+    },
+    suggestions: {
+      formInstructions: {
+        suggestion: "Preencha todos os campos da sugestão",
+      },
+      steps: {
+        suggestionDetails: {
+          title: "Detalhes da Sugestão",
+          subtitle: "Informações básicas do registro",
+        },
+        content: {
+          title: "Conteúdo",
+          subtitle: "Detalhes adicionais",
+        },
+      },
+      fields: {
+        title: "Título",
+        description: "Descrição",
+        content: "Conteúdo",
+        date: "Data",
+        status: "Status",
+        type: "Tipo",
+      },
+      statuses: {
+        Pendiente: "Pendente",
+        Revisado: "Revisado",
+        Completado: "Concluído",
+        rejected: "Rejeitado",
+      },
+      types: {
+        // Tipos de sugestões que você definir
+      },
+      titles: {
+        new: "Nova Sugestão",
+        edit: "Editar Sugestão",
+        view: "Registros de Sugestões",
+      },
+      validationMessages: {
+        title: {
+          maxLength: "O título não deve exceder 255 caracteres",
+        },
+        description: {
+          maxLength: "A descrição não pode exceder 500 caracteres",
+        },
+        content: {
+          maxLength: "O conteúdo não pode exceder 1000 caracteres",
+        },
+        date: {
+          required: "A data é obrigatória",
+          invalid: "A data deve ser válida",
+        },
+        status: {
+          invalid:
+            "O status deve ser um dos seguintes: pendente, revisado, aprovado, rejeitado",
+        },
+      },
+      noRecords: "Nenhuma sugestão encontrada",
+      header: {
+        title: "Sugestões da Casa",
+        subtitle: "Recomendações e propostas familiares",
+      },
+    },
+    home: {
+      create: {
+        title: "Criar um novo lar",
+        instructions:
+          "Preencha todos os campos obrigatórios para criar seu lar",
+        steps: {
+          basic: {
+            title: "Informações básicas",
+            subtitle: "Detalhes principais do lar",
+          },
+          details: {
+            title: "Detalhes adicionais",
+            subtitle: "Configurações do lar",
+          },
+          members: {
+            title: "Membros do lar",
+            subtitle: "Adicione pessoas ao seu lar",
+          },
+        },
+        fields: {
+          name: "Nome do lar",
+          address: "Endereço",
+          type: "Tipo de lar",
+          code: "Código de acesso",
+          geoLocation: "Geolocalização",
+          timezone: "Fuso horário",
+          residents: "Número de residentes",
+          image: "Imagem do lar",
+          status: "Estado"
+        },
+        membersTable: {
+          avatar: "Foto",
+          name: "Nome",
+          email: "Email",
+          role: "Função",
+          actions: "Ações",
+        },
+        actions: {
+          cancel: "Cancelar",
+          previous: "Anterior",
+          next: "Próximo",
+          create: "Criar Lar",
+          addMembers: "Adicionar Membros",
+        },
+        validation: {
+          nameRequired: "O nome do lar é obrigatório",
+          nameMinLength: "O nome deve ter pelo menos 3 caracteres",
+          codeRequired: "O código de acesso é obrigatório",
+          codeMinLength: "O código deve ter pelo menos 8 caracteres",
+        },
+      },
+      types: {
+        house: "Casa",
+        apartment: "Apartamento",
+        other: "Outro",
+      },
     },
   },
 };

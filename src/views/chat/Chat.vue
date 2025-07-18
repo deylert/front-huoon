@@ -11,13 +11,13 @@
       </v-col>
     </v-row>
   </v-snackbar>
-  <!--<v-container fluid fill-height>-->
-  <v-card elevation="6" class="mx-2" c>
+  <v-container>
+  <v-card class="pa-4" elevation="4" rounded="lg">
     <!-- Vista de Chat -->
     <v-row justify="center" class="mx-2">
       <v-col cols="12" md="12">
         <v-card-title class="d-flex justify-space-between align-center" color="#03626C" dark>
-          <span class="text-h6">Chat en vivo</span>
+          <span class="font-weight-bold text-body-2">Chat en vivo</span>
         </v-card-title>
         <v-card-text>
           <v-container ref="chatContainer" style="overflow-y: auto; min-height:60vh;">
@@ -89,7 +89,7 @@
       </v-col>
     </v-row>
   </v-card>
-<!--</v-container>-->
+</v-container>
 </template>
 
 <script>

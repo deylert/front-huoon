@@ -59,12 +59,12 @@
                     <v-container>
                         <v-row>
                             <v-col cols="12" md="12">
-                                <v-text-field v-model="editedItem.title" clearable label="Nombre"
+                                <v-text-field v-model="editedItem.title" label="Nombre"
                                     prepend-icon="mdi-tag-outline" variant="underlined"
                                     :rules="nameRules"></v-text-field>
                             </v-col>
                             <v-col cols="12" md="12">
-                                <v-text-field v-model="editedItem.location" clearable label="Ubicación en la casa"
+                                <v-text-field v-model="editedItem.location" label="Ubicación en la casa"
                                     prepend-icon="mdi-home-map-marker" variant="underlined">
                                 </v-text-field>
                             </v-col>
@@ -77,7 +77,7 @@
                                 </v-select>
                             </v-col>
                             <v-col cols="12" md="12">
-                                <v-textarea v-model="editedItem.description" clearable label="Descripción"
+                                <v-textarea v-model="editedItem.description" label="Descripción"
                                     prepend-icon="mdi-note" variant="underlined"></v-textarea>
                             </v-col>
                         </v-row>

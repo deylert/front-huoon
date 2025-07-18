@@ -209,17 +209,22 @@ export default {
     showFile: false,
     tempIconValue: '', // Valor temporal del ícono
     typeOptions: [
-      {
-        'name': 'Tarea',
-        'id': 'Task',
-        'icon': 'mdi-clipboard-text'
-      },
-      {
-        'name': 'Producto',
-        'id': 'Product',
-        'icon': 'mdi-cart'
-      }
-    ],
+  {
+    'name': 'Tarea',
+    'id': 'Task',
+    'icon': 'mdi-clipboard-text'
+  },
+  {
+    'name': 'Producto',
+    'id': 'Product',
+    'icon': 'mdi-cart'
+  },
+  {
+    'name': 'Presupuesto',
+    'id': 'Budget',
+    'icon': 'mdi-cash-multiple' // o 'mdi-wallet', 'mdi-currency-usd'
+  }
+],
     headers: [
       { title: 'Nombre', value: 'name', width: '25%' },
       { title: 'Color', value: 'color', width: '5%' },
@@ -342,6 +347,8 @@ export default {
           return 'mdi-clipboard-text'; // Ícono para tareas
         case 'Product':
           return 'mdi-cart'; // Ícono para productos
+          case 'Budget':
+      return 'mdi-cash-multiple'; // Ícono para presupuestos
         default:
           return 'mdi-help-circle'; // Ícono por defecto
       }
@@ -352,6 +359,8 @@ export default {
           return '#FFB300'; // Color sugerente para tareas (amarillo)
         case 'Product':
           return '#43A047'; // Color sugerente para productos (verde)
+        case 'Budget':
+          return '#2196F3'; // Azul confiable para presupuestos
         default:
           return '#E0E0E0'; // Color gris claro para otros tipos
       }

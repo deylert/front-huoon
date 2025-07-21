@@ -1,6 +1,6 @@
 <template>
-  <div class="onboarding-card">
-    <h3 class="text-h6 mb-4">Unirme a un hogar existente</h3>
+  <div class="onboarding-card rounded-lg">
+    <h3 class="text-body-2 mb-4">Unirme a un hogar existente</h3>
     
     <v-form @submit.prevent="submitForm">
       <v-text-field
@@ -15,14 +15,16 @@
       
       <div class="d-flex justify-space-between">
         <v-btn 
-          color="secondary"
+          variant="tonal"
+                class="text-grey-darken-1"
           @click="$emit('go-back')"
         >
           Volver
         </v-btn>
         
         <v-btn 
-          color="primary"
+          variant="tonal"
+                class="text-deep-purple-accent-3 ml-1"
           type="submit"
           :loading="loading"
         >

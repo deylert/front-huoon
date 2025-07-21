@@ -1,17 +1,17 @@
 <template>
   <v-card class="pa-2 w-100" elevation="1" style="max-width: 350px">
-  <v-locale-provider>
-    <v-date-picker
-      color="#03626C"
-      locale="es"
-      v-model="selectedDate"
-      @update:modelValue="handleDateUpdate"
-      :min="effectiveMinDate"
-      :max="maxDate"
-      show-adjacent-months
-      landscape
-      class="pa-0"
-    />
+    <v-locale-provider>
+      <v-date-picker
+        color="#03626C"
+        locale="es"
+        v-model="selectedDate"
+        @update:modelValue="handleDateUpdate"
+        :min="effectiveMinDate"
+        :max="maxDate"
+        show-adjacent-months
+        landscape
+        class="pa-0"
+      />
     </v-locale-provider>
   </v-card>
 </template>
@@ -73,9 +73,20 @@ export default {
       this.selectedDate = value;
       const formattedDate = this.formatDate(value);
       
+      // Emitir el evento con la fecha seleccionada
       this.$emit('date-updated', {
         field: this.fieldType,
         value: formattedDate
+      });
+    },
+    
+    // Método para cerrar el menú sin selección
+    closeWithoutSelection() {
+      // Emitir el evento con la fecha actual o previa
+      const currentFormattedDate = this.formatDate(this.selectedDate || this.dateValue);
+      this.$emit('date-updated', {
+        field: this.fieldType,
+        value: currentFormattedDate
       });
     }
   }

@@ -24,106 +24,86 @@
   <v-card class="pa-4" elevation="4" rounded="lg">
     <!-- Vista de Chat para Onboarding -->
     <v-row justify="center" class="mx-2">
-      <v-col cols="12" md="12">
+      <v-col cols="12">
         <v-card-title class="d-flex justify-space-between" color="#03626C" dark>
           <span class="font-weight-bold text-body-2">Configuración de tu hogar</span>
         </v-card-title>
         <v-card-text>
-          <v-container style="overflow-y: auto; min-height: 60vh; max-height: 60vh;">
-            <v-list>
-              <!-- Mensajes del onboarding -->
-              <v-list-item
+            <div ref="chatBody" class="chat-body px-4 py-2">
+              <!-- Mensajes del chat -->
+              <div
                 v-for="(message, index) in chatMessages"
                 :key="index"
-                class="message-item"
-                :class="{ 'user-message-container': message.from === 'user' }"
+                class="d-flex mb-4"
+                :class="message.from === 'user' ? 'justify-end' : 'justify-start'"
               >
-                <v-row align="center">
-                  <!-- Avatar de IA -->
-                  <v-col
-                    v-if="message.from === 'ai'"
-                    class="d-flex justify-start"
-                    cols="auto"
+                <!-- Contenedor principal alineado al centro -->
+                <div class="d-flex align-center"> <!-- align-center para centrado vertical -->
+                  <!-- Avatar de IA (izquierda) -->
+                  <v-avatar 
+                    v-if="message.from === 'ai'" 
+                    size="28"
+                    class="mr-3"
                   >
-                    <v-avatar color="#03626C">
-                      <img
-                        src="@/assets/logo-blanco.png"
-                        alt="Imagen de avatar"
-                        class="avatar-image"
-                      />
-                    </v-avatar>
-                  </v-col>
-                  <!-- Mensaje -->
-                  <v-col
-                    class="message-text"
-                    :class="{ 'text-right': message.from === 'user' }"
+                    <v-img src="@/assets/logo-verde.png" alt="Imagen de perfil"></v-img>
+                  </v-avatar>
+                  
+                  <!-- Contenido del mensaje -->
+                  <div
+                    class="chat-bubble px-4 py-3 rounded-xl w-100"
+                    :class="{
+                      'bg-primary text-white': message.from === 'user',
+                      'bg-grey-lighten-2 text-black': message.from === 'ai'
+                    }"
                   >
-                    <v-card
-                      :class="message.from === 'ai' ? 'ai-message' : 'user-message'"
-                      elevation="1"
-                      style="display: inline-block; max-width: 100%"
-                    >
-                      <v-card-text>
-                        <div
-                          v-if="message.text"
-                          style="white-space: pre-wrap; word-wrap: break-word"
-                        >
-                          {{ message.text }}
-                        </div>
-                        <component
-                          v-if="message.component"
-                          :is="message.component"
-                          class="w-100"
-                          v-bind="message.props"
-                          @next-step="nextStep"
-                          @join-home="handleJoinHome"
-                          @home-created="handleHomeCreated"
-                          @create-home="handleCreateHome"
-                          @home-joined="handleHomeJoined"
-                          @go-back="goBackToOptions"
-                          @complete="handleOnboardingComplete" 
-                        />
-                      </v-card-text>
-                    </v-card>
-                  </v-col>
-                  <!-- Avatar de Usuario -->
-                  <v-col
-                    v-if="message.from === 'user'"
-                    class="d-flex justify-end"
-                    cols="auto"
+                    <div v-if="message.text">
+                      {{ message.text }}
+                    </div>
+                    <component
+                      v-if="message.component"
+                      :is="message.component"
+                      class="w-100"
+                      v-bind="message.props"
+                      @next-step="nextStep"
+                      @join-home="handleJoinHome"
+                      @home-created="handleHomeCreated"
+                      @create-home="handleCreateHome"
+                      @home-joined="handleHomeJoined"
+                      @go-back="goBackToOptions"
+                      @complete="handleOnboardingComplete" 
+                    />
+                  </div>
+                  
+                  <!-- Avatar de Usuario (derecha) -->
+                  <v-avatar 
+                    v-if="message.from === 'user'" 
+                    size="28"
+                    class="ml-3"
                   >
-                    <v-avatar color="#DA7171">
-                      <template v-if="imagenDisponible()">
-                        <img :src="imgedit" alt="User Avatar" class="avatar-image" />
-                      </template>
-                      <template else>
-                        <v-icon>mdi-account</v-icon>
-                      </template>
-                    </v-avatar>
-                  </v-col>
-                </v-row>
-              </v-list-item>
+                    <template v-if="imagenDisponible()">
+                      <img :src="imgedit" alt="User Avatar" class="avatar-image" />
+                    </template>
+                    <template v-else>
+                      <v-icon>mdi-account</v-icon>
+                    </template>
+                  </v-avatar>
+                </div>
+              </div>
+              
               <!-- Indicador de "escribiendo" -->
-              <v-list-item v-if="isTyping" class="message-item">
-                <v-row align="center">
-                  <v-col class="d-flex justify-start" cols="auto">
-                    <v-avatar color="#03626C">
-                      <img
-                        src="@/assets/logo-blanco.png"
-                        alt="Imagen de avatar"
-                        class="avatar-image"
-                      />
-                    </v-avatar>
-                  </v-col>
-                  <v-col class="message-text">
+              <div v-if="isTyping" class="d-flex mb-8 justify-start">
+                <div class="d-flex align-center">
+                  <v-avatar size="28" class="mr-3">
+                    <img src="@/assets/logo-verde.png" alt="Imagen de avatar" class="avatar-image" />
+                  </v-avatar>
+                  <div class="chat-bubble px-4 py-3 rounded-xl bg-grey-lighten-2 text-black">
                     <div class="typing-container">
                       <span class="typing-dots">•••</span>
                     </div>
-                  </v-col>
-                </v-row>
-              </v-list-item>
-            </v-list>
-          </v-container>
+                  </div>
+                </div>
+              </div>
+            </div>
         </v-card-text>
       </v-col>
     </v-row>
@@ -165,6 +145,7 @@ export default {
         address: "",
         type: "house"
       },
+      name: "",
       joinCode: "",
       createdHome: null,
       joinedHome: null,
@@ -188,6 +169,7 @@ export default {
   },
   mounted() {
     this.imageUrl = LocalStorageService.getItem("image")?.replace(/['"]+/g, "") || "";
+     this.name = JSON.parse(LocalStorageService.getItem("name"));
     this.startOnboarding();
   },
   methods: {
@@ -363,9 +345,20 @@ export default {
 
     if (result.success) {
       const homeId = result.data.home.id;
+      const homeName = result.data.home.name;
         LocalStorageService.setItem("home_id", JSON.stringify(homeId));
       
-      this.handleOnboardingComplete();
+        // Mostrar ConfirmationStep
+      this.addMessage({
+        from: "ai",
+        component: "ConfirmationStep",
+        props: {
+          homeName: homeName,
+          personName: this.name,
+          isAdmin: true,
+          action: "crear"
+        }
+      });
     } else {
       // Mostrar error en el chat y volver al paso anterior
       this.addMessage({
@@ -415,9 +408,19 @@ export default {
     if (response.success) {
       // Guardar el ID del hogar en localStorage como en ambos ejemplos
       const homeId = response.data.home.id;
+      const homeName = response.data.home.name;
       LocalStorageService.setItem("home_id", JSON.stringify(homeId));
       
-      this.handleOnboardingComplete();
+      this.addMessage({
+        from: "ai",
+        component: "ConfirmationStep",
+        props: {
+          homeName: homeName,
+          personName: this.name,
+          isAdmin: false,
+          action: "unirse"
+        }
+      });
     } else {
       // Manejo de errores similar a handleHomeCreated
       this.addMessage({
@@ -480,13 +483,53 @@ export default {
 </script>
 
 <style scoped>
+.chat-bubble .w-100,
+.chat-bubble .w-100 .v-card,
+.chat-bubble .w-100 .v-form,
+.chat-bubble .w-100 .v-container,
+.chat-bubble .w-100 .v-row,
+.chat-bubble .w-100 .v-col {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.chat-bubble .v-col {
+  flex: 1 1 100% !important;
+  max-width: 100% !important;
+}
+
+.onboarding-step-card {
+  width: 100%;
+  max-width: 100%;
+}
+.chat-body {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 65vh;
+  scrollbar-width: thin;
+  scrollbar-color: #ddd transparent;
+}
+
+.chat-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-body::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 8px;
+}
 /* Estilos similares al componente original */
 .priority-options-container {
   margin-top: 12px;
   max-width: 100%;
   overflow-x: auto;
 }
-
+.chat-bubble {
+  max-width: 100%;
+  word-break: break-word;
+  font-size: 15px;
+  line-height: 1.4;
+}
 .avatar-image {
   width: 100%;
   height: 100%;
@@ -502,20 +545,18 @@ export default {
   flex-direction: row-reverse;
 }
 
-.message-text {
-  max-width: 100%;
-}
-
 .user-message {
-  background-color: #888;
-  border-radius: 12px;
-  padding: 1px;
+max-width: 100%;
+  word-break: break-word;
+  font-size: 15px;
+  line-height: 1.4;
 }
 
 .ai-message {
-  background-color: #888;
-  border-radius: 12px;
-  padding: 1px;
+  max-width: 100%;
+  word-break: break-word;
+  font-size: 15px;
+  line-height: 1.4;
 }
 
 .v-card-text {
@@ -540,9 +581,9 @@ export default {
 /* Estilos específicos para componentes de onboarding */
 .onboarding-card {
   background-color: #f5f5f5;
-  border-radius: 12px;
-  padding: 16px;
-  margin: 8px 0;
+  border-radius: 0;
+  padding: 4px;
+  margin: 0 0;
 }
 
 .onboarding-option {

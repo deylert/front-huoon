@@ -86,7 +86,7 @@
         </v-btn>
 
 
-
+         <v-form ref="form" v-model="valid">
         <div class="text-center mt-6 text-caption my-2">Or sign in with</div>
 
         <v-text-field v-model="editedItem.name" variant="outlined" class="mb-3" v-if="this.register"
@@ -95,18 +95,18 @@
         <v-text-field v-model="editedItem.email" label="Email" variant="outlined" placeholder="johndoe@mail.com"
           density="comfortable" class="mb-3" :rules="this.register ? emailRules : []"/>
 
-        <v-text-field v-model="editedItem.password" label="Password" variant="outlined" placeholder="minimum 8 characters"
+        <v-text-field v-model="editedItem.password" label="Password" variant="outlined" placeholder="password"
           :type="showPassword ? 'text' : 'password'" :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-          @click:append-inner="showPassword = !showPassword" density="comfortable" class="mb-5" />
+          @click:append-inner="showPassword = !showPassword" density="comfortable" class="mb-5" :rules="reuquiredRules"/>
 
         <v-text-field v-model="editedItem.user" density="comfortable" variant="outlined" class="mb-3" v-if="this.register"
-          placeholder="User" prepend-inner-icon="mdi-account" />
+          placeholder="User" prepend-inner-icon="mdi-account" :rules="reuquiredRules"/>
 
         <v-btn block size="x-large" color="cyan-darken-3" class="text-white text-subtitle-1 mb-3"
-          style="text-transform: none;" rounded="lg" :loading="loading" @click="login()" :disabled="this.register ?? this.valid">
+          style="text-transform: none;" rounded="lg" :loading="loading" @click="login()" :disabled="this.register ? !this.valid : false">
           Sign In →
         </v-btn>
-
+        </v-form>
         <div class="text-center mt-2">
           <span class="text-body-2 text-decoration-underline" style="cursor: pointer;">
             Forgot password?
@@ -231,6 +231,11 @@ export default {
     emailRules: [
       (v) => !!v || "El Correo Electrónico es requerido",
       (v) => /.+@.+\..+/.test(v) || "El Correo Electrónico no es válido",
+    ],
+    reuquiredRules: [
+      (v) => !!v || "El campo es requerido",
+      (v) => (v && v.length >= 3) ||
+        "El campo debe tener al menos de 3 caracteres",
     ],
   }),
   mounted() {

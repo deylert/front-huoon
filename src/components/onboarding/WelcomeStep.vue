@@ -1,13 +1,13 @@
 <template>
-  <div class="onboarding-card">
-    <h3 class="text-h6 mb-4">¡Bienvenido a nuestra App!</h3>
-    <p class="mb-4">
+  <div class="ww-100 rounded-lg onboarding-card">
+    <h3 class="text-body-2 mb-2">¡Bienvenido a nuestra App!</h3>
+    <p class="mb-4 text-caption">
       Esta app te ayuda a gestionar tu hogar de forma sencilla.
       Antes de comenzar, necesitamos saber a qué hogar perteneces.
     </p>
     <v-btn 
-      color="primary" 
-      class="onboarding-button"
+     variant="tonal" 
+                class="text-deep-purple-accent-3"
       @click="handleNextStep"
     >
       Comenzar
@@ -27,10 +27,9 @@ export default {
 </script>
 
 <style scoped>
-.onboarding-card {
+:deep(.onboarding-card) {
+  width: 100%;
+  max-width: 100%;
   background-color: #f5f5f5;
-  border-radius: 12px;
-  padding: 16px;
-  margin: 8px 0;
 }
 </style>

@@ -12,7 +12,7 @@
               'bg-grey-lighten-3': option.id !== selectedId,
             }"
             style="min-width: 250px; cursor: pointer"
-            @click="$emit('priority-selected', option)"
+            @click="selectPriority(option)"
           >
             <v-avatar
               size="40"
@@ -39,23 +39,32 @@
 
 <script>
 export default {
-  name: 'PriorityOptions',
   props: {
     options: {
       type: Array,
-      required: true
+      required: true,
     },
     selectedId: {
       type: [Number, String],
-      default: null
-    }
-  }
-}
+      default: null,
+    },
+  },
+  methods: {
+    selectPriority(option) {
+      this.$emit('priority-selected', option);
+    },
+  },
+};
 </script>
 
 <style scoped>
 .priority-options-container {
   margin-top: 12px;
-  margin-bottom: 8px;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.v-slide-group__content {
+  padding: 4px 0;
 }
 </style>

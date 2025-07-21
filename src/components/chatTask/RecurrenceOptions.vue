@@ -12,7 +12,7 @@
               'bg-grey-lighten-3': option.id !== selectedId,
             }"
             style="min-width: 250px; cursor: pointer"
-            @click="$emit('recurrence-selected', option)"
+            @click="selectRecurrence(option)"
           >
             <v-avatar
               size="40"
@@ -27,7 +27,7 @@
                 {{ option.name }}
               </div>
               <div class="text-caption text-grey-darken-1">
-                {{ option.recurrenceName }}
+                {{ option.description }}
               </div>
             </div>
           </v-card>
@@ -46,8 +46,13 @@ export default {
       required: true
     },
     selectedId: {
-      type: [String],
+      type: [String, Number],
       default: null
+    }
+  },
+  methods: {
+    selectRecurrence(option) {
+      this.$emit('recurrence-selected', option);
     }
   }
 }
@@ -57,5 +62,9 @@ export default {
 .recurrence-options-container {
   margin-top: 12px;
   margin-bottom: 8px;
+}
+
+.v-slide-group__content {
+  padding: 4px 0;
 }
 </style>

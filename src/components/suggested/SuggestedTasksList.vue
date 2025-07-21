@@ -10,7 +10,7 @@
     <v-card
       v-for="(task, index) in localTasks"
       :key="index"
-      class="mb-3 task-card"
+      class="mb-3 task-card rounded-lg"
       :class="{ 'selected-task': task.selected }"
       @click="toggleTaskSelection(task)"
       elevation="2"
@@ -231,7 +231,7 @@ export default {
   },
     confirmSelection() {
       const selectedTasks = this.localTasks.filter((t) => t.selected);
-      this.$emit("confirm", selectedTasks);
+      this.$emit("confirm-suggested", selectedTasks);
     },
     formatDate(date) {
       if (!date) return "";

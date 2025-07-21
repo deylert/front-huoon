@@ -23,65 +23,6 @@
   <v-container class="bg-grey-lighten-4">
     <v-row no-gutters class="ma-0">
       <v-col cols="12" class="px-0 mb-6">
-        <!--<v-card class="pt-4 mb-8" elevation="2">
-          <div ref="chatBody" class="chat-body px-4 py-2">
-            <div
-              v-for="(msg, i) in messages"
-              :key="i"
-              class="d-flex mb-8"
-              :class="msg.from === 'user' ? 'justify-end' : 'justify-start'"
-            >
-              <div
-                class="d-flex align-end"
-                :class="msg.from === 'user' ? 'flex-row-reverse' : ''"
-              >
-                <v-avatar v-if="msg.from === 'bot'" size="28" class="mb-2 mr-3">
-                  <v-img src="@/assets/logo-verde.png" alt="Imagen de perfil"></v-img>
-                </v-avatar>
-                <div
-                  class="chat-bubble px-8 py-3 rounded-xl"
-                  :class="
-                    msg.from === 'user'
-                      ? 'bg-primary text-white'
-                      : 'bg-grey-lighten-2 text-black'
-                  "
-                >
-                  {{ $t("chat.initialMessage", { name: name }) }}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <v-divider />
-          <v-card-actions class="pa-3 bg-grey-lighten-5 tools-bar">
-            <v-btn
-              v-for="tool in tools"
-              :key="tool.name"
-              @click="tool.action"
-              size="small"
-              color="primary"
-              variant="text"
-              prepend-icon="mdi-plus"
-              class="text-capitalize"
-            >
-              {{ tool.name }}
-            </v-btn>
-          </v-card-actions>
-
-          <v-card-actions class="pa-4 bg-white rounded-b-2xl">
-            <v-text-field
-              v-model="input"
-              placeholder="Escribe un mensaje..."
-              variant="outlined"
-              hide-details
-              density="compact"
-              class="flex-grow-1"
-              rounded
-              @keyup.enter="sendMessage"
-            />
-            <v-btn icon="mdi-send" color="primary" @click="sendMessage" />
-          </v-card-actions>
-        </v-card>-->
         <v-card class="pt-4 mb-8" elevation="2">
           <!-- Chat Body -->
           <div ref="chatBody" class="chat-body px-4 py-2">

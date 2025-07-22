@@ -1,20 +1,31 @@
 <template>
-  <div class="recurrence-confirmation">
-    <v-alert type="success" variant="tonal" class="mb-2">
-      Recurrencia seleccionada: <strong>{{ recurrence.recurrenceName }}</strong>
-    </v-alert>
-    <div class="d-flex align-center">
-      <v-avatar
-        size="30"
-        class="me-2"
-        :color="'#' + recurrence.colorRecurrence + '20'"
-        variant="tonal"
-      >
-        <v-icon small :color="'#' + recurrence.colorRecurrence">mdi-calendar-repeat</v-icon>
-      </v-avatar>
-      <span>{{ recurrence.descriptionRecurrence }}</span>
-    </div>
-  </div>
+  <v-card
+    class="recurrence-confirmation mx-auto"
+    variant="outlined"
+    :color="'#' + recurrence.colorRecurrence"
+  >
+    <v-card-text class="pa-3">
+      <div class="d-flex align-start">
+        <v-avatar
+          size="36"
+          class="me-3 mt-1"
+          :color="'#' + recurrence.colorRecurrence + '20'"
+          variant="tonal"
+        >
+          <v-icon :color="'#' + recurrence.colorRecurrence">mdi-calendar-repeat</v-icon>
+        </v-avatar>
+
+        <div>
+          <div class="text-subtitle-2 font-weight-medium mb-1">
+            Recurrencia: {{ recurrence.recurrenceName }}
+          </div>
+          <div class="text-body-2 text-medium-emphasis">
+            {{ recurrence.descriptionRecurrence }}
+          </div>
+        </div>
+      </div>
+    </v-card-text>
+  </v-card>
 </template>
 
 <script>
@@ -31,9 +42,15 @@ export default {
 
 <style scoped>
 .recurrence-confirmation {
-  margin-top: 8px;
-  padding: 8px;
-  border-radius: 8px;
-  background-color: rgba(0, 150, 136, 0.1);
+  max-width: 100%;
+  width: 100%;
+  border-radius: 12px;
+  border-width: 1px;
+  transition: all 0.2s ease;
+}
+
+.recurrence-confirmation:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 </style>

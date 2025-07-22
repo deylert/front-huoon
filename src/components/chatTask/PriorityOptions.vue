@@ -11,7 +11,7 @@
               'bg-primary text-white': option.id === selectedId,
               'bg-grey-lighten-3': option.id !== selectedId,
             }"
-            style="min-width: 250px; cursor: pointer"
+            style="min-width: 180px; cursor: pointer"
             @click="selectPriority(option)"
           >
             <v-avatar
@@ -26,7 +26,7 @@
               <div class="text-body-1 font-weight-medium">
                 {{ option.namePriority }}
               </div>
-              <div class="text-caption text-grey-darken-1">
+              <div class="text-caption font-weight-medium">
                 {{ option.descriptionPriority }}
               </div>
             </div>

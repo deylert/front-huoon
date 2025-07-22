@@ -1,14 +1,6 @@
 <template>
-  <v-snackbar
-    class="mt-12"
-    location="right top"
-    :timeout="sb_timeout"
-    :color="sb_type"
-    elevation="24"
-    :multi-line="true"
-    vertical
-    v-model="snackbar"
-  >
+  <v-snackbar class="mt-12" location="right top" :timeout="sb_timeout" :color="sb_type" elevation="24"
+    :multi-line="true" vertical v-model="snackbar">
     <v-row>
       <v-col md="2">
         <v-avatar :icon="sb_icon" color="sb_type" size="40"></v-avatar>
@@ -20,185 +12,278 @@
     </v-row>
   </v-snackbar>
   <v-container>
-    <v-card class="pa-4" elevation="4" rounded="lg">
-      <v-row justify="center" class="mx-2">
-        <v-col cols="12" md="12">
-          <v-card-title class="d-flex justify-space-between" color="#03626C" dark>
-            <span class="font-weight-bold text-body-2">Chat en vivo</span>
-          </v-card-title>
-          <v-card-text>
-            <v-container
-              ref="chatBody"
-              class="chat-body px-4 py-3"
-              style="overflow-y: auto"
+     <v-row justify="center" class="mx-2">
+  <v-col cols="12" class="px-0 mb-6">
+    <v-card class="pt-4 mb-8 rounded-lg" elevation="2">
+      <!-- Chat Body -->
+      <div ref="chatBody" class="chat-body px-4 py-2">
+        <div
+          v-for="(message, index) in chatMessages"
+          :key="index"
+          class="d-flex mb-8"
+          :class="message.from === 'user' ? 'justify-end' : 'justify-start'"
+        >
+          <div
+            class="d-flex align-end"
+            :class="message.from === 'user' ? 'flex-row-reverse' : ''"
+          >
+            <v-avatar v-if="message.from === 'ai'" size="28" class="mb-2 mr-3">
+              <v-img src="@/assets/logo-verde.png" alt="Imagen de perfil" />
+            </v-avatar>
+
+            <div
+              class="chat-bubble px-8 py-3 rounded-xl"
+              :class="
+                message.from === 'user'
+                  ? 'bg-primary text-white'
+                  : 'bg-grey-lighten-2 text-black'
+              "
+              style="width: 100%; max-width: 100%;"
             >
-              <v-row>
-                <v-col cols="11">
-                  <div
-                    v-for="(message, index) in chatMessages"
-                    :key="index"
-                    class="d-flex mb-8"
-                    :class="{
-                      'justify-end': message.from === 'user',
-                      'justify-start': message.from === 'ai',
-                    }"
+              <!-- Campo editable con componente -->
+              <template v-if="message.isEditable && message.isEditing">
+                <div
+                  v-if="['start_date', 'end_date'].includes(message.fieldKey)"
+                >
+                  <v-menu
+                    v-model="message.showDatePicker"
+                    :close-on-content-click="false"
+                    transition="scale-transition"
+                    offset-y
+                    location="bottom"
+                    @update:modelValue="handleMenuClose(message, index)"
                   >
-                    <div class="d-flex align-center">
-                      <v-avatar v-if="message.from === 'ai'" size="28" class="ml-2 mr-4">
-                        <v-img src="@/assets/logo-verde.png" alt="Imagen de perfil" />
-                      </v-avatar>
+                    <template #activator="{ props }">
+                      <v-text-field
+                        v-bind="props"
+                        :model-value="taskParameters[message.fieldKey]"
+                        :label="message.fieldLabel"
+                        variant="outlined"
+                        density="comfortable"
+                        class="full-width mt-2"
+                        readonly
+                        hide-details
+                        @click:appendInner="message.showDatePicker = true"
+                      />
+                    </template>
 
-                      <div
-                        class="chat-bubble px-4 py-3 rounded-xl"
-                        :class="{
-                          'bg-primary text-white': message.from === 'user',
-                          'bg-grey-lighten-2 text-black': message.from === 'ai',
-                        }"
-                      >
-                        <!-- Campo editable con componente -->
-                        <template v-if="message.isEditable && message.isEditing">
-                          <div
-                            v-if="['start_date', 'end_date'].includes(message.fieldKey)"
-                          >
-                            <v-menu
-                              v-model="message.showDatePicker"
-                              :close-on-content-click="false"
-                              transition="scale-transition"
-                              offset-y
-                              location="bottom"
-                              @update:modelValue="handleMenuClose(message, index)"
-                            >
-                              <template #activator="{ props }">
-                                <v-text-field
-                                  v-bind="props"
-                                  :model-value="taskParameters[message.fieldKey]"
-                                  :label="message.fieldLabel"
-                                  variant="outlined"
-                                  density="comfortable"
-                                  class="full-width mt-2"
-                                  readonly
-                                  hide-details
-                                  @click:appendInner="message.showDatePicker = true"
-                                />
-                              </template>
+                    <DatePicker
+                      :dateValue="taskParameters[message.fieldKey]"
+                      :fieldType="message.fieldKey"
+                      @date-updated="
+                        handleDateSelection(message.fieldKey, $event)
+                      "
+                    />
+                  </v-menu>
+                </div>
+                <!-- Para campos de hora -->
+                <div
+                  v-else-if="
+                    ['start_time', 'end_time'].includes(message.fieldKey)
+                  "
+                >
+                  <v-menu
+                    v-model="message.showTimePicker"
+                    :close-on-content-click="false"
+                    transition="scale-transition"
+                    offset-y
+                    location="bottom"
+                    @update:modelValue="handleMenuClose(message, index)"
+                  >
+                    <template #activator="{ props }">
+                      <v-text-field
+                        v-bind="props"
+                        :model-value="
+                          taskParameters[message.fieldKey] || '00:00'
+                        "
+                        :label="message.fieldLabel"
+                        variant="outlined"
+                        density="comfortable"
+                        class="full-width mt-2"
+                        readonly
+                        hide-details
+                        @click:appendInner="message.showTimePicker = true"
+                      />
+                    </template>
 
-                              <DatePicker
-                                :dateValue="taskParameters[message.fieldKey]"
-                                :fieldType="message.fieldKey"
-                                @date-updated="
-                                  handleDateSelection(message.fieldKey, $event)
-                                "
-                              />
-                            </v-menu>
-                          </div>
-                           <!-- Para campos de hora -->
-  <div v-else-if="['start_time', 'end_time'].includes(message.fieldKey)">
-    <v-menu
-      v-model="message.showTimePicker"
-      :close-on-content-click="false"
-      transition="scale-transition"
-      offset-y
-      location="bottom"
-      @update:modelValue="handleMenuClose(message, index)"
-    >
-      <template #activator="{ props }">
-        <v-text-field
-          v-bind="props"
-          :model-value="taskParameters[message.fieldKey] || '00:00'"
-          :label="message.fieldLabel"
-          variant="outlined"
-          density="comfortable"
-          class="full-width mt-2"
-          readonly
-          hide-details
-          @click:appendInner="message.showTimePicker = true"
-        />
-      </template>
+                    <TimePicker
+                      :timeValue="taskParameters[message.fieldKey]"
+                      :fieldType="message.fieldKey"
+                      @time-updated="
+                        handleTimeSelection(message.fieldKey, $event)
+                      "
+                    />
+                  </v-menu>
+                </div>
+                <v-textarea
+                  v-else-if="['title', 'description'].includes(message.fieldKey)"
+                  v-model="message.editValue"
+                  :label="message.fieldLabel"
+                  variant="outlined"
+                  density="comfortable"
+                  class="mt-2"
+                  style="width: 100%"
+                  :ref="(el) => setTextFieldRef(el, index)"
+                  autofocus
+                  auto-grow
+                  rows="1"
+                  no-resize
+                  @keyup.enter="saveFieldEdit(index)"
+                  @blur="saveFieldEdit(index)"
+                ></v-textarea>
+                
+                <!-- Textfield para otros campos -->
+                <v-text-field
+                  v-else
+                  v-model="message.editValue"
+                  :label="message.fieldLabel"
+                  variant="outlined"
+                  density="comfortable"
+                  class="mt-2"
+                  style="width: 100%"
+                  :ref="(el) => setTextFieldRef(el, index)"
+                  autofocus
+                  @keyup.enter="saveFieldEdit(index)"
+                  @blur="saveFieldEdit(index)"
+                ></v-text-field>
+              </template>
 
-      <TimePicker
-        :timeValue="taskParameters[message.fieldKey]"
-        :fieldType="message.fieldKey"
-        @time-updated="handleTimeSelection(message.fieldKey, $event)"
-      />
-    </v-menu>
-  </div>
-                          <v-text-field
-                            v-else
-                            v-model="message.editValue"
-                            :label="message.fieldLabel"
-                            variant="outlined"
-                            density="comfortable"
-                            class="full-width mt-2"
-                            :ref="(el) => setTextFieldRef(el, index)"
-                            autofocus
-                            @keyup.enter="saveFieldEdit(index)"
-                            @blur="saveFieldEdit(index)"
-                          ></v-text-field>
-                        </template>
+              <!-- Texto normal -->
+              <template v-else>
+          <div
+            v-if="!message.buttons"
+            @click="message.isEditable ? startFieldEdit(index) : null"
+            :class="{ 'editable-message': message.isEditable }"
+            style="white-space: pre-wrap; word-break: break-word"
+          >
+            {{ message.text }}
+            <v-icon v-if="message.isEditable" x-small class="ml-2">
+              mdi-pencil
+            </v-icon>
+          </div>
 
-                        <!-- Texto normal -->
-                        <div
-                          v-else
-                          @click="message.isEditable ? startFieldEdit(index) : null"
-                          :class="{ 'editable-message': message.isEditable }"
-                        >
-                          {{ message.text }}
-                          <v-icon v-if="message.isEditable" x-small class="ml-2">
-                            mdi-pencil
-                          </v-icon>
-                        </div>
+          <!-- Mensaje con botones de confirmación -->
+          <div v-else>
+            <div style="white-space: pre-wrap; word-break: break-word; margin-bottom: 12px;">
+              {{ message.text }}
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+              <v-btn
+                v-for="(button, btnIndex) in message.buttons"
+                :key="btnIndex"
+                :color="button.color"
+                @click="button.action"
+                class="text-none"
+                size="small"
+                variant="elevated"
+                :prepend-icon="button.icon"
+              >
+                {{ button.text }}
+              </v-btn>
+            </div>
+          </div>
+        </template>
 
-                        <!-- Componente dinámico -->
-                        <component
-                          v-if="message.component && !message.isEditing"
-                          :is="message.component"
-                          v-bind="message.props"
-                          @priority-selected="handlePrioritySelection($event)"
-                          @recurrence-selected="handleRecurrenceSelection($event)"
-                          @selection-update="updatePeopleSelection($event)"
-                          @confirm="handlePeopleConfirmation($event)"
-                          @confirm-suggested="addSelectedTasks($event)"
-                          @cancel="cancelSelection()"
-                          @date-updated="updateDate($event)"
-                          @time-updated="updateTime($event)"
-                        />
-                      </div>
-                    </div>
-                  </div>
+              <!-- Componente dinámico -->
+              <component
+                v-if="message.component && !message.isEditing"
+                :is="message.component"
+                v-bind="message.props"
+                @priority-selected="handlePrioritySelection($event)"
+                @recurrence-selected="handleRecurrenceSelection($event)"
+                @selection-update="updatePeopleSelection($event)"
+                @confirm="handlePeopleConfirmation($event)"
+                @confirm-suggested="addSelectedTasks($event)"
+                @cancel="handleCancellation()"
+                @date-updated="updateDate($event)"
+                @time-updated="updateTime($event)"
+              />
+            </div>
+          </div>
+        </div>
 
-                  <div v-if="isTyping" class="d-flex justify-start align-center mt-2">
-                    <v-avatar size="28" class="mr-3">
-                      <v-img src="@/assets/logo-verde.png" alt="Avatar" />
-                    </v-avatar>
-                    <span class="typing-indicator">•••</span>
-                  </div>
-                </v-col>
-              </v-row>
-            </v-container>
-          </v-card-text>
+        <div v-if="isTyping" class="d-flex justify-start align-center mt-2">
+          <v-avatar size="28" class="mr-3">
+            <v-img src="@/assets/logo-verde.png" alt="Avatar" />
+          </v-avatar>
+          <span class="typing-indicator">•••</span>
+        </div>
+      </div>
 
-          <v-divider></v-divider>
-          <v-card-actions>
-            <v-text-field
-              v-model="newMessage"
-              @keyup.enter="sendMessage"
-              variant="outlined"
-              hide-details
-              :placeholder="$t('chat.inputPlaceholder')"
-              density="compact"
-              rounded
-              rows="1"
-              no-resize
-              style="overflow-y: auto; max-height: 120px; resize: none"
-              @click:append="sendMessage"
-              :disabled="isLoading"
-              class="custom-textarea"
-            ></v-text-field>
-            <v-btn icon="mdi-send" color="primary" @click="sendMessage" />
-          </v-card-actions>
-        </v-col>
-      </v-row>
+      <!-- Herramientas -->
+      <v-divider />
+      <v-card-actions class="pa-3 bg-grey-lighten-5 tools-bar">
+        <v-btn
+          v-for="tool in tools"
+          :key="tool.name"
+          @click="tool.action"
+          size="small"
+          color="primary"
+          variant="text"
+          prepend-icon="mdi-plus"
+          class="text-capitalize"
+        >
+          {{ tool.name }}
+        </v-btn>
+      </v-card-actions>
+
+      <!-- Input -->
+      <v-card-actions
+        class="pa-4 bg-white rounded-b-2xl d-flex align-center"
+        style="gap: 12px"
+      >
+        <!-- Input + texto temporal en un solo bloque -->
+        <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden">
+          <v-textarea
+            v-model="newMessage"
+            :placeholder="$t('chat.inputPlaceholder')"
+            variant="outlined"
+            hide-details
+            density="compact"
+            rounded
+            rows="1"
+            no-resize
+            @keyup.enter="sendMessage"
+            style="overflow-y: auto; max-height: 120px; resize: none"
+            class="custom-textarea"
+            :disabled="isLoading"
+          />
+          <div
+            v-if="escuchando && textoTemporal"
+            style="
+              margin-top: 10px;
+              font-size: 12px;
+              color: gray;
+              font-style: italic;
+              white-space: pre-wrap;
+              word-break: break-word;
+              max-height: 60px;
+              overflow-y: auto;
+            "
+          >
+            {{ textoTemporal }}
+          </div>
+        </div>
+
+        <!-- Botón de dictado -->
+        <v-btn
+          color="primary"
+          @click="toggleDictado"
+          :disabled="!compatible"
+          :loading="cargando"
+          :icon="escuchando ? 'mdi-microphone-off' : 'mdi-microphone'"
+          :title="
+            !compatible ? 'Reconocimiento de voz no compatible con tu navegador' : ''
+          "
+        ></v-btn>
+
+        <!-- Botón de enviar -->
+        <v-btn icon="mdi-send" color="primary" @click="sendMessage" />
+      </v-card-actions>
     </v-card>
+  </v-col>        
+</v-row>
+
   </v-container>
 </template>
 
@@ -231,9 +316,13 @@ export default {
   },
   data() {
     return {
+      textoTemporal: "",
       taskDataCollectionMode: false,
       currentTaskIntent: null,
       editingField: null,
+      escuchando: false,
+      recognition: null,
+      compatible: true,
       taskParameters: {
         type: null,
         title: null,
@@ -313,11 +402,62 @@ export default {
     };
   },
   computed: {
+     textoEditable() {
+      // Muestra texto confirmado + texto dictado en vivo
+      return this.newMessage + this.textoTemporal;
+    },
     imgedit() {
       return `${this.$axios.defaults.baseURL}images/${this.imageUrl}`;
     },
   },
   mounted() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      this.compatible = false;
+      return;
+    }
+
+    this.recognition = new SpeechRecognition();
+    this.recognition.lang = "es-ES";
+    this.recognition.continuous = true;
+    this.recognition.interimResults = true;
+
+    this.recognition.onstart = () => {
+      this.escuchando = true;
+      this.cargando = false;
+    };
+
+    this.recognition.onresult = (event) => {
+      let interim = "";
+      let final = "";
+
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          final += transcript;
+        } else {
+          interim += transcript;
+        }
+      }
+
+      if (final) {
+        this.newMessage += (this.newMessage.endsWith(" ") ? "" : " ") + final + " ";
+      }
+
+      this.textoTemporal = interim;
+    };
+
+    this.recognition.onerror = (event) => {
+      console.error("Error de reconocimiento:", event.error);
+      this.escuchando = false;
+      this.cargando = false;
+    };
+
+    this.recognition.onend = () => {
+      this.escuchando = false;
+      this.textoTemporal = "";
+    };
     this.name = JSON.parse(LocalStorageService.getItem("name"));
     this.user = JSON.parse(LocalStorageService.getItem("user"));
     this.user_id = JSON.parse(LocalStorageService.getItem("user_id"));
@@ -329,6 +469,16 @@ export default {
     }
   },
   methods: {
+     toggleDictado() {
+      if (!this.recognition) return;
+
+      if (this.escuchando) {
+        this.recognition.stop();
+      } else {
+        this.cargando = true;
+        this.recognition.start();
+      }
+    },
     formatDateDisplay(dateString) {
       if (!dateString) return "Seleccionar fecha";
       const options = { year: "numeric", month: "2-digit", day: "2-digit" };
@@ -336,12 +486,14 @@ export default {
     },
 
     handleMenuClose(message, index) {
-  if ((message.showDatePicker === false || message.showTimePicker === false) && 
-      !this.chatMessages[index].isSaving) {
-    // Cuando el menú se cierra (click fuera)
-    this.saveFieldEdit(index);
-  }
-},
+      if (
+        (message.showDatePicker === false || message.showTimePicker === false) &&
+        !this.chatMessages[index].isSaving
+      ) {
+        // Cuando el menú se cierra (click fuera)
+        this.saveFieldEdit(index);
+      }
+    },
     setTextFieldRef(el, index) {
       this.textFieldRefs[index] = el;
     },
@@ -354,10 +506,10 @@ export default {
           this.chatMessages[index].showDatePicker = true;
         });
       } else if (["start_time", "end_time"].includes(this.chatMessages[index].fieldKey)) {
-    this.$nextTick(() => {
-      this.chatMessages[index].showTimePicker = true;
-    });
-  }else {
+        this.$nextTick(() => {
+          this.chatMessages[index].showTimePicker = true;
+        });
+      } else {
         this.$nextTick(() => {
           const textField = this.textFieldRefs[index];
           if (textField) {
@@ -515,7 +667,7 @@ export default {
         { key: "description", label: "Descripción" },
         { key: "start_date", label: "Fecha de inicio" },
         { key: "start_time", label: "Hora de inicio" },
-         { key: "end_date", label: "Fecha de finalización" },
+        { key: "end_date", label: "Fecha de finalización" },
         { key: "end_time", label: "Hora de finalización" },
         { key: "estimated_time", label: "Duración estimada (minutos)" },
       ];
@@ -884,13 +1036,22 @@ export default {
 
       // Pedir confirmación
       this.chatMessages.push({
-        from: "ai",
-        text:
-          "¿Deseas crear esta " +
-          this.currentTaskIntent +
-          " con los datos proporcionados? (si/no)",
-        timestamp: new Date().toLocaleTimeString(),
-      });
+    from: "ai",
+    text: `¿Deseas crear esta ${this.currentTaskIntent} con los datos proporcionados?`,
+    timestamp: new Date().toLocaleTimeString(),
+    buttons: [
+      {
+        text: "Confirmar y crear",
+        color: "success",
+        action: () => this.handleTaskConfirmation('si')
+      },
+      {
+        text: "Cancelar",
+        color: "error",
+        action: () => this.handleCancellation('no')
+      }
+    ]
+  });
 
       this.waitingForConfirmation = true;
       this.isTyping = false;
@@ -1015,11 +1176,7 @@ export default {
           });
         }
       } else {
-        this.chatMessages.push({
-          from: "ai",
-          text: "Creación cancelada. ¿En qué más puedo ayudarte?",
-          timestamp: new Date().toLocaleTimeString(),
-        });
+        this.handleCancellation();
       }
 
       // Resetear
@@ -1028,6 +1185,56 @@ export default {
       this.taskParameters = {};
       this.scrollToBottom();
     },
+    handleCancellation() {
+  this.waitingForConfirmation = false;
+  this.taskParameters.people = [];
+      this.taskParameters = Object.assign({}, this.defaultItem);
+      this.originalItem = Object.assign({}, this.defaultItem);
+  // Mensaje con botones de opción
+  this.chatMessages.push({
+    from: "ai",
+    text: "¿Qué deseas hacer ahora?",
+    timestamp: new Date().toLocaleTimeString(),
+    buttons: [
+      {
+        text: "Nueva conversación",
+        color: "primary",
+        icon: "mdi-chat-plus",
+        action: () => this.startNewConversation()
+      },
+      {
+        text: "Salir",
+        color: "secondary",
+        icon: "mdi-exit-to-app",
+        action: () => this.closeDialog()
+      }
+    ]
+  });
+},
+
+// Método para nueva conversación
+startNewConversation() {
+  // Limpiar el chat pero mantenerlo abierto
+  this.chatMessages = [];
+  this.isTyping = false;
+  
+  // Mensaje inicial del asistente
+  this.chatMessages.push({
+    from: "ai",
+    text: "¡Hola! ¿En qué puedo ayudarte hoy?",
+    timestamp: new Date().toLocaleTimeString()
+  });
+},
+
+// Método para cerrar el diálogo
+closeDialog() {
+  // Emitir evento para cerrar el diálogo (ajusta según tu implementación)
+  this.$emit('close-dialog');
+  
+  // Opcional: limpiar la conversación
+  this.chatMessages = [];
+
+},
     showSuggestedTasks(tasks) {
       this.isTyping = true;
 
@@ -1087,17 +1294,14 @@ export default {
             text: `✅ ${tasksToCreate.length} tarea(s) creada(s) exitosamente!`,
             timestamp: new Date().toLocaleTimeString(),
           });
-          this.chatMessages.push({
-            from: "ai",
-            text: "¿En qué más puedo ayudarte?",
-            timestamp: new Date().toLocaleTimeString(),
-          });
+          this.handleCancellation();
         } else {
           this.chatMessages.push({
             from: "ai",
             text: `⚠️ Se creó la meta pero hubo un error con las tareas: ${result.message}`,
             timestamp: new Date().toLocaleTimeString(),
           });
+          this.handleCancellation();
         }
       } catch (error) {
         this.chatMessages.push({
@@ -1105,7 +1309,9 @@ export default {
           text: `❌ Error al crear tareas: ${error.message}`,
           timestamp: new Date().toLocaleTimeString(),
         });
+        this.handleCancellation();
       } finally {
+        this.handleCancellation();
         this.isTyping = false;
         this.scrollToBottom();
       }
@@ -1131,25 +1337,25 @@ export default {
       //this.startAutomaticDataCollection();
     },
     handleTimeSelection(field, timeEvent) {
-  const { value } = timeEvent;
+      const { value } = timeEvent;
 
-  // Actualizar el valor en taskParameters
-  this.taskParameters[field] = value;
+      // Actualizar el valor en taskParameters
+      this.taskParameters[field] = value;
 
-  // Encontrar el mensaje correspondiente
-  const message = this.chatMessages.find((m) => m.fieldKey === field);
+      // Encontrar el mensaje correspondiente
+      const message = this.chatMessages.find((m) => m.fieldKey === field);
 
-  if (message) {
-    message.currentValue = value;
-    message.editValue = value;
-    message.text = `• ${message.fieldLabel}: ${value}`;
-    message.isEditing = false;
-    message.showTimePicker = false;
-  }
+      if (message) {
+        message.currentValue = value;
+        message.editValue = value;
+        message.text = `• ${message.fieldLabel}: ${value}`;
+        message.isEditing = false;
+        message.showTimePicker = false;
+      }
 
-  // Continuar con el flujo automático
-  //this.startAutomaticDataCollection();
-}
+      // Continuar con el flujo automático
+      //this.startAutomaticDataCollection();
+    },
   },
 };
 </script>
@@ -1194,12 +1400,14 @@ export default {
   background-color: #888;
   border-radius: 12px;
   padding: 1px;
+   min-width: 100% !important;
 }
 
 .ai-message {
   background-color: #888;
   border-radius: 12px;
   padding: 1px;
+  min-width: 100% !important;
 }
 
 .v-card-text {
@@ -1208,6 +1416,13 @@ export default {
 .typing-dots {
   font-size: 1.5rem;
   animation: blink 1.5s infinite;
+}
+
+.chat-wrapper {
+  max-width: 700px;
+  height: 85vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .chat-body {
@@ -1227,55 +1442,37 @@ export default {
   border-radius: 8px;
 }
 
-.typing-container {
-  display: inline-block;
-  padding: 2px 4px;
-  border-radius: 12px;
-}
-
-.typing-dots {
-  font-size: 1.5rem;
-  animation: blink 1.5s infinite;
-}
-
-.typing-indicator {
-  font-size: 1.2rem;
-  color: #999;
-  animation: blink 1.5s infinite;
-}
-
-.editable-message {
-  cursor: pointer;
-  transition: all 0.3s;
-  padding: 8px;
-  border-radius: 4px;
-}
-
-.editable-message:hover {
-  background-color: #e0e0e0;
-}
-
-.full-width {
-  width: 100%;
-  min-width: 100%;
-}
-
 .chat-bubble {
   max-width: 100%;
-  min-width: 100%; /* Ajusta según necesites */
+  word-break: break-word;
+  font-size: 15px;
+  line-height: 1.4;
 }
 
-.v-text-field {
-  font-size: 1rem; /* Tamaño de fuente adecuado */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
 }
 
-@keyframes blink {
-  0%,
-  100% {
-    opacity: 0.2;
-  }
-  50% {
-    opacity: 1;
-  }
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.tools-bar {
+  overflow-x: auto;
+  white-space: nowrap;
+  gap: 8px;
+}
+.v-btn--action-cancel {
+  min-width: 160px;
+  margin: 4px;
+}
+
+/* Efecto hover para los botones */
+.v-btn--action-cancel:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
 }
 </style>

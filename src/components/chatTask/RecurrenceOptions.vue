@@ -11,7 +11,7 @@
               'bg-primary text-white': option.id === selectedId,
               'bg-grey-lighten-3': option.id !== selectedId,
             }"
-            style="min-width: 250px; cursor: pointer"
+            style="min-width: 180px; cursor: pointer"
             @click="selectRecurrence(option)"
           >
             <v-avatar

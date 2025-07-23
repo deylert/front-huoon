@@ -170,15 +170,15 @@
             <div class="d-flex flex-wrap gap-2">
               <v-btn
                 v-for="(button, btnIndex) in message.buttons"
-                :key="btnIndex"
-                :color="button.color"
-                @click="button.action"
-                class="text-none"
-                size="small"
-                variant="elevated"
-                :prepend-icon="button.icon"
-              >
-                {{ button.text }}
+    :key="btnIndex"
+    :color="button.color"
+    :variant="button.variant"
+    @click="button.action"
+    class="text-none"
+    size="small"
+    v-bind="button.props || {}"
+  >
+    {{ button.text }}
               </v-btn>
             </div>
           </div>
@@ -299,7 +299,9 @@ import { handleRequest } from "@/utils/api";
 import { markRaw } from "vue";
 
 export default {
-  emits: ["close"],
+  emits: {
+    'close-dialog': null // o una función de validación
+  },
   props: {
     initialMessage: {
       type: String,
@@ -322,7 +324,9 @@ export default {
       editingField: null,
       escuchando: false,
       recognition: null,
+      cargando: false,
       compatible: true,
+      tools: [],
       taskParameters: {
         type: null,
         title: null,
@@ -1041,15 +1045,25 @@ export default {
     timestamp: new Date().toLocaleTimeString(),
     buttons: [
       {
-        text: "Confirmar y crear",
-        color: "success",
-        action: () => this.handleTaskConfirmation('si')
-      },
-      {
-        text: "Cancelar",
-        color: "error",
-        action: () => this.handleCancellation('no')
-      }
+    text: "Cancelar",
+    color: "error",
+    variant: "outlined",  // Corregido: usar dos puntos en lugar de signo igual
+    action: () => this.handleCancellation('no'),
+    props: {              // Propiedades adicionales para v-btn
+      class: "mr-2",      // Margen derecho
+      size: "default"     // Tamaño estándar
+    }
+  },
+  {
+    text: "Confirmar y crear",
+    color: "primary",
+    variant: "flat",      // Equivalente al estilo por defecto de v-btn
+    action: () => this.handleTaskConfirmation('si'),
+    props: {
+      disabled: this.taskParameters.title === null, // Ejemplo de condición
+      size: "default"     // Tamaño estándar
+    }
+  }
     ]
   });
 
@@ -1196,18 +1210,25 @@ export default {
     text: "¿Qué deseas hacer ahora?",
     timestamp: new Date().toLocaleTimeString(),
     buttons: [
-      {
-        text: "Nueva conversación",
-        color: "primary",
-        icon: "mdi-chat-plus",
-        action: () => this.startNewConversation()
+       {
+        text: "Salir",
+        color: "grey",
+        variant: "outlined",  // Botón con borde
+        action: () => this.closeDialog(),
+        props: {
+          class: "mr-2",
+          size: "default",
+        }
       },
       {
-        text: "Salir",
-        color: "secondary",
-        icon: "mdi-exit-to-app",
-        action: () => this.closeDialog()
-      }
+    text: "Nueva conversación",
+    color: "primary",
+    variant: "flat",  // Botón sólido
+    action: () => this.startNewConversation(),
+    props: {
+      size: "default",
+    }
+  }
     ]
   });
 },
@@ -1228,11 +1249,11 @@ startNewConversation() {
 
 // Método para cerrar el diálogo
 closeDialog() {
-  // Emitir evento para cerrar el diálogo (ajusta según tu implementación)
-  this.$emit('close-dialog');
   
   // Opcional: limpiar la conversación
   this.chatMessages = [];
+  // Emitir evento para cerrar el diálogo (ajusta según tu implementación)
+  this.$emit('close-dialog');
 
 },
     showSuggestedTasks(tasks) {

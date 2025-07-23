@@ -52,6 +52,7 @@
       </div>
       <div class="d-flex justify-end gap-2">
         <v-btn
+        class="mr-2"
           color="error"
           variant="outlined"
           @click="cancelSelection"

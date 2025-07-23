@@ -261,7 +261,7 @@
               <v-row no-gutters class="ma-0">
                 <!-- Fecha -->
                 <v-col cols="auto" class="pa-4 d-flex flex-column align-center">
-                  <div class="date">{{ formatDate(financeTask.date) }}</div>
+                  <div class="date">{{ formatDate(financeTask.start_date) }}</div>
                 </v-col>
 
                 <!-- Contenido principal -->
@@ -307,13 +307,6 @@
                     >
                       {{ $t("buttons.seeMore") }}
                     </v-btn>
-
-                    <!-- Componente del chatbot -->
-                    <ChatTaskDialog
-                      v-model="chatDialog"
-                      :suggestion="currentTask"
-                      @completed="handleTaskCompleted"
-                    />
                   </div>
                 </v-col>
               </v-row>
@@ -1128,6 +1121,19 @@
       </v-card>
     </v-form>
   </v-dialog>
+  <v-dialog v-model="dialogChatTask" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-text>
+        <!-- Pasamos los parámetros al componente ChatTask -->
+        <ChatTaskFinance :taskData="currentTask" @close-dialog="closeDialgChat()"  />
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn text @click="closeDialgChat()">Cerrar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
@@ -1138,15 +1144,18 @@ import Spent from "./Spent.vue";
 import ChatTaskDialog from "./ChatTaskDialog.vue";
 import _ from "lodash";
 import Budget from "./Budget.vue";
+import ChatTaskFinance from "../chat/ChatTaskFinance.vue";
 export default {
   components: {
     Income,
     Spent,
     ChatTaskDialog,
     Budget,
+    ChatTaskFinance,
   },
   data() {
     return {
+      dialogChatTask: false,
       chatDialog: false,
       dialogBugets: false,
       currentTask: null,
@@ -1489,6 +1498,11 @@ export default {
     this.initialize();
   },
   methods: {
+    closeDialgChat() {
+      this.dialogChatTask = false;
+      this.currentTask = null; // Limpia la tarea actual
+      this.initialize();
+    },
     enrichPeopleData(taskPeople) {
       // 1. Verificar y extraer datos del Proxy
       const peopleProxy = this.people; // El Proxy recibido
@@ -1655,11 +1669,14 @@ export default {
       return "mdi-help-circle";
     },
     openChatbot(task) {
-      this.chatDialog = false;
       this.currentTask = null;
       this.$nextTick(() => {
-        this.currentTask = task;
-        this.chatDialog = true;
+        const taskData = typeof task.taskData === 'string' 
+      ? JSON.parse(task.taskData) 
+      : task.taskData;
+    
+    this.currentTask = _.cloneDeep(taskData);
+        this.dialogChatTask = true;
       });
     },
     async handleTaskCompleted(payload) {

@@ -1235,8 +1235,29 @@ export default {
 
 // Método para nueva conversación
 startNewConversation() {
-  // Limpiar el chat pero mantenerlo abierto
+       // Limpiar el chat
   this.chatMessages = [];
+  
+  // Reiniciar todas las variables de estado relacionadas con tareas
+  this.taskDataCollectionMode = false;
+  this.currentTaskIntent = null;
+  this.taskParameters = {
+    type: null,
+    title: null,
+    description: null,
+    priority_id: null,
+    people: [],
+    start_date: null,
+    start_time: null,
+    estimated_time: null,
+    geo_location: null,
+    recurrence: null,
+    status_id: null,
+    end_date: null,
+    end_time: null,
+  };
+  this.waitingForConfirmation = false;
+  this.collectingPeople = false;
   this.isTyping = false;
   
   // Mensaje inicial del asistente
@@ -1245,6 +1266,9 @@ startNewConversation() {
     text: "¡Hola! ¿En qué puedo ayudarte hoy?",
     timestamp: new Date().toLocaleTimeString()
   });
+  
+  // Asegurarse de que el scroll se actualice
+  this.scrollToBottom();
 },
 
 // Método para cerrar el diálogo

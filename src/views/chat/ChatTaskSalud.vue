@@ -592,6 +592,7 @@ export default {
         this.isTyping = true;
 
         try {
+
           const lastAIMessage = this.chatMessages
             .slice()
             .reverse()
@@ -641,7 +642,7 @@ export default {
               method: "POST",
               data: {
                 question: tempMessage,
-                issue: "Eres un asistente para gestión de tareas y metas.",
+                issue: "Eres un asistente especializado en gestión de tareas de salud y bienestar.",
               },
             });
             if (response.data.intentDetected) {
@@ -1348,7 +1349,7 @@ closeDialog() {
 
         this.isTyping = false;
         this.scrollToBottom();
-      }, 100);
+      }, 500);
     },
     async addSelectedTasks(selectedTasks) {
       this.isTyping = true;

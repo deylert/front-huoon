@@ -244,75 +244,20 @@
         </v-row>
 
         <v-divider class="my-4" />
+    
+    <SuggestionsList
+    :items="suggestions"
+    :title="$t('finances.sections.suggestions')"
+    icon="mdi-finance"
+  >
+    <template #detail="{ taskData, onClose }">
+      <ChatTaskFinance 
+        :taskData="taskData"
+        @close-dialog="onClose"  
+      />
+    </template>
+  </SuggestionsList>
 
-        <div class="text-body-2 font-weight-medium mb-2">
-          {{ $t("finances.sections.suggestions") }}
-        </div>
-
-        <v-row>
-          <v-col>
-            <v-card
-              v-for="(financeTask, index) in suggestions"
-              :key="index"
-              class="mb-3 rounded-lg"
-              elevation="2"
-              :class="{ 'smooth-hover': true }"
-            >
-              <v-row no-gutters class="ma-0">
-                <!-- Fecha -->
-                <v-col cols="auto" class="pa-4 d-flex flex-column align-center">
-                  <div class="date">{{ formatDate(financeTask.start_date) }}</div>
-                </v-col>
-
-                <!-- Contenido principal -->
-                <v-col cols="8" class="d-flex align-center pe-4 gap-2">
-                  <v-row align="center" no-gutters>
-                    <v-icon
-                      class="me-2"
-                      :color="financeTask.source === 'ia' ? 'deep-purple' : 'blue'"
-                      size="24"
-                    >
-                      {{ financeTask.source === "ia" ? "mdi-brain" : "mdi-finance" }}
-                    </v-icon>
-                    <div>
-                      <div class="font-weight-semibold text-body-1">
-                        {{ financeTask.title }}
-                      </div>
-                      <div class="text-caption text-grey-darken-1">
-                        {{ financeTask.description }}
-                      </div>
-                    </div>
-                  </v-row>
-                </v-col>
-
-                <!-- Estado -->
-                <v-col cols="auto" class="d-flex align-center justify-end pe-4">
-                  <v-chip
-                    :color="getFinanceStatusColor(financeTask.status)"
-                    size="small"
-                    variant="tonal"
-                  >
-                    {{ getTranslatedStatusName(financeTask.status) }}
-                  </v-chip>
-                </v-col>
-
-                <v-col cols="auto" class="d-flex align-center justify-end pe-4 gap-2">
-                  <div>
-                    <!-- Tu contenido actual de la tarjeta -->
-                    <v-btn
-                      variant="text"
-                      size="small"
-                      color="primary"
-                      @click="openChatbot(financeTask)"
-                    >
-                      {{ $t("buttons.seeMore") }}
-                    </v-btn>
-                  </div>
-                </v-col>
-              </v-row>
-            </v-card>
-          </v-col>
-        </v-row>
       </v-card-text>
     </v-card>
   </v-container>
@@ -851,100 +796,6 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <!--<v-dialog v-model="showSuggestedTasksDialog" fullscreen transition="dialog-bottom-transition">
-    <v-card>
-      <v-card-title class="d-flex justify-space-between align-center">
-        <span>{{ $t('suggestedTasks.dialog.title') }}</span>
-        <v-btn icon @click="showSuggestedTasksDialog = false">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-      </v-card-title>
-
-      <v-card-text>
-        <v-card
-          v-for="(task, index) in suggestedTasks"
-          :key="index"
-          class="mb-3 rounded-lg"
-          elevation="2"
-          :class="{ 'selected-task': task.selected }"
-          @click="task.selected = !task.selected"
-        >
-          <v-row no-gutters>
-            <v-col cols="1" class="d-flex align-center justify-center">
-              <v-checkbox
-                v-model="task.selected"
-                hide-details
-                class="ma-0 pa-0"
-                @click.stop
-              ></v-checkbox>
-            </v-col>
-            <v-col cols="2" class="pa-4 d-flex flex-column align-center">
-              <div class="text-body-2 font-weight-medium">
-                {{ formatDate(task.start_date) }}
-              </div>
-              <div v-if="task.start_time" class="mt-2 text-body-2 font-weight-medium">
-                {{ formatTime(task.start_time) }}
-              </div>
-              <div
-                v-if="task.estimated_time"
-                class="mt-2 text-caption text-grey-darken-1"
-              >
-                {{ formatDuration(task.estimated_time) }}
-              </div>
-            </v-col>
-
-            <v-col cols="7" class="d-flex align-center pe-4 gap-2">
-              <div>
-                <div class="font-weight-semibold text-body-1">{{ task.title }}</div>
-                <div class="text-caption d-flex align-center text-grey-darken-1">
-                  {{ task.description }}
-                </div>
-                <div
-                  v-if="task.geo_location"
-                  class="text-caption d-flex align-center text-grey-darken-1"
-                >
-                  <v-icon small>mdi-map-marker</v-icon>
-                  {{ task.geo_location }}
-                </div>
-              </div>
-            </v-col>
-
-            <v-col cols="2" class="d-flex align-center pe-4 gap-2">
-              <div class="avatar-row d-flex flex-wrap justify-end gap-1">
-                <template v-if="task.people && task.people.length > 0">
-                  <v-tooltip
-                    v-for="(person, personIndex) in task.people"
-                    :key="personIndex"
-                    bottom
-                  >
-                    <template v-slot:activator="{ props }">
-                      <v-avatar class="avatar-item hover-expand" size="32" v-bind="props">
-                      <v-img :src="`${this.$axios.defaults.baseURL}images/${person.image}?t=${Date.now()}`"
-                        alt="avatar" />
-                    </v-avatar>
-                    </template>
-                    <span>{{ person.name }}<br>{{ person.roleName }}</span>
-                  </v-tooltip>
-                </template>
-                <v-chip v-else small color="grey" class="mt-1"> {{ $t('suggestedTasks.dialog.unassigned') }} </v-chip>
-              </div>
-            </v-col>
-          </v-row>
-        </v-card>
-      </v-card-text>
-
-      <v-card-actions class="d-flex justify-end">
-        <v-btn
-          color="primary"
-          @click="sendSuggestedTasksToAPI"
-          :disabled="selectedSuggestedTasksCount === 0"
-        >
-          {{ $t('suggestedTasks.dialog.createButton') }}
-        {{ $t('suggestedTasks.selection.count', { count: selectedSuggestedTasksCount }) }}
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>-->
   <v-dialog
     v-model="showSuggestedTasksDialog"
     fullscreen
@@ -1141,17 +992,17 @@ import LocalStorageService from "@/LocalStorageService";
 import { handleRequest } from "@/utils/api"; // Ruta al archivo
 import Income from "./Income.vue";
 import Spent from "./Spent.vue";
-import ChatTaskDialog from "./ChatTaskDialog.vue";
 import _ from "lodash";
 import Budget from "./Budget.vue";
 import ChatTaskFinance from "../chat/ChatTaskFinance.vue";
+import SuggestionsList from "../suggestion/SuggestionsList.vue";
 export default {
   components: {
     Income,
     Spent,
-    ChatTaskDialog,
     Budget,
     ChatTaskFinance,
+    SuggestionsList,
   },
   data() {
     return {
@@ -1498,6 +1349,11 @@ export default {
     this.initialize();
   },
   methods: {
+    handleCloseDialog() {
+      // Lógica adicional al cerrar el diálogo si es necesaria
+      console.log("Diálogo cerrado");
+      this.closeDialgChat();
+    },
     closeDialgChat() {
       this.dialogChatTask = false;
       this.currentTask = null; // Limpia la tarea actual

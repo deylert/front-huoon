@@ -318,7 +318,6 @@
                 @click="showAddExam()"
                 style="cursor: pointer"
               >
-                <!-- Ícono a la izquierda -->
 
                 <v-avatar
                   size="40"
@@ -329,7 +328,6 @@
                   <v-icon :color="info.color">{{ info.icon }}</v-icon>
                 </v-avatar>
 
-                <!-- Texto a la derecha -->
                 <div>
                   <div class="text-body-2 font-weight-medium">{{ info.nombre }}</div>
                   <div class="text-caption text-grey-darken-1">
@@ -350,6 +348,19 @@
             </v-col>
           </template>
         </v-row>
+        <v-divider class="my-4" />
+        <SuggestionsList
+    :items="suggestions"
+    :title="$t('finances.sections.suggestions')"
+    icon="mdi-finance"
+  >
+    <template #detail="{ taskData, onClose }">
+      <ChatTaskSalud
+        :taskData="taskData"
+        @close-dialog="onClose"  
+      />
+    </template>
+  </SuggestionsList>
       </v-card-text>
     </v-card>
 
@@ -526,6 +537,20 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <v-dialog v-model="dialogChatTask" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-text>
+        <!-- Pasamos los parámetros al componente ChatTask -->
+        <ChatTaskSalud:taskData="currentTask" @close-dialog="closeDialgChat()"  />
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn text @click="closeDialgChat()">Cerrar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
@@ -539,6 +564,9 @@ import BackGroundFamily from "./BackGroundFamily.vue";
 import MedicalExam from "./MedicalExam.vue";
 import Diagnosis from "./Diagnosis.vue";
 import MedicalConsultation from "./MedicalConsultation.vue";
+
+import SuggestionsList from "../suggestion/SuggestionsList.vue";
+import ChatTaskSalud from "../chat/ChatTaskSalud.vue";
 export default {
   components: {
     PhysicalExam,
@@ -548,6 +576,8 @@ export default {
     MedicalExam,
     Diagnosis,
     MedicalConsultation,
+    ChatTaskSalud,
+    SuggestionsList,
   },
   data: () => ({
     dialogPhysicalExam: false,
@@ -558,6 +588,8 @@ export default {
     dialogDiagnosis: false,
     dialogAlerta: false,
     dialogConsultations: false,
+    dialogChatTask: false,
+      currentTask: null,
     listaAlertas: [
       {
         titulo: "Cita médica en 1 hora",
@@ -722,6 +754,7 @@ export default {
     sb_title: "",
     sb_icon: "",
     valid: true,
+    home_id: '',
     tab: null,
     loading: false,
     dialogDelete: false,
@@ -734,6 +767,8 @@ export default {
     consultation: {},
     backgroundPerson: [],
     backgroundFamily: [],
+    suggestions: [],
+    statusuggestions: [],
     data: {},
     page: 1, // Página actual
     itemsPerPage: 5, // Elementos por página
@@ -1229,9 +1264,20 @@ export default {
   mounted() {
     this.name = JSON.parse(LocalStorageService.getItem("name"));
     this.imageUrl = LocalStorageService.getItem("image").replace(/['"]+/g, "");
+    this.home_id = JSON.parse(LocalStorageService.getItem("home_id"));
     this.initialize();
   },
   methods: {
+     handleCloseDialog() {
+      // Lógica adicional al cerrar el diálogo si es necesaria
+      console.log("Diálogo cerrado");
+      this.closeDialgChat();
+    },
+    closeDialgChat() {
+      this.dialogChatTask = false;
+      this.currentTask = null; // Limpia la tarea actual
+      this.initialize();
+    },
     getImcColor(imc) {
       const value = parseFloat(imc);
       if (value < 18.5) return "blue"; // Bajo peso
@@ -1395,11 +1441,13 @@ export default {
     },*/
     async initialize() {
       this.data = {};
+      this.data.home_id = this.home_id;
       try {
         this.loading = true;
         const result = await handleRequest({
           endpoint: "person-profile",
-          method: "GET",
+          method: "POST",
+          data: this.data,
         });
 
         if (result.success) {
@@ -1412,6 +1460,8 @@ export default {
           this.backgroundFamily = result.data?.backgroundFamily || [];
           this.diagnosis = result.data?.diagnosis || {};
           this.consultation = result.data?.consultation || {};
+          this.suggestions = result.data?.suggestions || [];
+          this.statusuggestions = result.data?.statusuggestions || [];
         } else {
           // Si no hay datos, asignamos un array vacío
           this.person = {};
@@ -1422,6 +1472,8 @@ export default {
           this.medicalExam = [];
           this.backgroundPerson = [];
           this.backgroundFamily = [];
+          this.suggestions = [];
+          this.statusuggestions = [];
         }
       } catch (error) {
         this.loading = false;

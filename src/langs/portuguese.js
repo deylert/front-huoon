@@ -39,6 +39,7 @@ const portuguese = {
       yes: "Sim",
       no: "Não",
     },
+    no_definido: "Não definido",
     vitalSigns: "Sinais Vitais",
     medicalInformation: "Informação Médica",
     complementaryData: "Dados Complementares",

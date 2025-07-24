@@ -201,43 +201,39 @@
           </v-col>
 
           <v-col cols="12" sm="3" md="3">
-            <v-card class="pa-3 d-flex align-center" elevation="1" rounded="lg">
-              <v-avatar size="40" class="me-3" color="amber-lighten-4" variant="tonal">
-                <v-icon color="amber-darken-2">mdi-calendar-clock</v-icon>
+            <v-card
+              class="pa-3 d-flex align-center"
+              elevation="1"
+              rounded="lg"
+              @click="showAddBuget()"
+            >
+              <v-avatar
+                size="40"
+                class="me-3"
+                :color="`${budget.color}-lighten-4`"
+                variant="tonal"
+              >
+                <v-icon :color="budget.color">{{ budget.icon }}</v-icon>
               </v-avatar>
               <div>
                 <div class="text-body-2 font-weight-medium">
                   {{ $t("finances.sections.budget") }}
                 </div>
-
                 <div class="text-subtitle-2">
-                  <strong class="text-amber">${{ formatCurrency(movent.total) }}</strong>
-                  {{ $t("finances.comparison.thisMonth") }}
+                  <strong :class="`text-${budget.color}`"
+                    >${{ formatCurrency(budget.current) }}</strong
+                  >
+                  <span v-if="parseFloat(budget.percentage) > 0">
+                    (+{{ budget.percentage }}%)</span
+                  >
+                  <span v-else-if="parseFloat(budget.percentage) < 0">
+                    ({{ budget.percentage }}%)</span
+                  >
                 </div>
-
-                <!-- Tooltip con truncado -->
-                <v-tooltip location="top">
-                  <template v-slot:activator="{ props }">
-                    <div
-                      class="text-caption text-grey-darken-1 d-flex align-center text-truncate"
-                      v-bind="props"
-                      style="max-width: 220px"
-                    >
-                      <v-icon size="14" class="me-1" color="grey">
-                        {{ movent.lastMovement?.icon }}
-                      </v-icon>
-                      ${{
-                        movent.lastMovement?.amount
-                          ? formatCurrency(movent.lastMovement.amount)
-                          : "0"
-                      }}
-                      {{ movent.lastMovement?.description }}
-                    </div>
-                  </template>
-                  <span>
-                    {{ movent.lastMovement?.description }}
-                  </span>
-                </v-tooltip>
+                <div class="text-caption text-grey-darken-1">
+                  vs <strong>${{ formatCurrency(budget.lastMonth) }}</strong>
+                  {{ $t("finances.comparison.lastMonth") }}
+                </div>
               </div>
             </v-card>
           </v-col>
@@ -1254,6 +1250,7 @@ export default {
       income: {},
       spent: {},
       balance: {},
+      budget: {},
       nameRules: [
         (v) => !!v || "El campo es requerido",
         (v) => (v && v.length <= 50) || "El campo debe tener menos de 51 caracteres",
@@ -1832,6 +1829,7 @@ export default {
           this.suggestions = result.data?.suggestions || [];
           this.statusuggestions = result.data?.statusuggestions || [];
           this.movent = result.data?.movementsCard || {};
+          this.budget = result.data?.budgetCard || [];
           console.log("movent:", this.movent);
         } else {
           // Si no hay datos, asignamos un array vacío

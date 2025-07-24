@@ -298,7 +298,7 @@
             </v-col>
           </template>
         </v-row>
-        <v-divider class="my-4" />
+        <!--<v-divider class="my-4" />
         <div class="text-body-2 font-weight-medium mb-2">
           {{ $t("medicalExamsTitle") }}
         </div>
@@ -347,7 +347,7 @@
               </v-alert>
             </v-col>
           </template>
-        </v-row>
+        </v-row>-->
         <v-divider class="my-4" />
         <SuggestionsList
     :items="suggestions"
@@ -904,96 +904,108 @@ export default {
     },
     //card de signos vitales
     signosVitalesTransformados() {
-      const signosConfig = {
-        bloodPressure: {
-          nombre: this.$t("physicalExam.fields.blood_pressure"),
-          unidad: "mmHg",
-          icon: "mdi-heart-pulse",
-          color: "indigo-darken-2",
-          type: "physicalExam",
-        },
-        pulse: {
-          nombre: this.$t("physicalExam.fields.pulse"),
-          unidad: "bpm",
-          icon: "mdi-heart",
-          color: "indigo-darken-2",
-          type: "physicalExam",
-        },
-        temperature: {
-          nombre: this.$t("physicalExam.fields.temperature"),
-          unidad: "°C",
-          icon: "mdi-thermometer",
-          color: "indigo-darken-2",
-          type: "physicalExam",
-        },
-        respiratoryRate: {
-          nombre: this.$t("physicalExam.fields.respiratory_rate"),
-          unidad: "rpm",
-          icon: "mdi-lungs",
-          color: "indigo-darken-2",
-          type: "physicalExam",
-        },
-        weight: {
-          nombre: this.$t("physicalExam.fields.weight"),
-          unidad: "kg",
-          icon: "mdi-scale-bathroom",
-          color: "indigo-darken-2",
-          type: "physicalExam",
-        },
-      };
+    const signosConfig = {
+      bloodPressure: {
+        nombre: this.$t("physicalExam.fields.blood_pressure"),
+        unidad: "mmHg",
+        icon: "mdi-heart-pulse",
+        color: "indigo-darken-2",
+        type: "physicalExam",
+      },
+      pulse: {
+        nombre: this.$t("physicalExam.fields.pulse"),
+        unidad: "bpm",
+        icon: "mdi-heart",
+        color: "indigo-darken-2",
+        type: "physicalExam",
+      },
+      temperature: {
+        nombre: this.$t("physicalExam.fields.temperature"),
+        unidad: "°C",
+        icon: "mdi-thermometer",
+        color: "indigo-darken-2",
+        type: "physicalExam",
+      },
+      respiratoryRate: {
+        nombre: this.$t("physicalExam.fields.respiratory_rate"),
+        unidad: "rpm",
+        icon: "mdi-lungs",
+        color: "indigo-darken-2",
+        type: "physicalExam",
+      },
+      weight: {
+        nombre: this.$t("physicalExam.fields.weight"),
+        unidad: "kg",
+        icon: "mdi-scale-bathroom",
+        color: "indigo-darken-2",
+        type: "physicalExam",
+      },
+    };
 
-      const result = [];
-      const examData = this.physicalExam || {};
+  const result = [];
+  const examData = this.physicalExam || {};
 
-      // Transformar cada propiedad relevante
-      Object.keys(signosConfig).forEach((key) => {
-        if (examData[key] !== null && examData[key] !== undefined) {
-          result.push({
-            ...signosConfig[key],
-            valor: examData[key],
-            fecha: examData.examDate || examData.exam_date,
-            originalKey: key,
-          });
-        }
-      });
+  // Transformar cada propiedad relevante, mostrando "No definido" si no hay valor
+  Object.keys(signosConfig).forEach((key) => {
+   const valor = examData[key];
+    const tieneValor = valor !== null && valor !== undefined && valor !== '';
+    
+    result.push({
+      ...signosConfig[key],
+      valor: tieneValor ? valor : this.$t("no_definido"),
+      unidad: tieneValor ? signosConfig[key].unidad : "", // No mostrar unidad si no hay valor
+      fecha: (examData.examDate || examData.exam_date) || new Date().toISOString().split("T")[0],
+      originalKey: key,
+    });
+  });
 
-      // Añadir medicamentos si existen
-      /*if (this.person.currentMedications && this.person.currentMedications.length > 0) {
-        result.push({
-          nombre: 'Medicamentos Actuales',
-          valor: this.person.currentMedications.map(m => m.name).join(', '),
-          unidad: '',
-          icon: 'mdi-pill',
-          color: 'purple',
-          fecha: new Date().toISOString().split('T')[0],
-          originalKey: 'medications'
-        });
-      }*/
+  // Añadir medicamentos si existen
+  /*if (this.treatment && this.treatment.medication) {
+    const medInfo = [
+      this.treatment.medication,
+      this.treatment.dosage,
+      this.treatment.frequency,
+    ]
+      .filter(Boolean)
+      .join(" - ");
 
-      // Añadir medicamentos si existen (versión para objeto treatment)
-      if (this.treatment && this.treatment.medication) {
-        const medInfo = [
-          this.treatment.medication,
-          this.treatment.dosage,
-          this.treatment.frequency,
-        ]
-          .filter(Boolean)
-          .join(" - ");
+    result.push({
+      nombre: this.$t("cardMedicamento"),
+      valor: medInfo || this.$t("no_definido"),
+      unidad: "",
+      icon: "mdi-pill",
+      color: "purple",
+      fecha: this.treatment.startDate || new Date().toISOString().split("T")[0],
+      originalKey: "medication",
+      type: "treatment",
+    });
+  }*/
+ // Añadir medicamentos SIEMPRE, incluso si está vacío
+  const tratamiento = this.treatment || {};
+  const medInfo = [
+    tratamiento.medication,
+    tratamiento.dosage,
+    tratamiento.frequency,
+  ]
+    .filter(Boolean)
+    .join(" - ");
 
-        result.push({
-          nombre: this.$t("cardMedicamento"),
-          valor: medInfo,
-          unidad: "",
-          icon: "mdi-pill",
-          color: "purple",
-          fecha: this.treatment.startDate || new Date().toISOString().split("T")[0],
-          originalKey: "medication",
-          type: "treatment",
-        });
-      }
+  const tieneInfoMedicamento = medInfo && medInfo.trim() !== '';
+  
+  result.push({
+    nombre: this.$t("cardMedicamento"),
+    valor: tieneInfoMedicamento ? medInfo : this.$t("no_definido"),
+    unidad: tieneInfoMedicamento ? "" : "", // No mostrar unidad si no hay info
+    icon: "mdi-pill",
+    color: "purple",
+    fecha: tratamiento.startDate || new Date().toISOString().split("T")[0],
+    originalKey: "medication",
+    type: "treatment",
+  });
 
-      return result;
-    },
+
+  return result;
+},
     examenesMedicosTransformados() {
       // Mapeo de tipos a iconos (case insensitive)
       const iconMapping = {
@@ -1033,230 +1045,166 @@ export default {
       const informacionMedica = [];
       const { person, backgroundPerson, backgroundFamily } = this;
 
-      // 1. Grupo sanguíneo
-      if (person?.bloodType || person?.blood_type) {
-        informacionMedica.push({
-          nombre: this.$t("personManagement.fields.blood_type"),
-          valor: person.bloodType || person.blood_type || "No especificado",
-          unidad: "",
-          icon: "mdi-water",
-          color: "grey-darken-1",
-          fecha: person.date || "No especificada",
-        });
-      }
+      // 1. Grupo sanguíneo - Mostrar siempre
+      const bloodType = person?.bloodType || person?.blood_type;
+      informacionMedica.push({
+        nombre: this.$t("personManagement.fields.blood_type"),
+        valor: bloodType || this.$t("no_definido"),
+        unidad: "",
+        icon: "mdi-water",
+        color: "grey-darken-1",
+        fecha: (person?.date) || new Date().toISOString().split("T")[0],
+      });
 
-      // 2. Alergias
+      // 2. Alergias - Mostrar siempre
       const alergias =
         backgroundPerson?.filter(
-          (item) => item.type && item.type.toLowerCase().includes("alergia")
+          (item) => item?.type && item.type.toLowerCase().includes("alergia")
         ) || [];
 
-      if (alergias.length > 0) {
-        const alergiasText = alergias.map((a) => a.description).join(", ");
-        informacionMedica.push({
-          nombre: this.$t("cardAlergias"),
-          valor: alergiasText,
-          unidad: "",
-          icon: "mdi-alert-circle",
-          color: "deep-orange",
-          fecha: alergias[0]?.startDate || "No especificada",
-          type: "backgroundPerson",
-        });
-      }
+      const alergiasText = alergias.length > 0 
+        ? alergias.map((a) => a.description).join(", ")
+        : "";
 
-      // 3. Antecedentes personales (excluyendo alergias)
+      informacionMedica.push({
+        nombre: this.$t("cardAlergias"),
+        valor: alergiasText || this.$t("no_definido"),
+        unidad: "",
+        icon: "mdi-alert-circle",
+        color: "deep-orange",
+        fecha: (alergias[0]?.startDate) || new Date().toISOString().split("T")[0],
+        type: "backgroundPerson",
+      });
+
+      // 3. Antecedentes personales (excluyendo alergias) - Mostrar siempre
       const antecedentesPersonales =
         backgroundPerson?.filter(
-          (item) => !item.type || !item.type.toLowerCase().includes("alergia")
+          (item) => !item?.type || !item.type.toLowerCase().includes("alergia")
         ) || [];
 
-      if (antecedentesPersonales.length > 0) {
-        const antecedentesText = antecedentesPersonales
-          .map((a) => a.description)
-          .join(", ");
-        informacionMedica.push({
-          nombre: this.$t("cardAntecedentesPersonales"),
-          valor: antecedentesText,
-          unidad: "",
-          icon: "mdi-file-document-outline",
-          color: "deep-orange",
-          fecha: antecedentesPersonales[0]?.startDate || "No especificada",
-          type: "backgroundPerson",
-        });
-      }
+      const antecedentesText = antecedentesPersonales.length > 0
+        ? antecedentesPersonales.map((a) => a.description).join(", ")
+        : "";
 
-      // 4. Antecedentes familiares
-      if (backgroundFamily?.length > 0) {
-        const familiaresText = backgroundFamily
-          .map((f) => `${f.relationship}: ${f.disease}`)
-          .join("; ");
+      informacionMedica.push({
+        nombre: this.$t("cardAntecedentesPersonales"),
+        valor: antecedentesText || this.$t("no_definido"),
+        unidad: "",
+        icon: "mdi-file-document-outline",
+        color: "deep-orange",
+        fecha: (antecedentesPersonales[0]?.startDate) || new Date().toISOString().split("T")[0],
+        type: "backgroundPerson",
+      });
 
-        informacionMedica.push({
-          nombre: this.$t("cardAntecedentesFamiliares"),
-          valor: familiaresText,
-          unidad: "",
-          icon: "mdi-family-tree",
-          color: "deep-orange",
-          fecha: backgroundFamily[0]?.date || "No especificada",
-          type: "backgroundFamily",
-        });
-      }
+      // 4. Antecedentes familiares - Mostrar siempre
+      const familiaresText = backgroundFamily?.length > 0
+        ? backgroundFamily.map((f) => `${f.relationship}: ${f.disease}`).join("; ")
+        : "";
+
+      informacionMedica.push({
+        nombre: this.$t("cardAntecedentesFamiliares"),
+        valor: familiaresText || this.$t("no_definido"),
+        unidad: "",
+        icon: "mdi-family-tree",
+        color: "deep-orange",
+        fecha: (backgroundFamily?.[0]?.date) || new Date().toISOString().split("T")[0],
+        type: "backgroundFamily",
+      });
 
       return informacionMedica;
     },
-    /*datosComplementariosTransformados() {
-      const complementarios = [];
-      const { physicalExam, backgroundPerson } = this;
-
-      // 1. Plan de Vacunación
-      const vacunas = backgroundPerson.filter(
-        (item) => item.type && item.type.toLowerCase().includes("vacunación")
-      );
-
-      if (vacunas.length > 0) {
-        const vacunasText = vacunas.map((v) => v.description).join(", ");
-        complementarios.push({
-          nombre: "Plan de Vacunación",
-          valor: vacunasText,
-          unidad: "",
-          icon: "mdi-needle",
-          color: "green-darken-1",
-          fecha:
-            vacunas[0]?.startDate ||
-            physicalExam?.exam_date ||
-            new Date().toISOString().split("T")[0],
-            type: "backgroundPerson"
-        }); 
-      }
-
-      // 2. Talla
-      if (physicalExam?.height) {
-        complementarios.push({
-          nombre: "Talla",
-          valor: parseFloat(physicalExam.height).toFixed(2),
-          unidad: "m",
-          icon: "mdi-human-male-height",
-          color: "grey-darken-1",
-          fecha: physicalExam?.exam_date || new Date().toISOString().split("T")[0],
-          type: "physicalExam",
-        });
-      }
-
-      // 3. IMC (usamos el calculado o calculamos si no existe)
-      if (physicalExam?.height) {
-        const imc =
-          physicalExam.bmi ||
-          (physicalExam.weight
-            ? (
-                parseFloat(physicalExam.weight) /
-                (parseFloat(physicalExam.height) * parseFloat(physicalExam.height))
-              ).toFixed(2)
-            : null);
-
-        if (imc) {
-          complementarios.push({
-            nombre: "IMC",
-            valor: imc,
-            unidad: "",
-            icon: "mdi-calculator-variant-outline",
-            color: this.getImcColor(imc), // Función para color según IMC
-            fecha: physicalExam?.exam_date || new Date().toISOString().split("T")[0],
-          type: "physicalExam",
-          });
-        }
-      }
-
-      return complementarios;
-    },*/
     datosComplementariosTransformados() {
       const complementarios = [];
-      const { physicalExam, backgroundPerson, diagnosis, consultation } = this; // Agregamos diagnosis
+      const { physicalExam, backgroundPerson, diagnosis, consultation } = this;
 
-      // 3. Talla (existente)
-      if (physicalExam?.height) {
-        complementarios.push({
-          nombre: this.$t("physicalExam.fields.height"),
-          valor: parseFloat(physicalExam.height).toFixed(2),
-          unidad: "m",
-          icon: "mdi-human-male-height",
-          color: "grey-darken-1",
-          fecha: physicalExam?.exam_date || new Date().toISOString().split("T")[0],
-          type: "physicalExam",
-        });
-      }
+      // 3. Talla - Mostrar siempre
+      const height = physicalExam?.height;
+      const tieneHeight = height !== null && height !== undefined && height !== '';
+      
+      complementarios.push({
+        nombre: this.$t("physicalExam.fields.height"),
+        valor: tieneHeight ? parseFloat(height).toFixed(2) : this.$t("no_definido"),
+        unidad: tieneHeight ? "m" : "",
+        icon: "mdi-human-male-height",
+        color: "grey-darken-1",
+        fecha: (physicalExam?.exam_date) || new Date().toISOString().split("T")[0],
+        type: "physicalExam",
+      });
 
-      // 4. IMC (existente)
+      // 4. IMC - Mostrar siempre
+      let imc = null;
       if (physicalExam?.height) {
-        const imc =
-          physicalExam.bmi ||
+        imc = physicalExam.bmi ||
           (physicalExam.weight
-            ? parseFloat(physicalExam.weight) /
-              (parseFloat(physicalExam.height) * parseFloat(physicalExam.height)).toFixed(
-                2
-              )
+            ? (parseFloat(physicalExam.weight) /
+              (parseFloat(physicalExam.height) * parseFloat(physicalExam.height))).toFixed(2)
             : null);
-
-        if (imc) {
-          complementarios.push({
-            nombre: this.$t("physicalExam.fields.bmi"),
-            valor: imc,
-            unidad: "",
-            icon: "mdi-calculator-variant-outline",
-            color: this.getImcColor(imc),
-            fecha: physicalExam?.exam_date || new Date().toISOString().split("T")[0],
-            type: "physicalExam",
-          });
-        }
-
-        // 2. Plan de Vacunación (existente)
-        const vacunas = backgroundPerson.filter(
-          (item) => item.type && item.type.toLowerCase().includes("vacunación")
-        );
-
-        if (vacunas.length > 0) {
-          const vacunasText = vacunas.map((v) => v.description).join(", ");
-          complementarios.push({
-            nombre: this.$t("cardPlanVacunacion"),
-            valor: vacunasText,
-            unidad: "",
-            icon: "mdi-needle",
-            color: "green-darken-1",
-            fecha:
-              vacunas[0]?.startDate ||
-              physicalExam?.exam_date ||
-              new Date().toISOString().split("T")[0],
-            type: "backgroundPerson",
-          });
-        }
-        // 1. Diagnóstico Principal
-        if (diagnosis?.typeName) {
-          complementarios.push({
-            nombre: this.$t("cardDiagnostico"),
-            valor: `${diagnosis.typeName} (${diagnosis.cie10Code || "Sin código"})`,
-            detalle: diagnosis.description, // Agregamos descripción como detalle
-            unidad: "",
-            icon: "mdi-heart-pulse", // Icono médico
-            color: "red-darken-1", // Color distintivo para diagnósticos
-            fecha: diagnosis.date || new Date().toISOString().split("T")[0],
-            type: "diagnosis", // Nuevo tipo para identificar
-          });
-        }
-
-        if (consultation) {
-          complementarios.push({
-            nombre: this.$t("cardConsultaMedica"),
-            valor: consultation.typeName || "Consulta médica",
-            detalle: consultation.reason || "Sin motivo especificado",
-            unidad: consultation.professional
-              ? `Profesional: ${consultation.professional}`
-              : "",
-            icon: "mdi-stethoscope", // Icono de estetoscopio para consultas
-            color: "blue-darken-2", // Color azul para consultas
-            fecha: consultation.date ? consultation.date : "No registrada",
-            type: "consultation",
-          });
-        }
       }
+      
+      const tieneImc = imc !== null && imc !== undefined && imc !== '';
+      
+      complementarios.push({
+        nombre: this.$t("physicalExam.fields.bmi"),
+        valor: tieneImc ? imc : this.$t("no_definido"),
+        unidad: "",
+        icon: "mdi-calculator-variant-outline",
+        color: tieneImc ? this.getImcColor(imc) : "grey-darken-1",
+        fecha: (physicalExam?.exam_date) || new Date().toISOString().split("T")[0],
+        type: "physicalExam",
+      });
+
+      // 2. Plan de Vacunación - Mostrar siempre
+      const vacunas = backgroundPerson?.filter(
+        (item) => item?.type && item.type.toLowerCase().includes("vacunación")
+      ) || [];
+
+      const vacunasText = vacunas.length > 0 
+        ? vacunas.map((v) => v.description).join(", ")
+        : "";
+
+      complementarios.push({
+        nombre: this.$t("cardPlanVacunacion"),
+        valor: vacunasText || this.$t("no_definido"),
+        unidad: "",
+        icon: "mdi-needle",
+        color: "green-darken-1",
+        fecha: (vacunas[0]?.startDate || physicalExam?.exam_date) || new Date().toISOString().split("T")[0],
+        type: "backgroundPerson",
+      });
+
+      // 1. Diagnóstico Principal - Mostrar siempre
+      const diagnosisInfo = diagnosis?.typeName 
+        ? `${diagnosis.typeName} (${diagnosis.cie10Code || "Sin código"})`
+        : "";
+
+      complementarios.push({
+        nombre: this.$t("cardDiagnostico"),
+        valor: diagnosisInfo || this.$t("no_definido"),
+        detalle: diagnosis?.description || "",
+        unidad: "",
+        icon: "mdi-heart-pulse",
+        color: diagnosisInfo ? "red-darken-1" : "grey-darken-1",
+        fecha: (diagnosis?.date) || new Date().toISOString().split("T")[0],
+        type: "diagnosis",
+      });
+
+      // 5. Consulta Médica - Mostrar siempre
+      const consultaInfo = consultation?.typeName || "Consulta médica";
+      const motivoConsulta = consultation?.reason || "Sin motivo especificado";
+      const profesionalInfo = consultation?.professional
+        ? `Profesional: ${consultation.professional}`
+        : "";
+
+      complementarios.push({
+        nombre: this.$t("cardConsultaMedica"),
+        valor: consultaInfo,
+        detalle: motivoConsulta,
+        unidad: profesionalInfo,
+        icon: "mdi-stethoscope",
+        color: "blue-darken-2",
+        fecha: (consultation?.date) || new Date().toISOString().split("T")[0],
+        type: "consultation",
+      });
 
       return complementarios;
     },

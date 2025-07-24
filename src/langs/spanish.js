@@ -39,6 +39,7 @@ const spanish = {
       yes: "Sí",
       no: "No",
     },
+    no_definido: "No definido",
     vitalSigns: "Signos Vitales",
     medicalInformation: "Información Médica",
     complementaryData: "Datos Complementarios",

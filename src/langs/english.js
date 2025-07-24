@@ -41,6 +41,7 @@ const english = {
       yes: "Yes",
       no: "No",
     },
+    no_definido: "Not defined",
     vitalSigns: "Vital Signs",
     medicalInformation: "Medical Information",
     complementaryData: "Complementary Data",

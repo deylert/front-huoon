@@ -63,7 +63,7 @@
     <v-col cols="12" md="5" class="d-flex flex-column justify-center align-center pa-4 bg-white">
       <v-card class="w-100" max-width="500" flat>
 
-        <v-row justify="" class="mb-6 mt-2 ">
+        <v-row class="mb-6 mt-2 ">
 
           <v-avatar class="ml-2" image="@/assets/logo-verde.png" size="60"></v-avatar>
 

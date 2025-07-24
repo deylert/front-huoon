@@ -207,7 +207,7 @@
               </v-avatar>
               <div>
                 <div class="text-body-2 font-weight-medium">
-                  {{ $t("finances.sections.movements") }}
+                  {{ $t("finances.sections.budget") }}
                 </div>
 
                 <div class="text-subtitle-2">
@@ -244,20 +244,16 @@
         </v-row>
 
         <v-divider class="my-4" />
-    
-    <SuggestionsList
-    :items="suggestions"
-    :title="$t('finances.sections.suggestions')"
-    icon="mdi-finance"
-  >
-    <template #detail="{ taskData, onClose }">
-      <ChatTaskFinance 
-        :taskData="taskData"
-        @close-dialog="onClose"  
-      />
-    </template>
-  </SuggestionsList>
 
+        <SuggestionsList
+          :items="suggestions"
+          :title="$t('finances.sections.suggestions')"
+          icon="mdi-finance"
+        >
+          <template #detail="{ taskData, onClose }">
+            <ChatTaskFinance :taskData="taskData" @close-dialog="onClose" />
+          </template>
+        </SuggestionsList>
       </v-card-text>
     </v-card>
   </v-container>
@@ -892,22 +888,24 @@
                     </v-col>
 
                     <v-col cols="auto" class="d-flex align-center px-2">
-                        <v-chip
-                            color="amber"
-                            variant="outlined"
-                            class="score-chip"
-                            :title="$t('suggestedTasks.scoreTooltip')"
-                        >
-                            <v-icon left size="small">mdi-star</v-icon>
-                            {{ task.score }}
-                        </v-chip>
+                      <v-chip
+                        color="amber"
+                        variant="outlined"
+                        class="score-chip"
+                        :title="$t('suggestedTasks.scoreTooltip')"
+                      >
+                        <v-icon left size="small">mdi-star</v-icon>
+                        {{ task.score }}
+                      </v-chip>
                     </v-col>
 
                     <v-col cols="1" class="d-flex align-center pe-4 gap-2">
                       <div>
-                        <span class="text-black">{{ task.priority_name_translated }}</span>
+                        <span class="text-black">{{
+                          task.priority_name_translated
+                        }}</span>
                       </div>
-                  </v-col>
+                    </v-col>
 
                     <!-- Participantes -->
                     <v-col cols="auto" class="d-flex align-center pe-4 gap-2">
@@ -976,7 +974,7 @@
     <v-card>
       <v-card-text>
         <!-- Pasamos los parámetros al componente ChatTask -->
-        <ChatTaskFinance :taskData="currentTask" @close-dialog="closeDialgChat()"  />
+        <ChatTaskFinance :taskData="currentTask" @close-dialog="closeDialgChat()" />
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
@@ -1527,11 +1525,10 @@ export default {
     openChatbot(task) {
       this.currentTask = null;
       this.$nextTick(() => {
-        const taskData = typeof task.taskData === 'string' 
-      ? JSON.parse(task.taskData) 
-      : task.taskData;
-    
-    this.currentTask = _.cloneDeep(taskData);
+        const taskData =
+          typeof task.taskData === "string" ? JSON.parse(task.taskData) : task.taskData;
+
+        this.currentTask = _.cloneDeep(taskData);
         this.dialogChatTask = true;
       });
     },
@@ -1765,24 +1762,24 @@ export default {
     },
 
     formatDate(dateStr) {
-  if (!dateStr) return '';
-  
-  // Solución 1: Parseo manual (recomendado)
-  const [year, month, day] = dateStr.split('-');
-  const date = new Date(year, month - 1, day); // Los meses son 0-based
-  
-  // Solución 2: Ajustar a UTC (alternativa)
-  // const date = new Date(dateStr + 'T00:00:00Z');
-  
-  const options = { 
-    day: '2-digit', 
-    month: 'short',
-    year: 'numeric',
-    timeZone: 'UTC' // Asegura consistencia
-  };
-  
-  return date.toLocaleDateString('es-CL', options);
-},
+      if (!dateStr) return "";
+
+      // Solución 1: Parseo manual (recomendado)
+      const [year, month, day] = dateStr.split("-");
+      const date = new Date(year, month - 1, day); // Los meses son 0-based
+
+      // Solución 2: Ajustar a UTC (alternativa)
+      // const date = new Date(dateStr + 'T00:00:00Z');
+
+      const options = {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        timeZone: "UTC", // Asegura consistencia
+      };
+
+      return date.toLocaleDateString("es-CL", options);
+    },
 
     resetFiltros() {
       this.filtroDesde = "";

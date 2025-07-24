@@ -699,6 +699,7 @@ const portuguese = {
         balance: "Saldo",
         movements: "Movimentações",
         suggestions: "Sugestões",
+        budget: "Orçamento"
       },
       currentAmount: "<strong>{amount}</strong> atual",
     },

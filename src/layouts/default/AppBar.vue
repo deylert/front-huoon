@@ -19,6 +19,7 @@
       </v-col>
     </v-row>
   </v-snackbar>
+  
   <v-card class="mx-auto pa-3" flat style="background: transparent">
     <div class="d-flex align-center justify-space-between" min-wdth="600">
       <!-- Icono a la izquierda -->
@@ -59,7 +60,7 @@
 
       </div>-->
 
-      <v-btn icon class="text-none" variant="text" >
+      <v-btn icon class="text-none" variant="text">
         <v-badge color="#E53935" :content="cantHome" dot>
           <v-icon color="#00796B" icon="mdi-home" @click="openMenu"></v-icon>
         </v-badge>
@@ -115,11 +116,9 @@
                   </v-tooltip>
                   <v-tooltip location="top">
                     <template v-slot:activator="{ props }">
-                      <v-list-item-subtitle
-                        v-bind="props"
-                        class="text-truncate"
-                        >{{ home.nameRole }}</v-list-item-subtitle
-                      >
+                      <v-list-item-subtitle v-bind="props" class="text-truncate">{{
+                        home.nameRole
+                      }}</v-list-item-subtitle>
                     </template>
                     <span>{{ home.nameRole }}</span>
                   </v-tooltip>
@@ -145,20 +144,17 @@
         </v-menu>
       </v-btn>
       <!-- Campanita de notificaciones -->
-      <v-btn icon class="text-none" variant="text" >
+      <v-btn icon class="text-none" variant="text">
         <template v-if="countNoti">
           <!-- Mostrar badge solo si hay notificaciones -->
           <v-badge color="#E53935" :content="countNoti" dot>
-            <v-icon
-              color="#00796B"
-              icon="mdi-bell"
-            ></v-icon>
+            <v-icon color="#00796B" icon="mdi-bell"></v-icon>
           </v-badge>
         </template>
 
         <template v-else>
           <!-- Mostrar solo el icono (sin badge) -->
-          <v-icon style="color: #00796B" icon="mdi-bell"></v-icon>
+          <v-icon style="color: #00796b" icon="mdi-bell"></v-icon>
         </template>
 
         <!-- Componente de menú de notificaciones -->
@@ -199,30 +195,30 @@
                 <v-col style="min-width: 0">
                   <!-- Título con tooltip -->
                   <v-tooltip location="top">
-  <template v-slot:activator="{ props }">
-    <v-list-item-title
-      v-bind="props"
-      :class="{ 'unread-title': notification.status === 0 }"
-      class="text-truncate title-text"
-    >
-      {{ notification.title }}
-    </v-list-item-title>
-  </template>
-  <span>{{ notification.title }}</span>
-</v-tooltip>
+                    <template v-slot:activator="{ props }">
+                      <v-list-item-title
+                        v-bind="props"
+                        :class="{ 'unread-title': notification.status === 0 }"
+                        class="text-truncate title-text"
+                      >
+                        {{ notification.title }}
+                      </v-list-item-title>
+                    </template>
+                    <span>{{ notification.title }}</span>
+                  </v-tooltip>
 
-<!-- Descripción con tooltip -->
-<v-tooltip location="top">
-  <template v-slot:activator="{ props }">
-    <v-list-item-subtitle
-      v-bind="props"
-      class="text-truncate description-text"
-    >
-      {{ notification.description }}
-    </v-list-item-subtitle>
-  </template>
-  <span>{{ notification.description }}</span>
-</v-tooltip>
+                  <!-- Descripción con tooltip -->
+                  <v-tooltip location="top">
+                    <template v-slot:activator="{ props }">
+                      <v-list-item-subtitle
+                        v-bind="props"
+                        class="text-truncate description-text"
+                      >
+                        {{ notification.description }}
+                      </v-list-item-subtitle>
+                    </template>
+                    <span>{{ notification.description }}</span>
+                  </v-tooltip>
                 </v-col>
               </v-row>
             </v-list-item>
@@ -230,7 +226,7 @@
             <!-- Botón de carga adicional -->
             <v-list-item v-if="hasMore" @click="getNotifications" class="load-more-item">
               <v-btn variant="text" color="primary" block class="load-more-btn">
-                {{$t("buttons.seeMore")}}
+                {{ $t("buttons.seeMore") }}
                 <v-icon right>mdi-chevron-down</v-icon>
               </v-btn>
             </v-list-item>
@@ -246,11 +242,7 @@
           content-class="rounded-menu"
         >
           <template v-slot:activator="{ props }">
-            <v-icon
-              style="color: #00796B"
-              icon="mdi-cog"
-              v-bind="props"
-            ></v-icon>
+            <v-icon style="color: #00796b" icon="mdi-cog" v-bind="props"></v-icon>
           </template>
           <v-list density="compact">
             <v-list-item
@@ -490,43 +482,41 @@
               <!-- Paso 1: Información básica -->
               <v-row dense v-if="step === 0">
                 <v-col cols="12" md="6" class="d-flex flex-column align-center">
-  <div style="position: relative" class="mb-4">
-    <v-avatar 
-      size="200" 
-      class="avatar-hover"
-      @click="$refs.fileInput.click()"
-    >
-      <v-img
-        v-if="imagenDisponible()"
-        :src="imgedit"
-        alt="User Avatar"
-      ></v-img>
-      <v-icon v-else size="100">mdi-account-circle</v-icon>
-      
-      <!-- Icono de edición superpuesto con efecto hover -->
-      <div class="edit-overlay">
-        <v-icon 
-          size="40" 
-          color="white"
-          class="edit-icon"
-        >mdi-pencil</v-icon>
-      </div>
-    </v-avatar>
-  </div>
+                  <div style="position: relative" class="mb-4">
+                    <v-avatar
+                      size="200"
+                      class="avatar-hover"
+                      @click="$refs.fileInput.click()"
+                    >
+                      <v-img
+                        v-if="imagenDisponible()"
+                        :src="imgedit"
+                        alt="User Avatar"
+                      ></v-img>
+                      <v-icon v-else size="100">mdi-account-circle</v-icon>
 
-  <!-- Input de archivo oculto -->
-  <v-file-input
-    ref="fileInput"
-    v-model="file"
-    :label="$t('personManagement.fields.profile_image')"
-    accept="image/*"
-    variant="underlined"
-    @change="onFileSelected"
-    class="mt-4"
-    :prepend-icon="false"
-    style="display: none"
-  ></v-file-input>
-</v-col>
+                      <!-- Icono de edición superpuesto con efecto hover -->
+                      <div class="edit-overlay">
+                        <v-icon size="40" color="white" class="edit-icon"
+                          >mdi-pencil</v-icon
+                        >
+                      </div>
+                    </v-avatar>
+                  </div>
+
+                  <!-- Input de archivo oculto -->
+                  <v-file-input
+                    ref="fileInput"
+                    v-model="file"
+                    :label="$t('personManagement.fields.profile_image')"
+                    accept="image/*"
+                    variant="underlined"
+                    @change="onFileSelected"
+                    class="mt-4"
+                    :prepend-icon="false"
+                    style="display: none"
+                  ></v-file-input>
+                </v-col>
 
                 <v-col cols="12" md="6">
                   <v-text-field
@@ -972,9 +962,9 @@ export default {
     //this.role = JSON.parse(LocalStorageService.getItem('role'));
     this.imageUrl = LocalStorageService.getItem("image").replace(/['"]+/g, "");
     // Aquí se debe usar una función
-    if(this.home_id){
+    if (this.home_id) {
       this.$router.push({ path: "home" });
-    }else{
+    } else {
       this.$router.push({ path: "onboarding" });
     }
 
@@ -1362,22 +1352,22 @@ export default {
             this.showAlert("success", result.message, 3000);
             const person = result.data.personUpdate;
             // Comparar el idioma de person con el almacenado
-            const currentLocale = LocalStorageService.getItem('userLocale');
+            const currentLocale = LocalStorageService.getItem("userLocale");
             const personLocale = person.language; // Asumo que el idioma viene en person.language
 
             if (personLocale && personLocale !== currentLocale) {
               // Actualizar localStorage
-              LocalStorageService.setItem('userLocale', personLocale);
-              
+              LocalStorageService.setItem("userLocale", personLocale);
+
               // Actualizar i18n y Vuetify
               this.$i18n.locale = personLocale;
               this.$vuetify.locale.current = personLocale;
               // Forzar actualización de componentes que no reaccionan automáticamente
-            this.$forceUpdate(); // Esto actualiza la vista sin recargar
+              this.$forceUpdate(); // Esto actualiza la vista sin recargar
               // Opcional: recargar la página para asegurar que todos los componentes se actualicen
               // window.location.reload();
             }
-            LocalStorageService.setItem('image', person.image);
+            LocalStorageService.setItem("image", person.image);
             this.closePerson();
             window.location.reload();
           } else {

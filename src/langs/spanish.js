@@ -703,6 +703,7 @@ const spanish = {
         balance: "Balance",
         movements: "Movimientos",
         suggestions: "Sugerencias",
+        budget: "Presupuesto"
       },
       currentAmount: "<strong>{amount}</strong> actual",
     },

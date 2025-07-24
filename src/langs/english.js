@@ -699,6 +699,7 @@ const english = {
         balance: "Balance",
         movements: "Movements",
         suggestions: "Suggestions",
+        budget: "Budget" 
       },
       currentAmount: "<strong>{amount}</strong> current",
     },

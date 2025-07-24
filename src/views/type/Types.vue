@@ -19,7 +19,7 @@
       </v-col>
     </v-row>
   </v-snackbar>
-  <!--<v-container fluid fill-height>-->
+  <v-container>
   <v-card elevation="6" class="mx-2">
     <v-toolbar color="#03626C">
       <v-row align="center">
@@ -85,7 +85,7 @@
       </v-data-table>
     </v-card-text>
   </v-card>
-  <!--</v-container>-->
+  </v-container>
 
   <v-dialog v-model="dialog" max-width="600px">
     <v-form ref="form" v-model="valid">

@@ -16,7 +16,7 @@
       <v-col cols="12" class="px-0 mb-6">
         <v-card class="pt-4 mb-8 rounded-lg" elevation="2">
           <!-- Chat Body -->
-          <div ref="chatBody" class="px-4 py-2">
+          <div ref="chatBody" class="chat-body px-4 py-2">
             <div v-for="(message, index) in chatMessages" :key="index" class="d-flex mb-8"
               :class="message.from === 'user' ? 'justify-end' : 'justify-start'">
               <div class="d-flex align-end" :class="message.from === 'user' ? 'flex-row-reverse' : ''">
@@ -24,16 +24,11 @@
                   <v-img src="@/assets/logo-verde.png" alt="Imagen de perfil" />
                 </v-avatar>
 
-                <div :class="[
-            'rounded-xl',
-            message.from === 'user' 
-              ? 'bg-primary text-white' 
-              : 'bg-grey-lighten-2 text-black',
-            message.isEditing 
-              ? 'pa-4'  // Estilo cuando está en edición
-              : 'px-8 py-3'  // Estilo normal
-          ]"
-          style="min-width: 0; max-width: 100%; width: fit-content" >
+                <div class="chat-bubble px-8 py-3 rounded-xl" :class="
+                message.from === 'user'
+                  ? 'bg-primary text-white'
+                  : 'bg-grey-lighten-2 text-black'
+              " style="width: 100%; max-width: 100%;">
                   <!-- Campo editable con componente -->
                   <template v-if="message.isEditable && message.isEditing">
                     <div v-if="['start_date', 'end_date'].includes(message.fieldKey)">
@@ -43,7 +38,7 @@
                         <template #activator="{ props }">
                           <v-text-field v-bind="props" :model-value="taskParameters[message.fieldKey]"
                             :label="message.fieldLabel" variant="outlined" density="comfortable"
-                            style="width: auto; min-width: 10em" no-resize
+                            class="w-100 mt-2 editable-field" no-resize
                             @click:appendInner="message.showDatePicker = true" />
                         </template>
 
@@ -64,7 +59,7 @@
                           <v-text-field v-bind="props" :model-value="
                           taskParameters[message.fieldKey] || '00:00'
                         " :label="message.fieldLabel" variant="outlined" density="comfortable"
-                            style="width: auto; min-width: 10em" no-resize
+                            class="w-100 mt-2 editable-field" no-resize
                             @click:appendInner="message.showTimePicker = true" />
                         </template>
 
@@ -76,12 +71,12 @@
                     </div>
                     <v-textarea v-else-if="['title', 'description'].includes(message.fieldKey)"
                       v-model="message.editValue" :label="message.fieldLabel" variant="outlined" density="comfortable"
-                      style="width: auto; min-width: 50em" :ref="(el) => setTextFieldRef(el, index)" autofocus auto-grow
+                      class="w-100 mt-2 editable-field" :ref="(el) => setTextFieldRef(el, index)" autofocus auto-grow
                       rows="2" no-resize @keyup.enter="saveFieldEdit(index)" @blur="saveFieldEdit(index)"></v-textarea>
 
                     <!-- Textfield para otros campos -->
                     <v-text-field v-else v-model="message.editValue" :label="message.fieldLabel" variant="outlined"
-                      density="comfortable" style="width: auto; min-width: 15em" :ref="(el) => setTextFieldRef(el, index)"
+                      density="comfortable" class="w-100 mt-2 editable-field" :ref="(el) => setTextFieldRef(el, index)"
                       autofocus no-resize @keyup.enter="saveFieldEdit(index)"
                       @blur="saveFieldEdit(index)"></v-text-field>
                   </template>
@@ -123,16 +118,12 @@
               </div>
             </div>
 
-            <div v-if="isTyping" class="d-flex justify-start align-center mb-8 mb-2 ml-3">
-            <div class="d-flex align-end">
-              <v-avatar size="28" class="mb-2 mr-3">
+            <div v-if="isTyping" class="d-flex justify-start align-center mt-2">
+              <v-avatar size="28" class="mr-3">
                 <v-img src="@/assets/logo-verde.png" alt="Avatar" />
               </v-avatar>
-              <div class="chat-bubble px-8 py-3 rounded-xl bg-grey-lighten-2 text-black">
-                <span class="typing-indicator">•••</span>
-              </div>
+              <span class="typing-indicator">•••</span>
             </div>
-          </div>
           </div>
 
           <!-- Herramientas -->
@@ -194,7 +185,9 @@ import { handleRequest } from "@/utils/api";
 import { markRaw } from "vue";
 
 export default {
- emits: ["close-dialog", "close-all-dialogs"],
+  emits: {
+    'close-dialog': null // o una función de validación
+  },
   props: {
     initialMessage: {
       type: String,
@@ -203,7 +196,7 @@ export default {
     taskData: {
       type: Object,
       default: null,
-    },
+    }
   },
   components: {
     PriorityOptions,
@@ -311,7 +304,7 @@ export default {
       return `${this.$axios.defaults.baseURL}images/${this.imageUrl}`;
     },
   },
-  async mounted() {
+  mounted() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
@@ -359,50 +352,12 @@ export default {
       this.escuchando = false;
       this.textoTemporal = "";
     };
-    let taskData = this.taskData;
-  
-  // Si es string, parsearlo
-  if (typeof taskData === 'string') {
-    try {
-      taskData = JSON.parse(taskData);
-    } catch (error) {
-      console.error("Error parsing taskData:", error);
-      return;
-    }
-  }
-  
-  console.log("Datos recibidos del componente padre (taskData):", taskData);
     this.name = JSON.parse(LocalStorageService.getItem("name"));
     this.user = JSON.parse(LocalStorageService.getItem("user"));
     this.user_id = JSON.parse(LocalStorageService.getItem("user_id"));
     this.home_id = JSON.parse(LocalStorageService.getItem("home_id"));
     this.imageUrl = LocalStorageService.getItem("image").replace(/['"]+/g, "");
-    if (this.taskData) {
-      try {
-        await this.loadRequiredData();
-        // Copiar los datos de la tarea
-          this.taskParameters = {
-                          ...this.taskParameters,
-                          ...taskData,
-                        };
-          this.taskDataCollectionMode = true;
-          this.currentTaskIntent = taskData.type || "Tarea";
-        // Mostrar en el chat
-        this.chatMessages.push({
-          from: "ai",
-          text: `Datos de la  ${this.currentTaskIntent} recibidos. Puedes editarlos antes de confirmar.`,
-          timestamp: new Date().toLocaleTimeString(),
-        });
-
-        // Iniciar flujo de edición
-        
-  
-      await this.showInitialTaskData(taskData);
-      } catch (error) {
-        this.showAlert("error", "Error al cargar datos: " + error.message);
-      }
-    } else if (this.initialMessage) {
-      // Si no hay taskData, pero hay initialMessage, simular envío
+    if (this.initialMessage) {
       this.newMessage = this.initialMessage;
       this.sendMessage();
     }
@@ -548,7 +503,7 @@ export default {
               await this.loadRequiredData();
               this.currentTaskIntent = response.data.intent;
               this.taskDataCollectionMode = true;
-              await this.showInitialTaskData(response.data.task);
+              this.showInitialTaskData(response.data.task);
             } else {
               this.chatMessages.push({
                 from: "ai",
@@ -595,12 +550,12 @@ export default {
         this.isLoading = false;
       }
     },
-    async showInitialTaskData(taskData) {
+    showInitialTaskData(taskData) {
       if (!taskData) return;
-      await this.showTaskSummary(taskData);
-      await this.startAutomaticDataCollection();
+      this.showTaskSummary(taskData);
+      this.startAutomaticDataCollection();
     },
-    async showTaskSummary(taskData) {
+    showTaskSummary(taskData) {
       const fieldsToShow = [
         { key: "title", label: "Título" },
         { key: "description", label: "Descripción" },
@@ -644,7 +599,7 @@ export default {
         });
       }
     },
-    async startAutomaticDataCollection() {
+    startAutomaticDataCollection() {
       const parametersOrder = [
         "title",
         "description",
@@ -670,18 +625,18 @@ export default {
       console.log("nextField");
       console.log(nextField);
       if (nextField === "priority_id") {
-        await this.showPriorityOptions();
+        this.showPriorityOptions();
       } else if (nextField === "people") {
-        await this.showPeopleSelector();
+        this.showPeopleSelector();
       } else if (nextField === "recurrence") {
-        await this.showRecurrenceOptions();
+        this.showRecurrenceOptions();
       } else if (nextField) {
         this.showFieldInput(nextField);
       } else {
         this.completeTaskCreation();
       }
     },
-    async showFieldInput(field) {
+    showFieldInput(field) {
       const fieldLabels = {
         title: "el título",
         description: "la descripción",
@@ -702,11 +657,11 @@ export default {
         fieldLabel: fieldLabels[field] || field,
       });
       if (field === "priority_id") {
-        await this.showPriorityOptions();
+        this.showPriorityOptions();
       } else if (field === "recurrence") {
-        await this.showRecurrenceOptions();
+        this.showRecurrenceOptions();
       } else if (field === "people") {
-        await this.showPeopleSelector();
+        this.showPeopleSelector();
       } else if (field === "start_date" || field === "end_date") {
         this.showDatePicker(field);
       } else if (field === "start_time" || field === "end_time") {
@@ -759,7 +714,7 @@ export default {
         if (container) container.scrollTop = container.scrollHeight;
       });
     },
-    async showPriorityOptions() {
+    showPriorityOptions() {
       this.isTyping = true;
       setTimeout(() => {
         this.chatMessages.push({
@@ -774,7 +729,7 @@ export default {
         });
         this.isTyping = false;
         this.scrollToBottom();
-      }, 100);
+      }, 500);
     },
     handlePrioritySelection(priority) {
       this.taskParameters.priority_id = priority.id;
@@ -797,7 +752,7 @@ export default {
       this.sb_icon = type === "success" ? "mdi-check-circle" : "mdi-alert-circle";
       this.snackbar = true;
     },
-    async showRecurrenceOptions() {
+    showRecurrenceOptions() {
       this.isTyping = true;
 
       setTimeout(() => {
@@ -814,7 +769,7 @@ export default {
 
         this.isTyping = false;
         this.scrollToBottom();
-      }, 100);
+      }, 500);
     },
     handleRecurrenceSelection(recurrence) {
       this.taskParameters.recurrence = recurrence.id === "none" ? null : recurrence.id;
@@ -860,7 +815,7 @@ export default {
         timestamp: new Date().toLocaleTimeString(),
       });
     },
-    async showPeopleSelector() {
+    showPeopleSelector() {
       this.isTyping = true;
       setTimeout(() => {
         this.chatMessages.push({
@@ -877,7 +832,7 @@ export default {
         });
         this.isTyping = false;
         this.scrollToBottom();
-      }, 100);
+      }, 500);
     },
     handlePeopleConfirmation(selections) {
       this.taskParameters.people = selections;
@@ -979,7 +934,7 @@ export default {
     text: `¿Deseas crear esta ${this.currentTaskIntent} con los datos proporcionados?`,
     timestamp: new Date().toLocaleTimeString(),
     buttons: [
-     {
+      {
     text: "Cancelar",
     color: "error",
     variant: "outlined",  // Corregido: usar dos puntos en lugar de signo igual
@@ -1145,7 +1100,7 @@ export default {
     text: "¿Qué deseas hacer ahora?",
     timestamp: new Date().toLocaleTimeString(),
     buttons: [
-      {
+       {
         text: "Salir",
         color: "grey",
         variant: "outlined",  // Botón con borde
@@ -1168,54 +1123,53 @@ export default {
   });
 },
 
-    // Método para nueva conversación
-    startNewConversation() {
-          // Limpiar el chat
-      this.chatMessages = [];
-      
-      // Reiniciar todas las variables de estado relacionadas con tareas
-      this.taskDataCollectionMode = false;
-      this.currentTaskIntent = null;
-      this.taskParameters = {
-        type: null,
-        title: null,
-        description: null,
-        priority_id: null,
-        people: [],
-        start_date: null,
-        start_time: null,
-        estimated_time: null,
-        geo_location: null,
-        recurrence: null,
-        status_id: null,
-        end_date: null,
-        end_time: null,
-      };
-      this.waitingForConfirmation = false;
-      this.collectingPeople = false;
-      this.isTyping = false;
-      
-      // Mensaje inicial del asistente
-      this.chatMessages.push({
-        from: "ai",
-        text: "¡Hola! ¿En qué puedo ayudarte hoy?",
-        timestamp: new Date().toLocaleTimeString()
-      });
-      
-      // Asegurarse de que el scroll se actualice
-      this.scrollToBottom();
-    },
+// Método para nueva conversación
+startNewConversation() {
+       // Limpiar el chat
+  this.chatMessages = [];
+  
+  // Reiniciar todas las variables de estado relacionadas con tareas
+  this.taskDataCollectionMode = false;
+  this.currentTaskIntent = null;
+  this.taskParameters = {
+    type: null,
+    title: null,
+    description: null,
+    priority_id: null,
+    people: [],
+    start_date: null,
+    start_time: null,
+    estimated_time: null,
+    geo_location: null,
+    recurrence: null,
+    status_id: null,
+    end_date: null,
+    end_time: null,
+  };
+  this.waitingForConfirmation = false;
+  this.collectingPeople = false;
+  this.isTyping = false;
+  
+  // Mensaje inicial del asistente
+  this.chatMessages.push({
+    from: "ai",
+    text: "¡Hola! ¿En qué puedo ayudarte hoy?",
+    timestamp: new Date().toLocaleTimeString()
+  });
+  
+  // Asegurarse de que el scroll se actualice
+  this.scrollToBottom();
+},
 
-    // Método para cerrar el diálogo
-    closeDialog() {
-      
-      // Opcional: limpiar la conversación
-      this.chatMessages = [];
-      // Emitir evento para cerrar el diálogo (ajusta según tu implementación)
-      this.$emit('close-dialog');
-      this.$emit("close-all-dialogs", "ChatTask");
+// Método para cerrar el diálogo
+closeDialog() {
+  
+  // Opcional: limpiar la conversación
+  this.chatMessages = [];
+  // Emitir evento para cerrar el diálogo (ajusta según tu implementación)
+  this.$emit('close-dialog');
 
-    },
+},
     showSuggestedTasks(tasks) {
       this.isTyping = true;
 
@@ -1242,7 +1196,7 @@ export default {
 
         this.isTyping = false;
         this.scrollToBottom();
-      }, 100);
+      }, 500);
     },
     async addSelectedTasks(selectedTasks) {
       this.isTyping = true;
@@ -1342,6 +1296,38 @@ export default {
 </script>
 
 <style scoped>
+.editable-field {
+  width: 100%;
+  min-width: 100%;
+}
+.v-textarea .v-field {
+  width: 100% !important;
+}
+
+/* Para textfields */
+.v-text-field .v-field {
+  width: 100% !important;
+}
+.v-input__control {
+  width: 100%;
+}
+
+.v-field__input {
+  width: 100%;
+}
+.priority-options-container {
+  margin-top: 12px;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.priority-confirmation {
+  margin-top: 8px;
+  padding: 8px;
+  background-color: rgba(0, 150, 136, 0.1);
+  border-radius: 8px;
+}
+
 .v-slide-group__content {
   padding: 4px 0;
 }
@@ -1376,6 +1362,36 @@ export default {
   border-radius: 12px;
   padding: 1px;
   min-width: 100% !important;
+}
+
+.v-card-text {
+  line-height: 1.5;
+}
+
+.chat-body {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 65vh;
+  scrollbar-width: thin;
+  scrollbar-color: #ddd transparent;
+}
+
+.chat-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-body::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 8px;
+}
+
+.chat-bubble {
+  width: 100%;
+  min-width: 100%;
+  display: block !important; /* Forzar comportamiento de bloque */
+  word-break: break-word;
+  font-size: 15px;
+  line-height: 1.4;
 }
 
 .fade-enter-active,

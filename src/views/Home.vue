@@ -23,9 +23,17 @@
   <v-container class="bg-grey-lighten-4">
     <v-row no-gutters class="ma-0">
       <v-col cols="12" class="px-0 mb-6">
-        <v-card class="pt-4" elevation="2">
+        <v-card
+          class="pt-4"
+          elevation="2"
+          style="max-height: 600px; display: flex; flex-direction: column"
+        >
           <!-- Chat Body -->
-          <div ref="chatBody" class="chat-body px-4 py-2">
+          <div
+            ref="chatBody"
+            class="chat-body px-4 py-2"
+            style="overflow-y: auto; flex-grow: 1"
+          >
             <div
               v-for="(msg, i) in messages"
               :key="i"
@@ -36,8 +44,14 @@
                 class="d-flex align-end"
                 :class="msg.from === 'user' ? 'flex-row-reverse' : ''"
               >
-                <v-avatar v-if="msg.from === 'bot'" size="28" class="mb-2 mr-3">
+                <v-avatar v-if="msg.from !== 'user'" size="28" class="mb-2 mr-3">
                   <v-img src="@/assets/logo-verde.png" alt="Imagen de perfil"></v-img>
+                </v-avatar>
+                <v-avatar v-else size="28" class="mb-2 ml-3">
+                  <v-img
+                    :src="`${this.$axios.defaults.baseURL}images/${imageUrl}`"
+                    alt="Imagen de usuario"
+                  ></v-img>
                 </v-avatar>
                 <div
                   class="chat-bubble px-8 py-3 rounded-xl"
@@ -47,12 +61,21 @@
                       : 'bg-grey-lighten-2 text-black'
                   "
                 >
-                  {{ $t("chat.initialMessage", { name: name }) }}
+                  {{ msg.text }}
                 </div>
               </div>
             </div>
           </div>
-
+          <div v-if="isTyping" class="d-flex justify-start align-center mb-8 mb-2 ml-3">
+            <div class="d-flex align-end">
+              <v-avatar size="28" class="mb-2 mr-3">
+                <v-img src="@/assets/logo-verde.png" alt="Avatar" />
+              </v-avatar>
+              <div class="chat-bubble px-8 py-3 rounded-xl bg-grey-lighten-2 text-black">
+                <span class="typing-indicator">•••</span>
+              </div>
+            </div>
+          </div>
           <!-- Herramientas -->
           <v-divider />
           <v-card-actions class="pa-3 bg-grey-lighten-5 tools-bar">
@@ -443,372 +466,37 @@
       </v-col>
     </v-row>
   </v-container>
-  <v-dialog
-    v-model="dialog"
-    fullscreen
-    persistent
-    transition="dialog-bottom-transition"
-    content-class="fullscreen-dialog"
-  >
-    <v-form ref="form" v-model="valid" class="h-100">
-      <v-card class="pa-10">
-        <v-card-text class="pt-12">
-          <!-- Pasos laterales -->
-
-          <h5 class="text-grey-darken-2 font-weight-medium">{{ formTitle }}</h5>
-          <p class="text-grey-lighten-1">{{ $t("formInstructions") }}</p>
-          <v-row class="mt-12">
-            <v-col cols="3">
-              <v-timeline align="start" side="end" dense>
-                <v-timeline-item
-                  v-for="(s, index) in steps"
-                  :key="index"
-                  :dot-color="
-                    step > index
-                      ? 'green'
-                      : step === index
-                      ? 'deep-purple'
-                      : 'grey-lighten-1'
-                  "
-                  :icon="
-                    step >= index
-                      ? step === index
-                        ? `mdi-numeric-${index + 1}`
-                        : 'mdi-check'
-                      : null
-                  "
-                  size="large"
-                >
-                  <template #opposite>
-                    <div class="text-end">
-                      <strong>{{ $t(`steps.${s.title}.title`) }}</strong>
-                      <div class="text-caption text-grey">
-                        {{ $t(`steps.${s.title}.subtitle`) }}
-                      </div>
-                    </div>
-                  </template>
-                </v-timeline-item>
-              </v-timeline>
-            </v-col>
-
-            <!-- Contenido dinámico según paso -->
-            <v-col cols="9">
-              <h3 class="text-deep-purple-accent-3 mb-8">
-                {{ $t(`steps.${steps[step].title}.title`) }}
-              </h3>
-
-              <v-row dense v-if="step === 0">
-                <v-col cols="12" sm="6">
-                  <v-text-field
-                    v-model="editedItem.title"
-                    :label="$t('taskForm.fields.title')"
-                    variant="underlined"
-                    :rules="nameRules"
-                  />
-                </v-col>
-
-                <v-col cols="12" sm="6">
-                  <v-select
-                    v-model="editedItem.priority_id"
-                    :items="priorities"
-                    item-title="namePriority"
-                    item-value="id"
-                    :label="$t('taskForm.fields.priority')"
-                    variant="underlined"
-                    required
-                  >
-                    <!-- Cómo se muestra en la lista desplegable -->
-                    <template v-slot:item="{ props, item }">
-                      <v-list-item
-                        v-bind="props"
-                        :title="item.raw.namePriority"
-                        :subtitle="item.raw.descriptionPriority"
-                      >
-                        <template v-slot:prepend>
-                          <v-icon :color="'#' + item.raw.colorPriority">
-                            mdi-priority-high
-                          </v-icon>
-                        </template>
-                      </v-list-item>
-                    </template>
-                  </v-select>
-                </v-col>
-                <v-col cols="12" md="12">
-                  <v-textarea
-                    v-model="editedItem.description"
-                    :label="$t('taskForm.fields.description')"
-                    variant="underlined"
-                    rows="3"
-                  ></v-textarea>
-                </v-col>
-              </v-row>
-              <v-row dense v-if="step === 1">
-                <v-col cols="6" v-for="role in roles" :key="role.id">
-                  <v-card class="mx-auto" max-width="98%">
-                    <v-list
-                      v-model:selected="selectedItems[role.id]"
-                      @update:selected="updateSelection(role, $event)"
-                      select-strategy="leaf"
-                      multiple
-                    >
-                      <v-list-subheader>{{ role.nameRol }}</v-list-subheader>
-                      <v-list-item
-                        v-for="person in filteredPeople(role.id)"
-                        :key="`${role.id}-${person.id}`"
-                        :value="person.id"
-                        active-class="text-green"
-                        :prepend-avatar="`${$axios.defaults.baseURL}images/${person.imagePerson}`"
-                        class="py-3"
-                      >
-                        <!-- Contenido del ítem - Nueva estructura Vuetify 3 -->
-                        <template v-slot:prepend>
-                          <v-avatar>
-                            <v-img
-                              :src="`${$axios.defaults.baseURL}images/${person.imagePerson}`"
-                            />
-                          </v-avatar>
-                        </template>
-
-                        <!-- Nombre y rol -->
-                        <v-list-item-title>{{ person.namePerson }}</v-list-item-title>
-                        <v-list-item-subtitle class="mb-1 text-high-emphasis opacity-100">
-                          {{ person.roleName }}
-                        </v-list-item-subtitle>
-
-                        <!-- Icono de selección -->
-                        <template v-slot:append>
-                          <v-icon
-                            v-if="isPersonSelected(person.id, role.id)"
-                            :color="
-                              getRoleIcon(role.id) === 'mdi-star'
-                                ? 'green-darken-3'
-                                : 'green-darken-3'
-                            "
-                          >
-                            {{
-                              getRoleIcon(role.id) === "mdi-star"
-                                ? "mdi-star"
-                                : "mdi-circle-slice-8"
-                            }}
-                          </v-icon>
-                          <v-icon
-                            v-else
-                            class="opacity-30"
-                            :color="
-                              getRoleIcon(role.id) === 'mdi-star'
-                                ? 'green-darken-3'
-                                : undefined
-                            "
-                          >
-                            {{
-                              getRoleIcon(role.id) === "mdi-star"
-                                ? "mdi-star-outline"
-                                : "mdi-checkbox-blank-circle-outline"
-                            }}
-                          </v-icon>
-                        </template>
-                      </v-list-item>
-                    </v-list>
-                  </v-card>
-                </v-col>
-              </v-row>
-              <v-row dense v-if="step === 2">
-                <v-col cols="12" md="6">
-                  <v-menu
-                    v-model="menu"
-                    :close-on-content-click="false"
-                    :nudge-right="40"
-                    transition="scale-transition"
-                    offset-y
-                    min-width="290px"
-                  >
-                    <template v-slot:activator="{ props }">
-                      <v-text-field
-                        v-bind="props"
-                        :modelValue="dateFormatted"
-                        variant="underlined"
-                        :label="$t('taskForm.today')"
-                      ></v-text-field>
-                    </template>
-                    <v-locale-provider>
-                      <v-date-picker
-                        color="#03626C"
-                        :modelValue="input"
-                        @update:model-value="updateDate"
-                        format="yyyy-MM-dd"
-                      ></v-date-picker>
-                    </v-locale-provider>
-                  </v-menu>
-                </v-col>
-
-                <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="editedItem.start_time"
-                    :active="timePickerDialog"
-                    :focused="timePickerDialog"
-                    :label="$t('taskForm.fields.time')"
-                    readonly
-                    variant="underlined"
-                    @click="timePickerDialog = true"
-                  ></v-text-field>
-
-                  <v-dialog v-model="timePickerDialog" width="auto">
-                    <v-locale-provider>
-                      <v-time-picker
-                        v-model="editedItem.start_time"
-                        format="24hr"
-                        color="#03626C"
-                        @update:model-value="timePickerDialog = false"
-                      ></v-time-picker>
-                    </v-locale-provider>
-                  </v-dialog>
-                </v-col>
-                <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="editedItem.estimated_time"
-                    type="number"
-                    :label="$t('taskForm.fields.estimatedTime')"
-                    variant="underlined"
-                    :rules="[(v) => v > 0 || 'Debe ser un número válido']"
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="editedItem.geo_location"
-                    :label="$t('taskForm.fields.location')"
-                    variant="underlined"
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12" md="6">
-                  <v-select
-                    v-model="editedItem.recurrence"
-                    :items="recurrences"
-                    item-title="name"
-                    item-value="id"
-                    :label="$t('taskForm.fields.recurrence')"
-                    variant="underlined"
-                    density="compact"
-                    :rules="selectRules"
-                  >
-                  </v-select>
-                </v-col>
-                <v-col cols="12" md="6" v-if="editedIndex !== -1">
-                  <v-autocomplete
-                    v-model="editedItem.status_id"
-                    :items="status"
-                    :label="$t('taskForm.fields.status')"
-                    item-title="nameStatus"
-                    item-value="id"
-                    variant="underlined"
-                    density="compact"
-                    :rules="selectRules"
-                  >
-                    <!-- Slot para el item seleccionado (en el input) -->
-                    <template v-slot:selection="{ item }">
-                      <div class="d-flex align-center">
-                        <v-avatar
-                          size="24"
-                          :color="'#' + item.raw.colorStatus"
-                          class="mr-2"
-                        >
-                          <v-icon>{{ item.raw.iconStatus }}</v-icon>
-                        </v-avatar>
-                        <span>{{ item.raw.nameStatus }}</span>
-                      </div>
-                    </template>
-
-                    <!-- Slot para los items del dropdown -->
-                    <template v-slot:item="{ props, item }">
-                      <v-list-item
-                        v-bind="props"
-                        :style="{
-                          'background-color':
-                            item.props.value === editedItem.status_id
-                              ? `#${item.raw.colorStatus}20` // Aplica opacidad (20 = 12%)
-                              : 'transparent',
-                        }"
-                      >
-                        <template v-slot:prepend>
-                          <v-avatar size="24" :color="'#' + item.raw.colorStatus">
-                            <v-icon>{{ item.raw.iconStatus }}</v-icon>
-                          </v-avatar>
-                        </template>
-                        <v-list-item-subtitle class="d-flex flex-column">
-                          <div>Descripción: {{ item.raw.descriptionStatus }}</div>
-                        </v-list-item-subtitle>
-                      </v-list-item>
-                    </template>
-                  </v-autocomplete>
-                </v-col>
-                <v-row v-if="editedItem.type === 'Evento'">
-                  <v-col cols="12" md="6">
-                    <v-menu
-                      v-model="menu2"
-                      :close-on-content-click="false"
-                      offset-y
-                      min-width="auto"
-                    >
-                      <template v-slot:activator="{ props }">
-                        <v-text-field
-                          v-bind="props"
-                          :model-value="dateFormatted2"
-                          :label="$t('taskForm.fields.endDate')"
-                          variant="underlined"
-                          readonly
-                        ></v-text-field>
-                      </template>
-                      <v-date-picker
-                        v-model="editedItem.end_date"
-                        color="#03626C"
-                        :min="editedItem.start_date"
-                      ></v-date-picker>
-                    </v-menu>
-                  </v-col>
-
-                  <v-col cols="12" md="6">
-                    <v-select
-                      v-model="editedItem.end_time"
-                      :items="timeSlots"
-                      :label="$t('taskForm.fields.endTime')"
-                      variant="underlined"
-                    ></v-select>
-                  </v-col>
-                </v-row>
-              </v-row>
-
-              <div class="d-flex justify-space-between mt-8">
-                <v-btn
-                  variant="text"
-                  class="text-grey-darken-1"
-                  @click="step > 0 ? step-- : this.close()"
-                >
-                  {{ step === 0 ? $t("buttons.close") : $t("buttons.previous") }}
-                </v-btn>
-
-                <v-btn
-                  variant="text"
-                  class="text-deep-purple-accent-3"
-                  @click="nextStep"
-                  :disabled="!valid"
-                >
-                  {{
-                    step === steps.length - 1
-                      ? $t("buttons.saveAndClose")
-                      : $t("buttons.next")
-                  }}
-                </v-btn>
-              </div>
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
-    </v-form>
-  </v-dialog>
   <v-dialog v-model="dialogChatTask" fullscreen transition="dialog-bottom-transition">
     <v-card>
       <v-card-text>
         <!-- Pasamos los parámetros al componente ChatTask -->
-        <ChatTask :initialMessage="textoTemporal" @close-dialog="closeDialgChat()"  />
+        <ChatTask :taskData="currentTask" @close-dialog="closeDialgChat()" />
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn text @click="closeDialgChat()">Cerrar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <v-dialog v-model="dialogChatFinance" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-text>
+        <!-- Pasamos los parámetros al componente ChatTask -->
+        <ChatFinance :financeData="currentFinance" @close-dialog="closeDialgChat()" />
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn text @click="closeDialgChat()">Cerrar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <v-dialog v-model="dialogChatBudget" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-text>
+        <!-- Pasamos los parámetros al componente ChatTask -->
+        <ChatBudget :budgetData="currentBudget" @close-dialog="closeDialgChat()" @close-all-dialogs="closeAllDialogs($event)"/>
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
@@ -827,6 +515,8 @@ import { shallowRef } from "vue";
 import _ from "lodash";
 import { VTimePicker } from "vuetify/labs/components";
 import ChatTask from "../views/chat/ChatTask.vue";
+import ChatFinance from "./chat/ChatFinance.vue";
+import ChatBudget from "./chat/ChatBudget.vue";
 
 /*import { Line as LineChart } from 'vue-chartjs'
 
@@ -834,14 +524,21 @@ import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, Li
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, PointElement, LineElement,)*/
 export default {
   components: {
-    "v-time-picker": VTimePicker,
+    //"v-time-picker": VTimePicker,
+    ChatFinance,
     ChatTask,
+    ChatBudget,
   },
   //components: { LineChart },
   data() {
     return {
       selected: shallowRef([2]),
       dialogChatTask: false,
+      dialogChatFinance: false,
+      dialogChatBudget: false,
+      currentTask: null,
+      currentFinance: null,
+      currentBudget: null,
       selected2: null,
       texto: "", // texto confirmado y editable
       textoTemporal: "", // texto dictado en vivo (solo para mostrar)
@@ -850,11 +547,13 @@ export default {
       recognition: null,
       compatible: true,
       snackbar: false,
+      imageUrl: "",
       sb_type: "",
       sb_message: "",
       sb_timeout: 2000,
       sb_title: "",
       sb_icon: "",
+      isTyping: false,
       expandedStates: {
         salud: false,
         mantenedores: false,
@@ -886,23 +585,6 @@ export default {
       ],
 
       tasks: [],
-
-      /*mainteiners: [
-      ['Categorías', 'mdi-text-box-outline', '/category'],
-      ['Almacénes', 'mdi-warehouse', '/warehouse'],
-      ['Prioridades', 'mdi-star-circle-outline', '/priority'],
-      ['Roles', 'mdi-account-cog-outline', '/role'],
-      ['Estados', 'mdi-check-circle-outline', '/status'],
-      ['Tipos de Hogar', 'mdi-home-group', '/hometype'],
-      ['Tipos de Salud', 'mdi-heart-pulse', '/type'],
-    ],
-
-    salud : [
-      ['Historias Clínicas', 'mdi-clipboard-text-outline', '/history'],
-      ['Consultas Médicas', 'mdi-stethoscope', '/consultation'],
-      ['Exámenes Médicos', 'mdi-microscope', '/exam'],
-      ['Emergencias Médicas', 'mdi-alert-circle-outline', '/emergency'],
-    ],*/
       chartData: {
         labels: [
           "Ene",
@@ -929,103 +611,20 @@ export default {
       chartOptions: {
         responsive: true,
       },
-      finances: [
-        {
-          icon: "mdi-credit-card", // Ícono
-          cardType: "Secondary",
-          bank: "DBL Bank",
-          cardNumber: "1234567890123456",
-          cardName: "William",
-          color: "blue", // Color del avatar
-        },
-        {
-          icon: "mdi-credit-card-outline", // Ícono
-          cardType: "Primary",
-          bank: "BRC Bank",
-          cardNumber: "9876543210987654",
-          cardName: "Michel",
-          color: "green", // Color del avatar
-        },
-        {
-          icon: "mdi-bank", // Ícono
-          cardType: "Saving",
-          bank: "HSBC",
-          cardNumber: "1234567890",
-          cardName: "Clara Elena",
-          color: "purple", // Color del avatar
-        },
-        // Más objetos...
-      ],
-      users: [
-        {
-          avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-          name: "Juan Pérez",
-          role: "Administrador",
-        },
-        {
-          avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-          name: "Ana García",
-          role: "Usuario",
-        },
-        {
-          avatar: "https://randomuser.me/api/portraits/men/55.jpg",
-          name: "Carlos López",
-          role: "Moderador",
-        },
-
-        {
-          avatar: "https://randomuser.me/api/portraits/men/70.jpg",
-          name: "Javier Fernández",
-          role: "Soporte",
-        },
-        {
-          avatar: "https://randomuser.me/api/portraits/women/13.jpg",
-          name: "Carla Sánchez",
-          role: "Recursos Humanos",
-        },
-        {
-          avatar: "https://randomuser.me/api/portraits/men/25.jpg",
-          name: "David Pérez",
-          role: "Ventas",
-        },
-      ],
       user: "",
       name: "",
       user_id: "",
-      recentOrders: [
-        {
-          tracking: "876364",
-          product: "Camera Lens",
-          price: "$178",
-          order: 325,
-          amount: "$1,466,660",
-        },
-        {
-          tracking: "876368",
-          product: "Black Dress",
-          price: "$14",
-          order: 53,
-          amount: "$46,660",
-        },
-        {
-          tracking: "876412",
-          product: "Argan Oil",
-          price: "$21",
-          order: 78,
-          amount: "$46,676",
-        },
-        {
-          tracking: "876621",
-          product: "EAU DE Parfum",
-          price: "$32",
-          order: 98,
-          amount: "$46,981",
-        },
-      ],
       data: {},
 
       //input: "",
-      messages: [{ text: "Hola 👋 ¿En qué te puedo ayudar hoy?", from: "bot" }],
+      messages: [
+        {
+          text: `Hola 👋 ${
+            this.name ? this.name + ", " : ""
+          }¿En qué te puedo ayudar hoy?`,
+          from: "ai",
+        },
+      ],
       home_id: "",
       status: [],
       tools: [],
@@ -1306,6 +905,13 @@ export default {
     this.user = JSON.parse(LocalStorageService.getItem("user"));
     this.user_id = JSON.parse(LocalStorageService.getItem("user_id"));
     this.home_id = JSON.parse(LocalStorageService.getItem("home_id"));
+    this.imageUrl = LocalStorageService.getItem("image").replace(/['"]+/g, "");
+    this.messages = [
+      {
+        text: `Hola 👋 ${this.name}, ¿En qué te puedo ayudar hoy?`,
+        from: "ai",
+      },
+    ];
     this.showStatuses();
     this.tools = [
       {
@@ -1343,10 +949,26 @@ export default {
     ];
   },
   methods: {
+    closeAllDialogs(sourceComponent) {
+    console.log(`Cerrando todo desde: ${sourceComponent}`);
+    this.dialogChatTask = false;
+    this.dialogChatFinance = false;
+    this.dialogChatBudget = false;
+    this.texto = "";
+    this.textoTemporal = "";
+    this.currentTask = null;
+    this.currentFinance = null;
+    this.currentBudget = null;
+  },
     closeDialgChat() {
       this.dialogChatTask = false;
+      this.dialogChatFinance = false;
+      this.dialogChatBudget = false;
       this.texto = "";
       this.textoTemporal = "";
+      this.currentTask = null;
+      this.currentFinance = null;
+      this.currentBudget = null;
       this.initialize();
     },
     formatIntuitiveDate(dateString) {
@@ -1417,94 +1039,179 @@ export default {
       this.textoTemporal = this.texto;
       console.log("Texto temporal:", this.textoTemporal);
       // Abrir el diálogo con el chat
-      this.dialogChatTask = true;
-
+      const tempMessage = this.texto.trim();
       this.texto = "";
 
-      /*this.data = {};
-      this.data.text = this.texto;
-      this.data.home_id = this.home_id;
+      // Agregar mensaje del usuario al chat
+      this.messages.push({
+        from: "user",
+        text: tempMessage,
+        timestamp: new Date().toLocaleTimeString(),
+      });
+      //this.dialogChatTask = true;
+      this.isTyping = true;
       try {
-        const result = await handleRequest({
-          endpoint: "task-chat-suggestion",
+        // Llamar a la IA
+        const response = await handleRequest({
+          endpoint: "ask-ai-task",
           method: "POST",
-          data: this.data,
+          data: {
+            question: tempMessage,
+            issue:
+              "Eres un asistente para gestión del hogar: tareas, metas, finanzas, salud, compras y presupuestos.",
+            home_id: this.home_id,
+          },
         });
+        this.isTyping = false;
+        const { intentDetected, intent, task, answer, finances, budget } = response.data;
 
-        // Manejo de la respuesta según el resultado
-        if (result.success) {
-          const taskData = result.data.suggestedTask;
-          console.log("Tarea sugerida:", result.data.suggestedTask);
-          this.editedIndex = -1;
-          // Filtrar las personas que tengan 'select' igual a 1
-          //const selectedPeople = item.people.filter(person => person.select === 1);
+        if (intentDetected && intent) {
+          // Preparar datos comunes
+          this.data = { home_id: this.home_id };
 
-          // Asignar a originalItem y editedItem solo las personas seleccionadas
-          //this.editedItem = Object.assign({}, result.data.suggestedTask);
-          //this.originalItem = Object.assign({}, result.data.suggestedTask);
-          //this.originalItem = _.cloneDeep(result.data.suggestedTask);
-          this.editedItem = _.cloneDeep(result.data.suggestedTask);
+          // Si hay datos de tarea, guardarlos
+          /*if (task) {
+        this.taskParameters = {
+          ...this.taskParameters,
+          ...task,
+        };
+      }*/
 
-          //this.showAlert("success", result.message, 3000);
-          //this.initialize();
-          // 3. Abrir el diálogo después de actualizar los datos
-          console.log("this.editedItem:", this.editedItem);
-          console.log("this.editedItem.people:", this.editedItem.people);
-          this.categories = result.data?.taskcategories || [];
-          this.status = result.data?.taskstatus || [];
-          this.priorities = result.data?.taskpriorities || [];
-          this.recurrences = result.data?.taskrecurrences || [];
-          this.people = result.data?.taskpeople || [];
-          this.roles = result.data?.taskroles || [];
+          // Cargar datos requeridos si es necesario
+          //await this.loadRequiredData();
 
-          // 3. Mejorar la estructura de people en editedItem
-          this.editedItem.people = this.editedItem.people.map((suggestedPerson) => {
-            // Buscar la persona correspondiente en la lista completa
-            const fullPersonData = this.people.find(
-              (p) => p.id === suggestedPerson.person_id || p.id === suggestedPerson.id
-            );
+          // Determinar qué chat mostrar según la intención
+          switch (intent) {
+            case "Tarea":
+              this.currentTask = null;
+              this.$nextTick(() => {
+                const taskData =
+                  typeof response.data.task === "string"
+                    ? JSON.parse(response.data.task)
+                    : response.data.task;
 
-            // Combinar datos mínimos de la sugerencia con datos completos
-            return {
-              id: suggestedPerson.person_id || suggestedPerson.id,
-              person_id: suggestedPerson.person_id || suggestedPerson.id,
-              roleId: suggestedPerson.role_id || suggestedPerson.roleId,
-              role_id: suggestedPerson.role_id || suggestedPerson.roleId,
-              roleName: suggestedPerson.roleName,
-              home_id: suggestedPerson.home_id,
-              // Datos enriquecidos desde this.people
-              namePerson:
-                fullPersonData?.namePerson ||
-                suggestedPerson.name ||
-                `Usuario ${suggestedPerson.person_id}`,
-              imagePerson:
-                fullPersonData?.imagePerson ||
-                suggestedPerson.image ||
-                "default-avatar.jpg",
-              selected: true,
-            };
-          });
-          this.generateTimeSlots();
-          await this.$nextTick();
-          this.dialog = true;
+                this.currentTask = _.cloneDeep(taskData);
+                this.dialogChatTask = true;
+                this.scrollToBottom();
+              });
+              break;
+
+            case "Meta":
+              this.currentTask = null;
+              this.$nextTick(() => {
+                const taskData =
+                  typeof response.data.task === "string"
+                    ? JSON.parse(response.data.task)
+                    : response.data.task;
+
+                this.currentTask = _.cloneDeep(taskData);
+                this.dialogChatTask = true;
+                this.scrollToBottom();
+              });
+              break;
+
+            case "Gasto":
+              this.currentFinance = null;
+              this.$nextTick(() => {
+                const financeData =
+                  typeof response.data.finances === "string"
+                    ? JSON.parse(response.data.finances)
+                    : response.data.finances;
+
+                this.currentFinance = _.cloneDeep(financeData);
+                this.dialogChatFinance = true;
+                this.scrollToBottom();
+              });
+              break;
+
+            case "Ingreso":
+              this.currentFinance = null;
+              this.$nextTick(() => {
+                const financeData =
+                  typeof response.data.finances === "string"
+                    ? JSON.parse(response.data.finances)
+                    : response.data.finances;
+
+                this.currentFinance = _.cloneDeep(financeData);
+                this.dialogChatFinance = true;
+                this.scrollToBottom();
+              });
+              break;
+
+            case "Presupuesto":
+              this.currentBudget = null;
+              this.$nextTick(() => {
+                const budgetData =
+                  typeof response.data.budget === "string"
+                    ? JSON.parse(response.data.budget)
+                    : response.data.budget;
+
+                this.currentBudget = _.cloneDeep(budgetData);
+                this.dialogChatBudget = true;
+                this.scrollToBottom();
+              });
+              break;
+
+            case "salud":
+              this.currentHealthData = _.cloneDeep(task || {});
+              this.dialogChatHealth = true;
+              this.scrollToBottom();
+              break;
+
+            case "compra":
+              this.currentShoppingData = _.cloneDeep(task || {});
+              this.dialogChatShopping = true;
+              this.scrollToBottom();
+              break;
+
+            default:
+              // Respuesta por defecto si no se reconoce la intención
+              this.messages.push({
+                from: "ai",
+                text:
+                  answer ||
+                  "No entendí muy bien tu solicitud. ¿Podrías ser más específico?",
+                timestamp: new Date().toLocaleTimeString(),
+              });
+          }
         } else {
-          this.categories = [];
-          this.status = [];
-          this.priorities = [];
-          this.recurrences = [];
-          this.people = [];
-          this.roles = [];
+          this.isTyping = false;
+          // No se detectó intención, solo mostrar respuesta normal
+          this.messages.push({
+            from: "ai",
+            text: answer || "No tengo claro qué necesitas. ¿Puedes ser más específico?",
+            timestamp: new Date().toLocaleTimeString(),
+          });
         }
       } catch (error) {
-        // Este bloque captura errores inesperados fuera del manejo estándar
-        this.showAlert(
-          "error",
-          "Ocurrió un error inesperado al procesar la solicitud.",
-          3000
-        );
-      } finally {
-        this.loading = false;
-      }*/
+        this.isTyping = false;
+        console.error("Error al procesar el mensaje:", error);
+        this.messages.push({
+          from: "ai",
+          text: "Ocurrió un error al procesar tu solicitud. Inténtalo nuevamente.",
+          timestamp: new Date().toLocaleTimeString(),
+        });
+      }
+    },
+    scrollToBottom() {
+      this.messages = [
+        {
+          text: `Hola 👋 ${
+            this.name ? this.name + ", " : ""
+          }¿En qué te puedo ayudar hoy?`,
+          from: "ai",
+          timestamp: new Date().toLocaleTimeString(),
+        },
+      ];
+      // Limpiar cualquier otro estado relacionado con el chat
+      this.texto = "";
+      this.textoTemporal = "";
+      this.$nextTick(() => {
+        const chatContainer = this.$refs.chatBody;
+        if (chatContainer) {
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+      });
     },
     close() {
       this.step = 0;

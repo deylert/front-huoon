@@ -726,10 +726,13 @@ export default {
       this.originalItem = Object.assign({}, this.defaultItem);
       this.file = null;
       this.imgMiniatura = "";
+      this.data = {};
+      this.data.home_id = this.home_id;
       try {
         const result = await handleRequest({
           endpoint: "get-finances-data",
           method: "POST",
+          data: this.data,
         });
 
         if (result.success) {
@@ -956,10 +959,13 @@ export default {
       } else {
         this.icono = "mdi-file";
       }
+           this.data = {};
+      this.data.home_id = this.home_id;
       try {
         const result = await handleRequest({
           endpoint: "get-finances-data",
           method: "POST",
+          data: this.data,
         });
 
         if (result.success) {

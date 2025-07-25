@@ -3,7 +3,6 @@
     <v-locale-provider>
       <v-date-picker
         color="#03626C"
-        locale="es"
         v-model="selectedDate"
         @update:modelValue="handleDateUpdate"
         :min="effectiveMinDate"
@@ -27,7 +26,7 @@ export default {
     fieldType: {
       type: String,
       required: true,
-      validator: value => ['start_date', 'end_date'].includes(value)
+      validator: value => ['start_date', 'end_date', 'date'].includes(value)
     },
     minDate: {
       type: String,

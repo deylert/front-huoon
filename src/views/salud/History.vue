@@ -298,56 +298,6 @@
             </v-col>
           </template>
         </v-row>
-        <!--<v-divider class="my-4" />
-        <div class="text-body-2 font-weight-medium mb-2">
-          {{ $t("medicalExamsTitle") }}
-        </div>
-        <v-row dense>
-          <template v-if="signosVitalesTransformados.length > 0">
-            <v-col
-              v-for="(info, index) in examenesMedicosTransformados"
-              :key="index"
-              cols="12"
-              sm="6"
-              md="3"
-            >
-              <v-card
-                class="pa-2 d-flex align-center signo-card"
-                elevation="1"
-                rounded="lg"
-                @click="showAddExam()"
-                style="cursor: pointer"
-              >
-
-                <v-avatar
-                  size="40"
-                  class="me-3"
-                  :color="info.color + ' lighten-4'"
-                  variant="tonal"
-                >
-                  <v-icon :color="info.color">{{ info.icon }}</v-icon>
-                </v-avatar>
-
-                <div>
-                  <div class="text-body-2 font-weight-medium">{{ info.nombre }}</div>
-                  <div class="text-caption text-grey-darken-1">
-                    {{ info.valor }} {{ info.unidad }}
-                  </div>
-                  <div class="text-caption text-grey-lighten-1 mt-1">
-                    {{ formatoFecha(info.fecha) }}
-                  </div>
-                </div>
-              </v-card>
-            </v-col>
-          </template>
-          <template v-else>
-            <v-col cols="12">
-              <v-alert type="info" variant="tonal">
-                {{ $t("medicalExamsnoData") }}
-              </v-alert>
-            </v-col>
-          </template>
-        </v-row>-->
         <v-divider class="my-4" />
         <SuggestionsList
     :items="suggestions"
@@ -392,20 +342,19 @@
       <v-card-title class="text-h6">Alertas para Hoy</v-card-title>
       <v-card-text>
         <v-list v-if="listaAlertas.length">
-          <v-list-item v-for="(alerta, i) in listaAlertas" :key="i">
-            <v-list-item-icon>
-              <v-icon color="deep-orange">mdi-alert</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title class="text-subtitle-2">{{
-                alerta.titulo
-              }}</v-list-item-title>
-              <v-list-item-subtitle class="text-caption">{{
-                alerta.descripcion
-              }}</v-list-item-subtitle>
-            </v-list-item-content>
-          </v-list-item>
-        </v-list>
+        <v-list-item v-for="(alerta, i) in listaAlertas" :key="i">
+          <template v-slot:prepend>
+            <v-icon color="deep-orange" icon="mdi-alert"></v-icon>
+          </template>
+          
+          <v-list-item-title class="text-subtitle-2">
+            {{ alerta.titulo }}
+          </v-list-item-title>
+          <v-list-item-subtitle class="text-caption">
+            {{ alerta.descripcion }}
+          </v-list-item-subtitle>
+        </v-list-item>
+      </v-list>
         <div v-else class="text-caption text-grey">No hay alertas para hoy.</div>
       </v-card-text>
       <v-card-actions>
@@ -542,7 +491,7 @@
     <v-card>
       <v-card-text>
         <!-- Pasamos los parámetros al componente ChatTask -->
-        <ChatTaskSalud:taskData="currentTask" @close-dialog="closeDialgChat()"  />
+        <ChatTaskSalud :taskData="currentTask" @close-dialog="closeDialgChat()"  />
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
@@ -981,27 +930,37 @@ export default {
     });
   }*/
  // Añadir medicamentos SIEMPRE, incluso si está vacío
-  const tratamiento = this.treatment || {};
-  const medInfo = [
-    tratamiento.medication,
-    tratamiento.dosage,
-    tratamiento.frequency,
-  ]
-    .filter(Boolean)
-    .join(" - ");
+ // 1. Normalizar los tratamientos (asegurar que siempre sea un array)
+const treatments = Array.isArray(this.treatment) ? this.treatment : [this.treatment || {}];
 
-  const tieneInfoMedicamento = medInfo && medInfo.trim() !== '';
-  
-  result.push({
-    nombre: this.$t("cardMedicamento"),
-    valor: tieneInfoMedicamento ? medInfo : this.$t("no_definido"),
-    unidad: tieneInfoMedicamento ? "" : "", // No mostrar unidad si no hay info
-    icon: "mdi-pill",
-    color: "purple",
-    fecha: tratamiento.startDate || new Date().toISOString().split("T")[0],
-    originalKey: "medication",
-    type: "treatment",
-  });
+// 2. Obtener el primer tratamiento para mostrar en la card
+const firstTreatment = treatments[0] || {};
+
+// 3. Construir la información médica (medicamento, dosis, tipo)
+const medInfo = [
+  firstTreatment.medication,
+  firstTreatment.dosage,
+  firstTreatment.typeName
+].filter(Boolean).join(" - ");
+
+const tieneInfoMedicamento = medInfo.trim() !== '';
+const isSingleTreatment = treatments.length <= 1;
+
+// 4. Agregar al resultado final
+result.push({
+  nombre: isSingleTreatment 
+    ? this.$t("treatment.cardMedicamento") 
+    : this.$t("treatment.cardMedicamentosPlural", { count: treatments.length }),
+  valor: isSingleTreatment 
+    ? (tieneInfoMedicamento ? medInfo : this.$t("treatment.no_definido"))
+    : this.$t("treatment.medicamentosActivos", { count: treatments.length }),
+  unidad: "",
+  icon: "mdi-pill",
+  color: "purple",
+  fecha: firstTreatment.startDate || new Date().toISOString().split('T')[0],
+  originalKey: "medication",
+  type: "treatment",
+});
 
 
   return result;

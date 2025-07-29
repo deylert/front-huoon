@@ -271,6 +271,11 @@ const portuguese = {
     //tratamiento
     treatment: {
       formInstructions: "Preencha todos os campos obrigatórios do tratamento",
+      cardMedicamento: "Medicação",
+      cardMedicamentosPlural: "Medicações ({count})",
+      medicamentosActivos: "{count} medicações ativas",
+      no_definido: "Não definido",
+      noTreatments: "Nenhum tratamento definido ainda",
       steps: {
         medication: {
           title: "Medicação",
@@ -289,7 +294,9 @@ const portuguese = {
         medication: "Medicação",
         dosage: "Dosagem",
         frequency: "Frequência",
-        duration: "Duração",
+        duration: "Duração (ex: 5 dias, 2 semanas)",
+        durationHint:
+          "Especifique a duração com número e unidade (dias, semanas, meses)",
         instructions: "Instruções",
         purpose: "Propósito",
         startDate: "Data de início",
@@ -700,7 +707,7 @@ const portuguese = {
         balance: "Saldo",
         movements: "Movimentações",
         suggestions: "Sugestões",
-        budget: "Orçamento"
+        budget: "Orçamento",
       },
       currentAmount: "<strong>{amount}</strong> atual",
     },
@@ -1109,7 +1116,7 @@ const portuguese = {
           timezone: "Fuso horário",
           residents: "Número de residentes",
           image: "Imagem do lar",
-          status: "Estado"
+          status: "Estado",
         },
         membersTable: {
           avatar: "Foto",

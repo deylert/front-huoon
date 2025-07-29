@@ -470,7 +470,7 @@
     <v-card>
       <v-card-text>
         <!-- Pasamos los parámetros al componente ChatTask -->
-        <ChatTask :taskData="currentTask" @close-dialog="closeDialgChat()" />
+        <ChatTask :taskData="currentTask" @close-dialog="closeDialgChat()"  @close-all-dialogs="closeAllDialogs($event)"/>
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
@@ -483,7 +483,7 @@
     <v-card>
       <v-card-text>
         <!-- Pasamos los parámetros al componente ChatTask -->
-        <ChatFinance :financeData="currentFinance" @close-dialog="closeDialgChat()" />
+        <ChatFinance :financeData="currentFinance" @close-dialog="closeDialgChat()"  @close-all-dialogs="closeAllDialogs($event)"/>
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
@@ -1406,7 +1406,7 @@ export default {
   },*/
     getTypeColor(type) {
       const colorMap = {
-        Tarea: "deep-purple-lighten-2",
+        Tarea: "warning",
         Evento: "teal-lighten-2",
         // Agrega más tipos si es necesario
       };

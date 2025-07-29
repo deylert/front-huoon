@@ -145,12 +145,12 @@
           </v-col>
 
           <!-- Acciones -->
-          <v-col cols="auto" class="d-flex align-center ml-auto justify-end pe-4 gap-2">
+          <v-col cols="auto" class="d-flex align-center ml-auto pe-4" style="margin-left: auto !important;">
             <v-btn icon variant="text" color="green-darken-2" size="small" @click="editItem(meeting)">
               <v-icon>mdi-pencil</v-icon>
             </v-btn>
             <v-btn icon variant="text" color="red-darken-2" size="small" @click="deleteItem(meeting)">
-              <v-icon>mdi-close</v-icon>
+              <v-icon>mdi-delete</v-icon>
             </v-btn>
           </v-col>
         </v-row>
@@ -763,7 +763,7 @@ export default {
   },
     getTypeColor(type) {
       const colorMap = {
-        'Tarea': 'deep-purple-lighten-2',
+        'Tarea': 'warning',
         'Evento': 'teal-lighten-2',
         // Agrega más tipos si es necesario
       };

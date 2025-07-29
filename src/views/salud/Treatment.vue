@@ -222,21 +222,45 @@
                 </v-col>
 
                 <v-col cols="12" sm="6">
-                  <v-text-field
-                    v-model="editedItem.frequency"
-                    :label="$t('treatment.fields.frequency')"
-                    variant="underlined"
-                    :rules="frequencyRules"
-                  />
+                  <v-autocomplete 
+                    v-model="editedItem.type_id"
+                    :items="treatmentTypes" 
+                    :label="$t('treatment.fields.frequency')" 
+                    item-title="name"
+                    item-value="id" 
+                    variant="underlined" 
+                    :rules="selectRules"
+                  >
+                    <template v-slot:item="{ props, item }">
+                      <v-list-item v-bind="props">
+                        <v-list-item-subtitle class="d-flex flex-column">
+                          <v-tooltip bottom>
+                            <template v-slot:activator="{ props: tooltipProps }">
+                              <div 
+                                class="truncate" 
+                                v-bind="tooltipProps"
+                                style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                              >
+                                {{ item.raw.description }}
+                              </div>
+                            </template>
+                            <span>{{ item.raw.description }}</span>
+                          </v-tooltip>
+                        </v-list-item-subtitle>
+                      </v-list-item>
+                    </template>
+                  </v-autocomplete>
                 </v-col>
 
                 <v-col cols="12" sm="6">
-                  <v-text-field
-                    v-model="editedItem.duration"
-                    :label="$t('treatment.fields.duration')"
-                    variant="underlined"
-                    :rules="durationRules"
-                  />
+                     <v-text-field
+    v-model="editedItem.duration"
+    :label="$t('treatment.fields.duration')"
+    variant="underlined"
+    :rules="durationRules"
+    hint="Ej: 5 días, 2 semanas, 1 mes"
+    persistent-hint
+  />
                 </v-col>
               </v-row>
 
@@ -266,62 +290,70 @@
               <!-- Step 3: Fechas -->
               <v-row dense v-if="step === 2">
                 <v-col cols="12" md="6">
-                  <v-menu
-                    v-model="startDateMenu"
-                    :close-on-content-click="false"
-                    :nudge-right="40"
-                    transition="scale-transition"
-                    offset-y
-                    min-width="290px"
-                  >
-                    <template v-slot:activator="{ props }">
-                      <v-text-field
-                        v-bind="props"
-                        :modelValue="startDateFormatted"
-                        variant="underlined"
-                        :label="$t('treatment.fields.startDate')"
-                        :rules="dateRules"
-                      ></v-text-field>
-                    </template>
-                    <v-locale-provider>
-                      <v-date-picker
-                        color="#03626C"
-                        :modelValue="startDateInput"
-                        @update:model-value="updateStartDate"
-                        format="yyyy-MM-dd"
-                      ></v-date-picker>
-                    </v-locale-provider>
-                  </v-menu>
-                </v-col>
+  <v-menu
+    v-model="startDateMenu"
+    :close-on-content-click="false"
+    :nudge-right="40"
+    transition="scale-transition"
+    offset-y
+    min-width="290px"
+  >
+    <template v-slot:activator="{ props }">
+      <v-text-field
+        v-bind="props"
+        :model-value="startDateFormatted"
+        variant="underlined"
+        :label="$t('treatment.fields.startDate')"
+        :rules="dateRules"
+        readonly
+        clearable
+        @click:clear="editedItem.startDate = ''"
+      ></v-text-field>
+    </template>
+    <v-locale-provider>
+      <v-date-picker
+        color="#03626C"
+        :model-value="editedItem.startDate ? new Date(editedItem.startDate) : null"
+        @update:model-value="updateStartDate"
+        format="yyyy-MM-dd"
+        :max="editedItem.endDate ? new Date(editedItem.endDate) : null"
+      ></v-date-picker>
+    </v-locale-provider>
+  </v-menu>
+</v-col>
 
-                <v-col cols="12" md="6">
-                  <v-menu
-                    v-model="endDateMenu"
-                    :close-on-content-click="false"
-                    :nudge-right="40"
-                    transition="scale-transition"
-                    offset-y
-                    min-width="290px"
-                  >
-                    <template v-slot:activator="{ props }">
-                      <v-text-field
-                        v-bind="props"
-                        :modelValue="endDateFormatted"
-                        variant="underlined"
-                        :label="$t('treatment.fields.endDate')"
-                        :rules="dateRules"
-                      ></v-text-field>
-                    </template>
-                    <v-locale-provider>
-                      <v-date-picker
-                        color="#03626C"
-                        :modelValue="endDateInput"
-                        @update:model-value="updateEndDate"
-                        format="yyyy-MM-dd"
-                      ></v-date-picker>
-                    </v-locale-provider>
-                  </v-menu>
-                </v-col>
+<v-col cols="12" md="6">
+  <v-menu
+    v-model="endDateMenu"
+    :close-on-content-click="false"
+    :nudge-right="40"
+    transition="scale-transition"
+    offset-y
+    min-width="290px"
+  >
+    <template v-slot:activator="{ props }">
+      <v-text-field
+        v-bind="props"
+        :model-value="endDateFormatted"
+        variant="underlined"
+        :label="$t('treatment.fields.endDate')"
+        :rules="dateRules"
+        readonly
+        clearable
+        @click:clear="editedItem.endDate = ''"
+      ></v-text-field>
+    </template>
+    <v-locale-provider>
+      <v-date-picker
+        color="#03626C"
+        :model-value="editedItem.endDate ? new Date(editedItem.endDate) : null"
+        @update:model-value="updateEndDate"
+        format="yyyy-MM-dd"
+        :min="editedItem.startDate ? new Date(editedItem.startDate) : null"
+      ></v-date-picker>
+    </v-locale-provider>
+  </v-menu>
+</v-col>
               </v-row>
 
               <!-- Navegación -->
@@ -427,6 +459,7 @@ export default {
     tittlePerson: -1,
     selectedItems: {}, // Almacena las selecciones por rol
     typetasks: [],
+    treatmentTypes: [],
     home_id: "",
     data: {},
     dialogAddPeople: false,
@@ -434,6 +467,7 @@ export default {
      editedItem: {
       id: "",
       medical_consultation_id: null,
+      type_id: null,
       medication: "",
       dosage: "",
       frequency: "",
@@ -447,6 +481,7 @@ export default {
     defaultItem: {
       id: "",
       medical_consultation_id: null,
+      type_id: null,
       medication: "",
       dosage: "",
       frequency: "",
@@ -460,6 +495,7 @@ export default {
     originalItem: {
       id: "",
       medical_consultation_id: null,
+      type_id: null,
       medication: "",
       dosage: "",
       frequency: "",
@@ -481,6 +517,10 @@ export default {
       (v) => (v && v.length <= 50) || "El campo debe tener menos de 51 caracteres",
       (v) => (v && v.length >= 3) || "El campo debe tener al menos de 3 caracteres",
     ],
+    durationRules: [
+      v => !!v || 'La duración es requerida',
+      v => /^\d+\s*(días?|semanas?|mes(es)?)?$/i.test(v) || 'Formato inválido (ej: 5 días, 2 semanas, 1 mes)'
+    ],
     selectRules: [(v) => !!v || "Seleccionar al menos un elemento"],
     medicationRules: [
       v => !v || v.length <= 100 || 'El medicamento no debe exceder los 100 caracteres'
@@ -490,9 +530,6 @@ export default {
     ],
     frequencyRules: [
       v => !v || v.length <= 50 || 'La frecuencia no debe exceder los 50 caracteres'
-    ],
-    durationRules: [
-      v => !v || v.length <= 50 || 'La duración no debe exceder los 50 caracteres'
     ],
     dateRules: [
       v => !v || !isNaN(Date.parse(v)) || 'Fecha inválida'
@@ -510,19 +547,25 @@ export default {
     : this.$t('treatment.titles.edit');
 },
     startDateFormatted() {
-      const date = this.startDateInput ? new Date(this.startDateInput) : new Date();
-      const day = date.getDate().toString().padStart(2, "0");
-      const month = (date.getMonth() + 1).toString().padStart(2, "0");
-      const year = date.getFullYear();
-      return `${year}-${month}-${day}`;
-    },
-    endDateFormatted() {
-      const date = this.endDateInput ? new Date(this.endDateInput) : new Date();
-      const day = date.getDate().toString().padStart(2, "0");
-      const month = (date.getMonth() + 1).toString().padStart(2, "0");
-      const year = date.getFullYear();
-      return `${year}-${month}-${day}`;
-    },
+    if (!this.editedItem.startDate) return '';
+    const date = this.parseDateWithoutTimezone(this.editedItem.startDate);
+    if (isNaN(date.getTime())) return this.editedItem.startDate;
+    
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+    return `${year}-${month}-${day}`;
+  },
+  endDateFormatted() {
+    if (!this.editedItem.endDate) return '';
+    const date = this.parseDateWithoutTimezone(this.editedItem.endDate);
+    if (isNaN(date.getTime())) return this.editedItem.endDate;
+    
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+    return `${year}-${month}-${day}`;
+  },
     getStartDate() {
       return this.startDateInput ? new Date(this.startDateInput) : new Date();
     },
@@ -551,12 +594,102 @@ export default {
       return this.$t('steps') || defaultSteps
     }
   },
+  watch: {
+   'editedItem.startDate': {
+    handler(newVal) {
+      if (newVal) {
+        this.calculateEndDate();
+      }
+    },
+    immediate: true
+  },
+  'editedItem.duration': {
+    handler(newVal) {
+      if (newVal && this.editedItem.startDate) {
+        this.calculateEndDate();
+      }
+    },
+    immediate: true
+  },
+  'editedItem.type_id': {
+    handler(newVal) {
+      if (newVal && this.editedItem.startDate && this.editedItem.duration) {
+        this.calculateEndDate();
+      }
+    },
+    immediate: true
+  }
+},
   mounted() {
     this.home_id = JSON.parse(LocalStorageService.getItem("home_id"));
     this.person_id = JSON.parse(LocalStorageService.getItem("person_id"));
     this.initialize();
   },
   methods: {
+    parseDateWithoutTimezone(dateString) {
+    if (!dateString) return null;
+    
+    // Para fechas en formato YYYY-MM-DD
+    const parts = dateString.split('-');
+    if (parts.length === 3) {
+      return new Date(parts[0], parts[1] - 1, parts[2]);
+    }
+    
+    // Para otros formatos o strings ISO
+    const date = new Date(dateString);
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  },
+    calculateEndDate() {
+  // Validaciones básicas
+  if (!this.editedItem.startDate || !this.editedItem.duration) {
+    this.editedItem.endDate = '';
+    return;
+  }
+
+  try {
+    const durationText = this.editedItem.duration.toLowerCase().trim();
+    const match = durationText.match(/^(\d+)\s*(d[ií]as?|semanas?|mes(es)?)?$/i);
+    
+    if (!match) {
+      this.editedItem.endDate = '';
+      return;
+    }
+
+    const durationValue = parseInt(match[1]);
+    let durationUnit = match[2] ? match[2].toLowerCase() : 'días';
+    
+    // Normalizar unidades
+    if (durationUnit.includes('dia') || durationUnit.includes('día')) durationUnit = 'days';
+    else if (durationUnit.includes('semana')) durationUnit = 'weeks';
+    else if (durationUnit.includes('mes')) durationUnit = 'months';
+
+    const startDate = new Date(this.editedItem.startDate);
+    if (isNaN(startDate.getTime())) {
+      this.editedItem.endDate = '';
+      return;
+    }
+
+    const endDate = new Date(startDate);
+    
+    switch(durationUnit) {
+      case 'days':
+        endDate.setDate(startDate.getDate() + durationValue);
+        break;
+      case 'weeks':
+        endDate.setDate(startDate.getDate() + (durationValue * 7));
+        break;
+      case 'months':
+        endDate.setMonth(startDate.getMonth() + durationValue);
+        break;
+    }
+
+    // Formatear a YYYY-MM-DD
+    this.editedItem.endDate = endDate.toISOString().split('T')[0];
+  } catch (error) {
+    console.error('Error calculando fecha final:', error);
+    this.editedItem.endDate = '';
+  }
+},
     formatDate(dateString) {
     const [year, month, day] = dateString.split('-');
     return `${day}-${month}-${year}`;
@@ -574,7 +707,25 @@ export default {
     },
     async showAdd() {
       this.editedIndex = -1;
-     this.dialog = true;
+     this.data = {};
+      this.data.type = 'Tratamiento';
+      try {
+        const result = await handleRequest({
+          endpoint: 'get-type-treatment',
+          method: 'POST',
+          data: this.data
+        });
+
+        if (result.success) {
+          this.treatmentTypes = result.data?.types || [];
+        } else {
+          this.treatmentTypes = [];
+        }
+      } catch (error) {
+        this.showAlert('error', 'Ocurrió un error inesperado al cargar los tipos de diagnóstico.', 3000);
+      } finally {
+        this.dialog = true;
+      }
     },
     close() {
       this.step = 0;
@@ -633,6 +784,7 @@ export default {
         this.valid = false;
         const fieldsToUpdate = [
           "medical_consultation_id",
+          "type_id",
           "medication",
           "dosage",
           "frequency",
@@ -689,6 +841,7 @@ export default {
         this.valid = false;
         const fieldsToUpdate = [
           "medical_consultation_id",
+          "type_id",
           "medication",
           "dosage",
           "frequency",
@@ -749,7 +902,25 @@ export default {
       // Asignar a originalItem y editedItem solo las personas seleccionadas
       this.originalItem = Object.assign({}, item);
       this.editedItem = Object.assign({}, item);
-     this.dialog = true;
+      this.data = {};
+      this.data.type = 'Tratamiento';
+      try {
+        const result = await handleRequest({
+          endpoint: 'get-type-treatment',
+          method: 'POST',
+          data: this.data
+        });
+
+        if (result.success) {
+          this.treatmentTypes = result.data?.types || [];
+        } else {
+          this.treatmentTypes = [];
+        }
+      } catch (error) {
+        this.showAlert('error', 'Ocurrió un error inesperado al cargar los tipos de diagnóstico.', 3000);
+      } finally {
+        this.dialog = true;
+      }
     },
     deleteItem(item) {
       this.editedIndex = 1;
@@ -835,9 +1006,9 @@ export default {
           },
           {
             label: this.$t('treatment.fields.frequency'),
-            value: treatment.frequency || 'N/R',
+            value: treatment.typeName || 'N/R',
             fullLabel: this.$t('treatment.fields.frequency'),
-            fullValue: treatment.frequency || this.$t('treatment.notRecorded'),
+            fullValue: treatment.typeName || this.$t('treatment.notRecorded'),
             icon: 'mdi-clock-outline',
             color: 'orange-darken-2'
           },

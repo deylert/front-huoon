@@ -118,7 +118,7 @@
                     @recurrence-selected="handleRecurrenceSelection($event)"
                     @selection-update="updatePeopleSelection($event)" @confirm="handlePeopleConfirmation($event)"
                     @confirm-suggested="addSelectedTasks($event)" @cancel="handleCancellation()"
-                    @date-updated="updateDate($event)" @time-updated="updateTime($event)" />
+                    @date-updated="updateDate($event)" @time-updated="updateTime($event)" @type-selected="handleTtypeSelected($event)"/>
                 </div>
               </div>
             </div>
@@ -180,6 +180,32 @@
     </v-row>
 
   </v-container>
+    <v-dialog v-model="dialogChatFinance" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-text>
+        <!-- Pasamos los parámetros al componente ChatTask -->
+        <ChatFinance :financeData="currentFinance" @close-dialog="closeDialgChat()" @close-all-dialogs="$emit('close-all-dialogs')" />
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn text @click="closeDialgChat()">Cerrar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+    <v-dialog v-model="dialogChatBudget" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-text>
+        <!-- Pasamos los parámetros al componente ChatTask -->
+        <ChatBudget :budgetData="currentBudget" @close-dialog="closeDialgChat()" @close-all-dialogs="$emit('close-all-dialogs')" />
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn text @click="closeDialgChat()">Cerrar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
@@ -187,11 +213,13 @@ import DatePicker from "@/components/chatTask/DatePicker.vue";
 import PeopleSelector from "@/components/chatTask/PeopleSelector.vue";
 import PriorityOptions from "@/components/chatTask/PriorityOptions.vue";
 import RecurrenceOptions from "@/components/chatTask/RecurrenceOptions.vue";
+import TaskTypeOptions from "@/components/chatTask/TaskTypeOptions.vue";
 import TimePicker from "@/components/chatTask/TimePicker.vue";
 import SuggestedTasksList from "@/components/suggested/SuggestedTasksList.vue";
 import LocalStorageService from "@/LocalStorageService";
 import { handleRequest } from "@/utils/api";
-import { markRaw } from "vue";
+import _ from "lodash";
+import { defineAsyncComponent, markRaw } from "vue";
 
 export default {
  emits: ["close-dialog", "close-all-dialogs"],
@@ -211,10 +239,19 @@ export default {
     DatePicker,
     TimePicker,
     RecurrenceOptions,
+    TaskTypeOptions,
     SuggestedTasksList: markRaw(SuggestedTasksList),
+    
+    ChatBudget: defineAsyncComponent(() => import('./ChatBudget.vue')),
+    ChatFinance: defineAsyncComponent(() => import('./ChatFinance.vue')),
   },
   data() {
     return {
+      shownChatFields: new Set(), // ← Aquí llevamos control
+       dialogChatFinance: false,
+        dialogChatBudget: false,
+      currentBudget: null,
+      currentFinance: null,
       textoTemporal: "",
       taskDataCollectionMode: false,
       currentTaskIntent: null,
@@ -279,6 +316,7 @@ export default {
       people: [],
       recurrences: [],
       status: [],
+      types:[],
       isTyping: false,
       imageUrl: "",
       data: {},
@@ -408,6 +446,18 @@ export default {
     }
   },
   methods: {
+    closeDialgChat() {
+      this.dialogChatTask = false;
+      this.dialogChatFinance = false;
+      this.dialogChatBudget = false;
+      this.texto = "";
+      this.textoTemporal = "";
+      this.currentTask = null;
+      this.currentFinance = null;
+      this.currentBudget = null;
+      this.$emit("close-all-dialogs", "ChatTask");
+      //this.initialize();
+    },
      toggleDictado() {
       if (!this.recognition) return;
 
@@ -465,6 +515,7 @@ export default {
         message.currentValue = validatedValue;
         message.text = `• ${message.fieldLabel}: ${validatedValue}`;
         message.isEditing = false;
+         this.updateExistingTaskSummary();
         this.scrollToBottom();
       } catch (error) {
         this.showAlert("error", error.message, 2000);
@@ -537,9 +588,115 @@ export default {
                 issue: "Eres un asistente para gestión de tareas y metas.",
               },
             });
-            if (response.data.intentDetected) {
+            this.isTyping = false;
+        const { intentDetected, intent, task, answer, finances, budget } = response.data;
+            if (intentDetected && intent) {
+
               this.data = { home_id: this.home_id };
-              if (response.data.task) {
+                switch (intent) {
+            case "Tarea":
+              this.$nextTick(async () => {
+                  this.taskParameters = {
+                    ...this.taskParameters,
+                    ...task,
+                  };
+                 this.currentTaskIntent = intent;
+                  this.taskDataCollectionMode = true;
+                  this.chatMessages.push({
+                    from: "ai",
+                    text: `Datos de la  ${this.currentTaskIntent} recibidos. Puedes editarlos antes de confirmar.`,
+                    timestamp: new Date().toLocaleTimeString(),
+                  });
+                  await this.loadRequiredData();
+                  await this.showInitialTaskData(response.data.task);
+                  this.scrollToBottom();
+                });
+              break;
+
+            case "Meta":
+              this.$nextTick(async () => {
+                  this.taskParameters = {
+                    ...this.taskParameters,
+                    ...task,
+                  };
+                 this.currentTaskIntent = intent;
+                  this.taskDataCollectionMode = true;
+                  this.chatMessages.push({
+                    from: "ai",
+                    text: `Datos de la  ${this.currentIntent} recibidos. Puedes editarlos antes de confirmar.`,
+                    timestamp: new Date().toLocaleTimeString(),
+                  });
+                  await this.loadRequiredData();
+                  await this.showInitialTaskData(task);
+                  this.scrollToBottom();
+                });
+              break;
+
+            case "Gasto":
+              this.currentFinance = null;
+              this.$nextTick(() => {
+                const financeData =
+                  typeof finances === "string"
+                    ? JSON.parse(finances)
+                    : finances;
+
+                this.currentFinance = _.cloneDeep(financeData);
+                this.dialogChatFinance = true;
+                this.scrollToBottom();
+              });
+              break;
+
+            case "Ingreso":
+              this.currentFinance = null;
+              this.$nextTick(() => {
+                const financeData =
+                  typeof finances === "string"
+                    ? JSON.parse(finances)
+                    : finances;
+
+                this.currentFinance = _.cloneDeep(financeData);
+                this.dialogChatFinance = true;
+                this.scrollToBottom();
+              });
+              break;
+
+            case "Presupuesto":
+             this.currentBudget = null;
+              this.$nextTick(() => {
+                const budgetData =
+                  typeof budget === "string"
+                    ? JSON.parse(budget)
+                    : budget;
+
+                this.currentBudget = _.cloneDeep(budgetData);
+                this.dialogChatBudget = true;
+                this.scrollToBottom();
+                });
+              break;
+
+            case "salud":
+              this.currentHealthData = _.cloneDeep(task || {});
+              this.dialogChatHealth = true;
+              this.scrollToBottom();
+              break;
+
+            case "compra":
+              this.currentShoppingData = _.cloneDeep(task || {});
+              this.dialogChatShopping = true;
+              this.scrollToBottom();
+              break;
+
+            default:
+              // Respuesta por defecto si no se reconoce la intención
+              this.messages.push({
+                from: "ai",
+                text:
+                  answer ||
+                  "No entendí muy bien tu solicitud. ¿Podrías ser más específico?",
+                timestamp: new Date().toLocaleTimeString(),
+              });
+          }
+              /*if (response.data.task) {
                 this.taskParameters = {
                   ...this.taskParameters,
                   ...response.data.task,
@@ -548,7 +705,7 @@ export default {
               await this.loadRequiredData();
               this.currentTaskIntent = response.data.intent;
               this.taskDataCollectionMode = true;
-              await this.showInitialTaskData(response.data.task);
+              await this.showInitialTaskData(response.data.task);*/
             } else {
               this.chatMessages.push({
                 from: "ai",
@@ -580,6 +737,7 @@ export default {
         this.priorities = result.data?.taskpriorities || [];
         this.recurrences = result.data?.taskrecurrences || [];
         this.roles = result.data?.taskroles || [];
+        this.types = result.data?.tasktype || [];
         this.people = (result.data?.taskpeople || []).map((person) => ({
           ...person,
           namePerson: this.fixEncoding(person.namePerson || ""),
@@ -601,6 +759,20 @@ export default {
       await this.startAutomaticDataCollection();
     },
     async showTaskSummary(taskData) {
+      if (taskData.type) {
+        this.chatMessages.push({
+          from: "ai",
+          text: "Tipo:",
+          component: "TaskTypeOptions",
+          props: {
+            options: this.types,
+            selectedId: taskData.type,
+          },
+          timestamp: new Date().toLocaleTimeString(),
+        });
+         // Marcar este campo como ya mostrado en el chat
+        this.shownChatFields.add("type");
+      }
       const fieldsToShow = [
         { key: "title", label: "Título" },
         { key: "description", label: "Descripción" },
@@ -627,6 +799,8 @@ export default {
             isEditing: false,
             showDatePicker: false,
           });
+           // Marcar este campo como ya mostrado en el chat
+      this.shownChatFields.add(field.key);
         }
       });
 
@@ -642,10 +816,27 @@ export default {
           },
           timestamp: new Date().toLocaleTimeString(),
         });
+         // Marcar este campo como ya mostrado en el chat
+        this.shownChatFields.add("priority_id");
+      }
+      if (taskData.recurrence) {
+        this.chatMessages.push({
+          from: "ai",
+          text: "Recurrencia actual:",
+          component: "RecurrenceOptions",
+          props: {
+            options: this.recurrences,
+            selectedId: taskData.recurrence,
+          },
+          timestamp: new Date().toLocaleTimeString(),
+        });
+         // Marcar este campo como ya mostrado en el chat
+        this.shownChatFields.add("recurrence");
       }
     },
     async startAutomaticDataCollection() {
       const parametersOrder = [
+        "type",
         "title",
         "description",
         "priority_id",
@@ -659,17 +850,33 @@ export default {
 
       const nextField = parametersOrder.find((field) => {
         const value = this.taskParameters[field];
-
         if (field === "people") {
-          // Considerar como vacío si el array está vacío
           return !Array.isArray(value) || value.length === 0;
         }
-
         return !value && value !== 0;
       });
+
+      // --- 🔁 Solo actualizar resumen si YA EXISTE (no crearlo aquí) ---
+      this.updateExistingTaskSummary();
+
+      // Si ya no hay campos faltantes, completar
+      if (!nextField) {
+        this.completeTaskCreation(); // Aquí ya no genera resumen, solo confirmación
+        return;
+      }
+        // Si ya fue mostrado, no mostramos de nuevo
+      if (this.shownChatFields.has(nextField)) {
+        return;
+      }
+
+      // Marcar como mostrado ANTES de mostrar el mensaje
+      this.shownChatFields.add(nextField);
+
       console.log("nextField");
       console.log(nextField);
-      if (nextField === "priority_id") {
+      if (nextField === "type") {
+        await this.showTypeOptions();
+      } else if (nextField === "priority_id") {
         await this.showPriorityOptions();
       } else if (nextField === "people") {
         await this.showPeopleSelector();
@@ -681,8 +888,37 @@ export default {
         this.completeTaskCreation();
       }
     },
+    updateExistingTaskSummary() {
+      const summaryIndex = this.chatMessages.findIndex(msg => msg.isSummary);
+      if (summaryIndex !== -1) {
+        // Solo actualizamos si ya existe
+        this.chatMessages[summaryIndex].text = this.generateTaskSummary();
+        this.chatMessages[summaryIndex].timestamp = new Date().toLocaleTimeString();
+        this.scrollToBottom();
+      }
+    },
+    updateOrCreateTaskSummary() {
+      const summaryIndex = this.chatMessages.findIndex(msg => msg.isSummary);
+      const newSummary = this.generateTaskSummary();
+
+      if (summaryIndex === -1) {
+        // 🔹 Crear solo aquí (en completeTaskCreation)
+        this.chatMessages.push({
+          from: "ai",
+          text: newSummary,
+          timestamp: new Date().toLocaleTimeString(),
+          isSummary: true,
+        });
+      } else {
+        // 🔹 Actualizar si ya existe
+        this.chatMessages[summaryIndex].text = newSummary;
+      }
+
+      this.scrollToBottom();
+    },
     async showFieldInput(field) {
       const fieldLabels = {
+        type: "el tipo",
         title: "el título",
         description: "la descripción",
         start_date: "la fecha de inicio (YYYY-MM-DD)",
@@ -701,7 +937,9 @@ export default {
         fieldName: field,
         fieldLabel: fieldLabels[field] || field,
       });
-      if (field === "priority_id") {
+      if (field === "type") {
+        await this.showTypeOptions();
+      }else if (field === "priority_id") {
         await this.showPriorityOptions();
       } else if (field === "recurrence") {
         await this.showRecurrenceOptions();
@@ -788,7 +1026,7 @@ export default {
         this.chatMessages[priorityMessageIndex].props.selectedId = priority.id;
       }
 
-      //this.startAutomaticDataCollection();
+      this.startAutomaticDataCollection();
     },
     showAlert(type, message, timeout) {
       this.sb_type = type;
@@ -816,6 +1054,26 @@ export default {
         this.scrollToBottom();
       }, 100);
     },
+
+    async showTypeOptions() {
+      this.isTyping = true;
+
+      setTimeout(() => {
+        this.chatMessages.push({
+          from: "ai",
+          text: "Selecione el tipo:",
+          component: "TaskTypeOptions",
+          props: {
+            options: this.types,
+            selectedId: this.taskParameters.type,
+          },
+          timestamp: new Date().toLocaleTimeString(),
+        });
+
+        this.isTyping = false;
+        this.scrollToBottom();
+      }, 100);
+    },
     handleRecurrenceSelection(recurrence) {
       this.taskParameters.recurrence = recurrence.id === "none" ? null : recurrence.id;
 
@@ -830,16 +1088,58 @@ export default {
       // Llamar a showPeopleSelector después de seleccionar recurrencia
       this.startAutomaticDataCollection();
     },
+   handleTtypeSelected(type) {
+  const newType = type.id === "none" ? null : type.id;
+  const oldType = this.taskParameters.type;
+
+  // Si no cambia el tipo, salir
+  if (newType === oldType) {
+    this.startAutomaticDataCollection();
+    return;
+  }
+
+  // Cambiar el tipo
+  this.taskParameters.type = newType;
+
+  // Actualizar el componente visual
+  const typeMessageIndex = this.chatMessages.findIndex(
+    (m) => m.from === "ai" && m.component === "TaskTypeOptions"
+  );
+  if (typeMessageIndex !== -1) {
+    this.chatMessages[typeMessageIndex].props.selectedId = newType;
+  }
+
+  // 🔥 Eliminar mensajes de end_date y end_time del chat si pasamos de Meta → Tarea
+  if (oldType === "Meta" && newType !== "Meta") {
+    // Eliminar mensajes del chat (editables o no)
+    this.chatMessages = this.chatMessages.filter((msg) => {
+      return !["end_date", "end_time"].includes(msg.fieldKey);
+    });
+
+    // Eliminar del resumen si existe
+    const summaryIndex = this.chatMessages.findIndex(msg => msg.isSummary);
+    if (summaryIndex !== -1) {
+      // Actualizar el texto del resumen sin end_date/end_time
+      this.chatMessages[summaryIndex].text = this.generateTaskSummary();
+    }
+  }
+
+  // 🔥 Eliminar resumen y confirmación para que se regenere
+  this.chatMessages = this.chatMessages.filter(
+    msg => !msg.isSummary && !msg.isConfirmation
+  );
+
+  // 🔁 Reiniciar flujo
+  this.startAutomaticDataCollection();
+},
     //personas
     confirmPeopleSelection(selections) {
       this.taskParameters.people = selections;
 
-      // Mostrar resumen de personas seleccionadas
-      const peopleText =
-        selections.length > 0
-          ? selections.map((p) => `${p.name} (${p.roleName})`).join(", ")
-          : "Ninguna persona seleccionada";
+      // 🔁 Actualizar resumen si ya fue mostrado
+      this.updateExistingTaskSummary();
 
+      // Continuar flujo
       this.startAutomaticDataCollection();
     },
     updatePeopleSelection(selections) {
@@ -893,11 +1193,11 @@ export default {
   if (this.taskParameters.type === "Meta") {
     this.showSuggestedTasks(); // Asegúrate de que esta función exista y funcione correctamente
   } else {*/
-      this.completeTaskCreation(); // Si no es Meta, terminar el flujo
+      this.startAutomaticDataCollection(); // Si no es Meta, terminar el flujo
       //}
     },
 
-    completeTaskCreation() {
+    /*completeTaskCreation() {
       this.isTyping = true;
       this.taskDataCollectionMode = false;
 
@@ -1005,7 +1305,168 @@ export default {
       this.waitingForConfirmation = true;
       this.isTyping = false;
       this.scrollToBottom();
+    },*/
+    completeTaskCreation() {
+      this.isTyping = true;
+      this.taskDataCollectionMode = false;
+
+      // ✅ Aquí sí: crear o actualizar el resumen
+      this.updateOrCreateTaskSummary();
+
+      // ❌ Eliminar solo confirmación anterior
+      this.chatMessages = this.chatMessages.filter(msg => !msg.isConfirmation);
+
+      // ✅ Mostrar confirmación
+      this.chatMessages.push({
+        from: "ai",
+        text: `¿Deseas crear esta ${this.currentTaskIntent.toLowerCase()} con los datos proporcionados?`,
+        timestamp: new Date().toLocaleTimeString(),
+        isConfirmation: true,
+        buttons: [
+          {
+            text: "Cancelar",
+            color: "error",
+            variant: "outlined",
+            action: () => this.handleCancellation("no"),
+            props: { class: "mr-2", size: "default" }
+          },
+          {
+            text: "Confirmar y crear",
+            color: "primary",
+            variant: "flat",
+            action: () => this.handleTaskConfirmation("si"),
+            props: { size: "default" }
+          }
+        ]
+      });
+
+      this.waitingForConfirmation = true;
+      this.isTyping = false;
+      this.scrollToBottom();
     },
+   generateTaskSummary() {
+  let summary = `Resumen de la ${this.currentTaskIntent}:\n\n`;
+
+  const parameterLabels = {
+    type: "Tipo",
+    title: "Título",
+    description: "Descripción",
+    priority_id: "Prioridad",
+    start_date: "Fecha inicio",
+    estimated_time: "Duración estimada",
+    recurrence: "Recurrencia",
+    end_date: "Fecha fin",
+    geo_location: "Ubicación",
+  };
+
+  Object.keys(parameterLabels).forEach((key) => {
+    const value = this.taskParameters[key];
+    if (value !== null && value !== undefined && value !== "") {
+      // Saltar end_date si no es Meta
+      if ((key === "end_date" || key === "end_time") && this.taskParameters.type !== "Meta") {
+        return;
+      }
+
+      if (key === "priority_id") {
+        const priority = this.priorities.find((p) => p.id === value);
+        summary += `• ${parameterLabels[key]}: ${priority?.namePriority || "No especificada"}\n`;
+      } else if (key === "recurrence") {
+        const recurrence = this.recurrences.find((r) => r.id === value);
+        summary += `• ${parameterLabels[key]}: ${recurrence?.recurrenceName || "No recurrente"}\n`;
+      } else if (key === "start_date" || key === "end_date") {
+        const timeKey = key.replace("_date", "_time");
+        const timeValue = this.taskParameters[timeKey];
+        const fullValue = timeValue ? `${value} ${timeValue}` : value;
+        summary += `• ${parameterLabels[key]}: ${fullValue}\n`;
+      } else if (!key.endsWith("_time")) {
+        summary += `• ${parameterLabels[key]}: ${value}\n`;
+      }
+    }
+  });
+
+  // Personas asignadas
+  if (this.taskParameters.people.length > 0) {
+    summary += `• Personas asignadas:\n`;
+    this.roles.forEach((role) => {
+      const peopleInRole = this.taskParameters.people.filter((p) => p.roleId === role.id);
+      if (peopleInRole.length > 0) {
+        summary += `  - ${role.nameRol}: `;
+        summary += peopleInRole
+          .map((personObj) => {
+            const person = this.people.find((p) => p.id === personObj.id);
+            return person?.namePerson || "Desconocido";
+          })
+          .join(", ");
+        summary += "\n";
+      }
+    });
+  }
+
+  return summary;
+},
+    updateTaskSummaryMessage() {
+      const summaryIndex = this.chatMessages.findIndex(msg => msg.isSummary);
+      if (summaryIndex !== -1) {
+        // Actualizar el resumen completo
+        const newSummary = this.generateTaskSummary();
+        this.chatMessages[summaryIndex].text = newSummary;
+
+        // Actualizar mensaje individual del campo editado
+        const fieldKey = this.chatMessages.find(m => m.isEditing)?.fieldKey;
+        if (fieldKey) {
+          const fieldLabel = {
+            type: "Tipo",
+            title: "Título",
+            description: "Descripción",
+            priority_id: "Prioridad",
+            recurrence: "Recurrencia",
+            start_date: "Fecha inicio",
+            end_date: "Fecha fin",
+            estimated_time: "Duración estimada",
+            geo_location: "Ubicación",
+          }[fieldKey];
+
+          if (fieldLabel) {
+            const fieldMessageIndex = this.chatMessages.findIndex(
+              m => m.fieldKey === fieldKey && !m.isEditing && !m.isSummary
+            );
+            if (fieldMessageIndex !== -1) {
+              const displayValue = this.getDisplayValueForTaskField(fieldKey);
+              this.chatMessages[fieldMessageIndex].text = `• ${fieldLabel}: ${displayValue}`;
+              this.chatMessages[fieldMessageIndex].currentValue = this.taskParameters[fieldKey];
+            }
+          }
+        }
+      }
+    },
+    getDisplayValueForTaskField(fieldKey) {
+      const value = this.taskParameters[fieldKey];
+      if (!value) return value;
+
+      if (fieldKey === "type") {
+        const type = this.types.find(p => p.id === value);
+        return type?.name || "No especificado";
+      }
+
+      if (fieldKey === "priority_id") {
+        const priority = this.priorities.find(p => p.id === value);
+        return priority?.namePriority || "No especificada";
+      }
+
+      if (fieldKey === "recurrence") {
+        const recurrence = this.recurrences.find(r => r.id === value);
+        return recurrence?.recurrenceName || "No recurrente";
+      }
+
+      if (fieldKey === "start_date" || fieldKey === "end_date") {
+        const timeKey = fieldKey.replace("_date", "_time");
+        const timeValue = this.taskParameters[timeKey];
+        return timeValue ? `${value} ${timeValue}` : value;
+      }
+
+      return value;
+    },
+
 
     // Maneja la confirmación del usuario
     async handleTaskConfirmation(userResponse) {
@@ -1073,7 +1534,10 @@ export default {
           updatedFields.type = this.taskParameters.type
             ? this.taskParameters.type
             : "Tarea";
-
+          if (this.taskParameters.type !== "Meta") {
+            delete updatedFields.end_date;
+            delete updatedFields.end_time;
+          }
           // Crear el objeto FormData
           const formData = new FormData();
           for (let key in updatedFields) {
@@ -1106,6 +1570,8 @@ export default {
               //aqui comienza los cambios de mostrar las sugerencias
               if (result.data?.suggestedTasks?.length > 0) {
                 this.showSuggestedTasks(result.data.suggestedTasks);
+              }else{
+                this.handleCancellation();
               }
             }
           } catch (error) {
@@ -1135,38 +1601,38 @@ export default {
       this.scrollToBottom();
     },
     handleCancellation() {
-  this.waitingForConfirmation = false;
-  this.taskParameters.people = [];
-      this.taskParameters = Object.assign({}, this.defaultItem);
-      this.originalItem = Object.assign({}, this.defaultItem);
-  // Mensaje con botones de opción
-  this.chatMessages.push({
-    from: "ai",
-    text: "¿Qué deseas hacer ahora?",
-    timestamp: new Date().toLocaleTimeString(),
-    buttons: [
-      {
-        text: "Salir",
-        color: "grey",
-        variant: "outlined",  // Botón con borde
-        action: () => this.closeDialog(),
+      this.waitingForConfirmation = false;
+      this.taskParameters.people = [];
+          this.taskParameters = Object.assign({}, this.defaultItem);
+          this.originalItem = Object.assign({}, this.defaultItem);
+      // Mensaje con botones de opción
+      this.chatMessages.push({
+        from: "ai",
+        text: "¿Qué deseas hacer ahora?",
+        timestamp: new Date().toLocaleTimeString(),
+        buttons: [
+          {
+            text: "Salir",
+            color: "grey",
+            variant: "outlined",  // Botón con borde
+            action: () => this.closeDialog(),
+            props: {
+              class: "mr-2",
+              size: "default",
+            }
+          },
+          {
+        text: "Nueva conversación",
+        color: "primary",
+        variant: "flat",  // Botón sólido
+        action: () => this.startNewConversation(),
         props: {
-          class: "mr-2",
           size: "default",
         }
-      },
-      {
-    text: "Nueva conversación",
-    color: "primary",
-    variant: "flat",  // Botón sólido
-    action: () => this.startNewConversation(),
-    props: {
-      size: "default",
-    }
-  }
-    ]
-  });
-},
+      }
+        ]
+      });
+    },
 
     // Método para nueva conversación
     startNewConversation() {
@@ -1315,7 +1781,7 @@ export default {
       }
 
       // Continuar con el flujo automático
-      //this.startAutomaticDataCollection();
+      this.startAutomaticDataCollection();
     },
     handleTimeSelection(field, timeEvent) {
       const { value } = timeEvent;
@@ -1335,7 +1801,7 @@ export default {
       }
 
       // Continuar con el flujo automático
-      //this.startAutomaticDataCollection();
+      this.startAutomaticDataCollection();
     },
   },
 };

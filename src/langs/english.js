@@ -273,6 +273,11 @@ const english = {
     //tratamiento
     treatment: {
       formInstructions: "Complete all required fields of the treatment",
+      cardMedicamento: "Medication",
+      cardMedicamentosPlural: "Medications ({count})",
+      medicamentosActivos: "{count} active medications",
+      no_definido: "Not defined",
+      noTreatments: "No treatments defined yet",
       steps: {
         medication: {
           title: "Medication",
@@ -291,7 +296,9 @@ const english = {
         medication: "Medication",
         dosage: "Dosage",
         frequency: "Frequency",
-        duration: "Duration",
+        duration: "Duration (ex: 5 days, 2 weeks)",
+        durationHint:
+          "Specify duration with number and unit (days, weeks, months)",
         instructions: "Instructions",
         purpose: "Purpose",
         startDate: "Start Date",
@@ -700,7 +707,7 @@ const english = {
         balance: "Balance",
         movements: "Movements",
         suggestions: "Suggestions",
-        budget: "Budget" 
+        budget: "Budget",
       },
       currentAmount: "<strong>{amount}</strong> current",
     },

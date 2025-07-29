@@ -259,14 +259,13 @@
 </template>
 
 <script>
-import DatePicker from "@/components/chatTask/DatePicker.vue";
-import TypePersonalOptions from "@/components/chatTask/TypePersonalOptions.vue";
 import LocalStorageService from "@/LocalStorageService";
 import { handleRequest } from "@/utils/api";
 import _ from "lodash";
-import { markRaw } from "vue";
-import ChatTask from "./ChatTask.vue";
-import ChatFinance from "./ChatFinance.vue";
+import { defineAsyncComponent, markRaw } from "vue";
+import DatePicker from "@/components/chatTask/DatePicker.vue";
+import TypePersonalOptions from "@/components/chatTask/TypePersonalOptions.vue";
+
 
 export default {
  emits: ["close-dialog", "close-all-dialogs"],
@@ -283,11 +282,12 @@ export default {
   components: {
     DatePicker,
     TypePersonalOptions,
-    ChatTask,
-    ChatFinance
+    ChatFinance: defineAsyncComponent(() => import('./ChatFinance.vue')),
+  ChatTask: defineAsyncComponent(() => import('./ChatTask.vue')),
   },
   data() {
     return {
+      shownChatFields: new Set(),
        dialogChatTask: false,
       dialogChatFinance: false,
       currentTask: null,
@@ -487,6 +487,7 @@ export default {
       this.currentTask = null;
       this.currentFinance = null;
       this.currentBudget = null;
+      this.$emit("close-all-dialogs", "ChatBudgets");
       //this.initialize();
     },
     isImage(icon) {
@@ -520,17 +521,17 @@ export default {
   // Si es edición, esperará a blur o acción explícita
 },
 
-onBudgetBlur(index) {
-  setTimeout(() => {
-    const message = this.chatMessages[index];
-    if (message && message.isEditing) {
-      // Solo guardar si no es selección inicial (ya que esa se maneja en onBudgetSelected)
-      if (!this.isInitialCategorySelection) {
-        this.saveFieldEdit(index);
-      }
-    }
-  }, 200);
-},
+    onBudgetBlur(index) {
+      setTimeout(() => {
+        const message = this.chatMessages[index];
+        if (message && message.isEditing) {
+          // Solo guardar si no es selección inicial (ya que esa se maneja en onBudgetSelected)
+          if (!this.isInitialCategorySelection) {
+            this.saveFieldEdit(index);
+          }
+        }
+      }, 200);
+    },
 
     onBudgetClear(index) {
       console.log("Selección de presupuesto limpiada");
@@ -559,7 +560,7 @@ onBudgetBlur(index) {
     setTextFieldRef(el, index) {
       this.textFieldRefs[index] = el;
     },
-startFieldEdit(index) {
+    startFieldEdit(index) {
       this.chatMessages[index].isEditing = true;
       this.chatMessages[index].editValue = this.chatMessages[index].currentValue;
 
@@ -581,7 +582,7 @@ startFieldEdit(index) {
       }
     },
 
-  handleMenuClose(message, index) {
+    handleMenuClose(message, index) {
       if (
         (message.showDatePicker === false || message.showTimePicker === false) &&
         !this.chatMessages[index].isSaving
@@ -769,7 +770,7 @@ startFieldEdit(index) {
               this.currentTask = null;
               this.$nextTick(() => {
                 const taskData =
-                  typeof response.data.task === "string"
+                  typeof task === "string"
                     ? JSON.parse(task)
                     : task;
 
@@ -940,6 +941,7 @@ startFieldEdit(index) {
             showDatePicker: false,
             ...additionalData, // Añadir datos adicionales si es budget_id
           });
+          this.shownChatFields.add(field.key);
         }
       });
 
@@ -958,6 +960,7 @@ startFieldEdit(index) {
           // porque su edición se maneja internamente por el componente TypePersonalOptions.
           // Si quieres editarlo inline como los otros, necesitarías cambiarlo a texto + autocomplete.
         });
+        this.shownChatFields.add("budget_type");
       }
     },
     async startAutomaticDataCollection() {
@@ -980,6 +983,12 @@ startFieldEdit(index) {
 
       console.log("nextField");
       console.log(nextField);
+       if (this.shownChatFields.has(nextField)) {
+        return;
+      }
+
+      // Marcar como mostrado ANTES de mostrar el mensaje
+      this.shownChatFields.add(nextField);
        if (nextField === 'category_id' && !this.isInitialCategorySelection) {
         this.completeCreation(); // Saltar a confirmación
       } 

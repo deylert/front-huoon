@@ -216,6 +216,9 @@ const spanish = {
         diagnosis: "diagnóstico",
         medicalConsultation: "consulta médica",
         default: "elemento",
+        budget: "presupuesto",
+        income: "ingreso",
+        expense: "gasto"
       },
     },
     personDetails: {
@@ -639,6 +642,9 @@ const spanish = {
         attach_file: "Adjuntar Comprobante",
         available: "Disponible",
         total: "Total",
+        budget: "Presupuesto",
+        category: "Categoría",
+        currency: "Moneda"
       },
       actions: {
         viewFile: "Ver Comprobante",
@@ -740,6 +746,7 @@ const spanish = {
         description: "Descripción",
         status: "Estado",
         currency: "Moneda",
+        period: "Período",
       },
       status: {
         active: "Activo",
@@ -753,6 +760,7 @@ const spanish = {
         BRL: "Real Brasileño",
         MXN: "Peso Mexicano",
         COP: "Peso Colombiano",
+        CLP: "Peso Chileno",
       },
       titles: {
         new: "Agregar Presupuesto",

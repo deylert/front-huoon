@@ -154,7 +154,7 @@
           <template v-for="(card, index) in cards" :key="index">
             <v-col cols="12" sm="6" md="3" v-if="!card.menu">
               <!-- Tarjetas normales -->
-              <v-card
+              <!--<v-card
                 elevation="2"
                 density="comfortable"
                 @click="$router.push(card.to)"
@@ -183,7 +183,45 @@
                     }}</span>
                   </v-card-subtitle>
                 </v-card-item>
-              </v-card>
+              </v-card>-->
+              <v-card
+  elevation="2"
+  density="comfortable"
+  @click="$router.push(card.to)"
+  class="rounded-lg"
+>
+  <v-card-item class="pa-3">
+    <template v-slot:prepend>
+      <div class="icono-concavo">
+        <v-icon
+          :icon="card.icon"
+          :color="card.color"
+          size="x-large"
+        ></v-icon>
+      </div>
+    </template>
+    
+    <!-- Contenedor para título + círculo dinámico -->
+    <div class="title-container">
+      <v-card-title class="text-body-2">
+        {{ $t(`menu.${card.to.replace("/", "")}.title`) || card.title }}
+      </v-card-title>
+      <div 
+        v-if="getDynamicValue(card.to) > 0"
+        class="dynamic-circle"
+        :class="{ 'primary': card.color === 'primary' }"
+      >
+        {{ getDynamicValue(card.to) }}
+      </div>
+    </div>
+    
+    <v-card-subtitle class="pt-0">
+      <span class="text-body-2">
+        {{ $t(`menu.${card.to.replace("/", "")}.description`) || card.description }}
+      </span>
+    </v-card-subtitle>
+  </v-card-item>
+</v-card>
             </v-col>
 
             <v-col cols="12" sm="6" md="3" v-else>
@@ -252,36 +290,27 @@
           <v-card
             v-for="(meeting, index) in tasks"
             :key="index"
-            class="mb-4 rounded-lg"
+            class="mb-4 rounded-lg pa-2"
             density="comfortable"
             elevation="2"
           >
-            <v-row no-gutters>
+            <v-row>
               <!-- Barra lateral de color e info -->
-              <v-col cols="auto" class="pa-2 d-flex flex-column align-center">
-                <div
-                  class="icono-concavo d-flex flex-column justify-center align-center mr-2"
-                  :class="`bg-${getTypeColor(meeting.type)}`"
-                  style="min-height: 48px; min-width: 48px"
-                >
-                  <!-- Fecha intuitiva -->
-                  <div class="text-body-2 font-weight-medium">
-                    {{ formatIntuitiveDate(meeting.start_date) }}
-                  </div>
-
-                  <!-- Hora formateada (solo si no es "Todo el día") -->
-                  <div
-                    v-if="meeting.start_time"
-                    class="mt-1 text-caption font-weight-medium"
-                  >
-                    {{ formatTime(meeting.start_time) }}
-                  </div>
-                </div>
+              <v-col cols="auto" class="d-flex flex-column align-center">
+                <div class="icono-concavo d-flex flex-column justify-center align-center"
+     :class="`bg-${getTypeColor(meeting.type)}`"
+     style="height: 48px; width: 48px; padding: 4px;">
+  <div class="date-display">
+    {{ formatIntuitiveDate(meeting.start_date) }}
+  </div>
+  <div v-if="meeting.start_time" class="time-display">
+    {{ formatTime(meeting.start_time) }}
+  </div>
+</div>
               </v-col>
 
               <!-- Contenido principal -->
-              <v-col cols="8" class="d-flex align-center pe-4 gap-2">
-                <v-row align="center" justify="space-between" no-gutters>
+              <v-col cols="7" class="d-flex align-center pe-4 gap-2">
                   <v-row align="center" class="gap-3" no-gutters>
                     <div>
                       <div class="font-weight-bold text-body-2">
@@ -294,7 +323,6 @@
                         {{ meeting.geo_location }}
                       </div>
                     </div>
-                  </v-row>
                 </v-row>
               </v-col>
               <v-col cols="auto" class="d-flex align-center pe-4 gap-2">
@@ -999,8 +1027,6 @@ export default {
           return "Hoy";
         case 1:
           return "Mañana";
-        case 2:
-          return "Pasado mañana";
         case -1:
           return "Ayer";
         case -2:
@@ -1407,7 +1433,7 @@ export default {
     getTypeColor(type) {
       const colorMap = {
         Tarea: "warning",
-        Evento: "teal-lighten-2",
+        Meta: "purple",
         // Agrega más tipos si es necesario
       };
       return colorMap[type] || "grey-lighten-1"; // Color por defecto
@@ -1745,6 +1771,22 @@ export default {
   background: transparent;
 }
 
+.date-display {
+  font-size: 0.75rem; /* Equivale a text-caption */
+  line-height: 1.1;
+  font-weight: 500;
+  text-align: center;
+  word-break: break-word;
+  white-space: normal;
+}
+
+/* Estilos para la hora */
+.time-display {
+  font-size: 0.625rem;
+  line-height: 1;
+  margin-top: 2px;
+}
+
 .v-icon {
   font-size: 28px;
 }
@@ -1790,10 +1832,14 @@ export default {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
+.title-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Espacio entre título y círculo */
+}
+
 .dynamic-circle {
-  position: absolute;
-  top: 3%;
-  right: 1%;
   width: 24px;
   height: 24px;
   border-radius: 50%;
@@ -1802,18 +1848,15 @@ export default {
   justify-content: center;
   font-size: 12px;
   font-weight: bold;
-  color: rgb(7, 6, 6);
-  z-index: 1;
+  color: white;
+  background-color: #03626c; /* Color por defecto */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0; /* Evita que se reduzca el tamaño */
 }
 
 .dynamic-circle.primary {
-  background-color: #03626c;
-  /* Usa tu color primario */
+  background-color: #03626c; /* Color primario */
 }
-</style>
-
-<style scoped>
 .chat-wrapper {
   max-width: 700px;
   height: 85vh;

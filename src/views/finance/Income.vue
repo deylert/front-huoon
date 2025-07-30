@@ -1,14 +1,6 @@
 <template>
-  <v-snackbar
-    class="mt-12"
-    location="right top"
-    :timeout="sb_timeout"
-    :color="sb_type"
-    elevation="24"
-    :multi-line="true"
-    vertical
-    v-model="snackbar"
-  >
+  <v-snackbar class="mt-12" location="right top" :timeout="sb_timeout" :color="sb_type" elevation="24"
+    :multi-line="true" vertical v-model="snackbar">
     <v-row>
       <v-col md="2">
         <v-avatar :icon="sb_icon" color="sb_type" size="40"></v-avatar>
@@ -19,122 +11,81 @@
       </v-col>
     </v-row>
   </v-snackbar>
-  
+
   <v-container class="pa-4">
     <!-- Encabezado -->
     <v-row justify="space-between" align="center" class="mb-6">
       <h2 class="text-h5 font-weight-bold">{{ $t("viewTitles.incomes") }}</h2>
-      <v-btn
-        icon
-        color="deep-purple-accent-4"
-        variant="flat"
-        class="elevation-3"
-        @click="showAdd"
-      >
+      <v-btn icon color="deep-purple-accent-4" variant="flat" class="elevation-3" @click="showAdd">
         <v-icon>mdi-plus</v-icon>
       </v-btn>
     </v-row>
 
     <template v-if="filteredIncomes.length > 0">
-      <v-card
-        v-for="(income, index) in filteredIncomes"
-        :key="index"
-        class="mb-4 rounded-lg"
-        elevation="2"
-      >
+      <v-card v-for="(income, index) in filteredIncomes" :key="index" class="mb-4 rounded-lg" elevation="2">
         <v-row no-gutters class="ma-0">
           <!-- Columna 1: Fecha -->
-          <v-col cols="2" md="1" class="py-3 d-flex align-center justify-center">
-            <div class="text-body-2 font-weight-bold">
-              {{ formatDate(income.date) }}
+          <v-col cols="1" md="1" class="py-3 d-flex align-center justify-center">
+            <div class="icono-concavo" :class="`bg-${getTypeColor('Ingreso')}`">
+              <div class="date-text">
+                {{ formatIntuitiveDate(income.date) }}
+              </div>
             </div>
           </v-col>
 
           <!-- Columna 2: Tipo y Método -->
-          <v-col cols="3" md="2" class="px-2 py-3">
-          <div class="text-caption font-weight-bold text-grey-darken-2 mb-1">
-                {{ $t("finances.fields.type") }}:
-              </div>
-            <div class="text-subtitle-1 font-weight-bold text-blue-darken-4">
+          <v-col cols="1" class="d-flex align-center pe-4 gap-2">
+            <div class="text-body-2 font-weight-bold">
               {{ income.type || $t("finances.notRecorded") }}
             </div>
           </v-col>
 
           <!-- Columna 3: Ingresos -->
-          <v-col cols="2" md="2" class="px-1 py-3">
-            <div class="h-100">
-              <div class="text-caption font-weight-bold text-grey-darken-2 mb-1">
-                {{ $t("finances.fields.income") }}:
-              </div>
-              <div class="text-body-2 text-green-darken-2">
+          <v-col cols="1" class="d-flex align-center pe-4 gap-2">
+            <div class="text-body-2 text-green-darken-1">
+              <span>
                 {{ formatCurrency(income.income) }}
-              </div>
+              </span>
+              <v-tooltip activator="parent" location="bottom">
+                <span>{{ $t('finances.fields.currency') }}: {{ formatCurrency(income.income) }}</span>
+              </v-tooltip>
             </div>
           </v-col>
 
           <!-- Columna 4: Descripción -->
-          <v-col cols="3" md="4" class="px-1 py-3">
-            <div v-if="income.description" class="h-100">
-              <div class="text-caption font-weight-bold text-grey-darken-2 mb-1">
-                {{ $t("finances.fields.description") }}:
-              </div>
-              <v-tooltip bottom max-width="400px">
-                <template v-slot:activator="{ props }">
-                  <div 
-                    v-bind="props"
-                    class="text-body-2 text-grey-darken-3 text-truncate-3-lines"
-                  >
-                    {{ income.description }}
-                  </div>
-                </template>
-                <span>{{ income.description }}</span>
+          <v-col cols="7" class="d-flex align-center pe-4 gap-2">
+            <div class="text-body-2 text-grey-darken-1">
+              <span>
+                {{ income.description }}
+              </span>
+              <v-tooltip activator="parent" location="bottom">
+                <span>{{ $t('finances.fields.description') }}: {{ income.description }}</span>
               </v-tooltip>
             </div>
           </v-col>
 
           <!-- Columna 5: Archivo y Acciones -->
-          <v-col cols="2" md="3" class="px-2 py-3 d-flex justify-end align-center">
+          <v-col cols="2" class="d-flex align-center pe-4 gap-2 justify-end align-center">
             <!-- Archivo -->
             <div v-if="income.image && income.image !== 'finances/default.jpg'" class="mr-2">
-              <v-btn 
-                density="comfortable" 
-                icon="mdi-eye" 
-                color="green"
-                @click="openModal(income.image)" 
-                variant="tonal" 
-                size="small"
-                title="Ver archivo adjunto"
-              ></v-btn>
+              <v-btn density="comfortable" icon="mdi-eye" color="green" @click="openModal(income.image)" variant="tonal"
+                size="small" title="Ver archivo adjunto"></v-btn>
             </div>
-            
+
             <!-- Acciones -->
             <div class="d-flex">
-              <v-btn
-                icon
-                variant="text"
-                color="green-darken-2"
-                size="small"
-                @click="editItem(income)"
-                class="mx-1"
-              >
+              <v-btn icon variant="text" color="green-darken-2" size="small" @click="editItem(income)" class="mx-1">
                 <v-icon>mdi-pencil</v-icon>
               </v-btn>
-              <v-btn
-                icon
-                variant="text"
-                color="red-darken-2"
-                size="small"
-                @click="deleteItem(income)"
-                class="mx-1"
-              >
-                <v-icon>mdi-close</v-icon>
+              <v-btn icon variant="text" color="red-darken-2" size="small" @click="deleteItem(income)" class="mx-1">
+                <v-icon>mdi-delete</v-icon>
               </v-btn>
             </div>
           </v-col>
         </v-row>
       </v-card>
     </template>
-    
+
     <template v-else>
       <v-col cols="12" class="text-center py-8 pa-0">
         <v-icon size="64" color="grey-lighten-1">mdi-wallet-outline</v-icon>
@@ -146,13 +97,8 @@
   </v-container>
 
   <!-- Diálogo para agregar/editar ingresos -->
-  <v-dialog
-    v-model="dialog"
-    fullscreen
-    persistent
-    transition="dialog-bottom-transition"
-    content-class="fullscreen-dialog"
-  >
+  <v-dialog v-model="dialog" fullscreen persistent transition="dialog-bottom-transition"
+    content-class="fullscreen-dialog">
     <v-form ref="form" v-model="valid" class="h-100">
       <v-card class="pa-10">
         <v-card-text class="pt-12">
@@ -164,25 +110,19 @@
             <!-- Side steps -->
             <v-col cols="3">
               <v-timeline align="start" side="end" dense>
-                <v-timeline-item
-                  v-for="(s, index) in steps"
-                  :key="index"
-                  :dot-color="
+                <v-timeline-item v-for="(s, index) in steps" :key="index" :dot-color="
                     step > index
                       ? 'green'
                       : step === index
                       ? 'deep-purple'
                       : 'grey-lighten-1'
-                  "
-                  :icon="
+                  " :icon="
                     step >= index
                       ? step === index
                         ? `mdi-numeric-${index + 1}`
                         : 'mdi-check'
                       : null
-                  "
-                  size="large"
-                >
+                  " size="large">
                   <template #opposite>
                     <div class="text-end">
                       <strong>{{ $t(`finances.steps.${s.title}.title`) }}</strong>
@@ -204,25 +144,15 @@
               <!-- Paso 1: Detalles del ingreso -->
               <v-row dense v-if="step === 0">
                 <v-col cols="12" sm="6">
-                  <v-autocomplete 
-                    v-model="editedItem.type"
-                    :items="types" 
-                    :label="$t('finances.fields.type')" 
-                    item-title="name"
-                    item-value="id" 
-                    variant="underlined" 
-                    :rules="typeRules"
-                  >
+                  <v-autocomplete v-model="editedItem.type" :items="types" :label="$t('finances.fields.type')"
+                    item-title="name" item-value="id" variant="underlined" :rules="typeRules">
                     <template v-slot:item="{ props, item }">
                       <v-list-item v-bind="props">
                         <v-list-item-subtitle class="d-flex flex-column">
                           <v-tooltip bottom>
                             <template v-slot:activator="{ props: tooltipProps }">
-                              <div 
-                                class="truncate" 
-                                v-bind="tooltipProps"
-                                style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
-                              >
+                              <div class="truncate" v-bind="tooltipProps"
+                                style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                 {{ item.raw.description }}
                               </div>
                             </template>
@@ -244,44 +174,21 @@
                 </v-col>-->
 
                 <v-col cols="12" sm="6">
-                  <v-text-field
-                    v-model="editedItem.income"
-                    :label="$t('finances.fields.income')"
-                    variant="underlined"
-                    type="number"
-                    step="0.01"
-                    :rules="incomeRules"
-                    required
-                  />
+                  <v-text-field v-model="editedItem.income" :label="$t('finances.fields.income')" variant="underlined"
+                    type="number" step="0.01" :rules="incomeRules" required />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-file-input
-                    v-model="file"
-                    ref="fileInput"
-                    :label="$t('finances.fields.attach_file')"
-                    variant="underlined"
-                    name="file"
-                    accept=".png, .jpg, .jpeg"
-                    @change="onFileSelected"
-                    :prepend-icon="false"
-                  ></v-file-input>
+                  <v-file-input v-model="file" ref="fileInput" :label="$t('finances.fields.attach_file')"
+                    variant="underlined" name="file" accept=".png, .jpg, .jpeg" @change="onFileSelected"
+                    :prepend-icon="false"></v-file-input>
                 </v-col>
                 <v-col cols="12" md="6">
                   <v-card elevation="6" class="mx-auto" max-width="210" max-height="120">
-                    <img
-                      v-if="imagenDisponible() && this.showImage"
-                      :src="imgedit"
-                      height="120"
-                      :label="$t('finances.fields.file')"
-                      width="210"
-                    />
-                    <v-icon
-                      v-else
-                      class="d-flex align-center justify-center"
-                      style="height: 120px; width: 210px; font-size: 120px"
-                      >{{ this.icono }}</v-icon
-                    >
+                    <img v-if="imagenDisponible() && this.showImage" :src="imgedit" height="120"
+                      :label="$t('finances.fields.file')" width="210" />
+                    <v-icon v-else class="d-flex align-center justify-center"
+                      style="height: 120px; width: 210px; font-size: 120px">{{ this.icono }}</v-icon>
                   </v-card>
                 </v-col>
               </v-row>
@@ -289,62 +196,34 @@
               <!-- Step 2: Descripción y fecha -->
               <v-row dense v-if="step === 1">
                 <v-col cols="12">
-                  <v-textarea
-                    v-model="editedItem.description"
-                    :label="$t('finances.fields.description')"
-                    variant="underlined"
-                    rows="3"
-                    auto-grow
-                    :rules="descriptionRules"
-                  />
+                  <v-textarea v-model="editedItem.description" :label="$t('finances.fields.description')"
+                    variant="underlined" rows="3" auto-grow :rules="descriptionRules" />
                 </v-col>
 
                 <v-col cols="12">
-                <v-menu
-                  v-model="dateMenu"
-                  :close-on-content-click="false"
-                  transition="scale-transition"
-                  offset-y
-                  min-width="auto"
-                >
-                  <template v-slot:activator="{ props }">
-                    <v-text-field
-                      v-bind="props"
-                      :model-value="dateInput" 
-                      :label="$t('finances.fields.date')"
-                      variant="underlined"
-                      readonly
-                    ></v-text-field>
-                  </template>
-                  <v-date-picker
-                    color="#03626C"
-                    :model-value="parseDateString(dateInput)" 
-                    @update:model-value="updateDate"
-                  ></v-date-picker>
-                </v-menu>
+                  <v-menu v-model="dateMenu" :close-on-content-click="false" transition="scale-transition" offset-y
+                    min-width="auto">
+                    <template v-slot:activator="{ props }">
+                      <v-text-field v-bind="props" :model-value="dateInput" :label="$t('finances.fields.date')"
+                        variant="underlined" readonly></v-text-field>
+                    </template>
+                    <v-date-picker color="#03626C" :model-value="parseDateString(dateInput)"
+                      @update:model-value="updateDate"></v-date-picker>
+                  </v-menu>
                 </v-col>
               </v-row>
 
               <!-- Navegación -->
               <div class="d-flex justify-space-between mt-8">
-                <v-btn
-                  variant="text"
-                  class="text-grey-darken-1"
-                  @click="step > 0 ? step-- : this.close()"
-                >
+                <v-btn variant="text" class="text-grey-darken-1" @click="step > 0 ? step-- : this.close()">
                   {{ step === 0 ? $t("buttons.close") : $t("buttons.previous") }}
                 </v-btn>
 
-                <v-btn
-                  variant="text"
-                  class="text-deep-purple-accent-3"
-                  @click="nextStep"
-                  :disabled="!valid"
-                >
+                <v-btn variant="text" class="text-deep-purple-accent-3" @click="nextStep" :disabled="!valid">
                   {{
-                    step === steps.length - 1
-                      ? $t("buttons.saveAndClose")
-                      : $t("buttons.next")
+                  step === steps.length - 1
+                  ? $t("buttons.saveAndClose")
+                  : $t("buttons.next")
                   }}
                 </v-btn>
               </div>
@@ -357,36 +236,29 @@
 
   <!-- Diálogo de confirmación para eliminar -->
   <v-dialog v-model="dialogDelete" max-width="500px">
-    <v-card>
+    <v-card rounded-lg>
       <v-toolbar color="#DA7171">
         <span class="text-subtitle-2 ml-4">
           {{
-            $t("deleteDialog.title", { item: $t(`deleteDialog.items.incomeRecord`) })
-          }}</span
-        >
+          $t("deleteDialog.title", { item: $t(`deleteDialog.items.income`) })
+          }}</span>
       </v-toolbar>
       <v-card-text class="mt-2 mb-2"> {{ $t("deleteDialog.message") }}</v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="#DA7171" variant="flat" @click="closeDelete">{{
+        <v-btn color="grey" variant="flat" @click="closeDelete">{{
           $t("taskForm.buttons.cancel")
-        }}</v-btn>
-        <v-btn
-          color="#03626C"
-          variant="flat"
-          :loading="loading"
-          @click="deleteItemConfirm"
-        >
-          {{ $t("taskForm.buttons.confirmDelete") }}</v-btn
-        >
-        </v-card-actions>
+          }}</v-btn>
+        <v-btn color="#03626C" variant="flat" :loading="loading" @click="deleteItemConfirm">
+          {{ $t("taskForm.buttons.confirmDelete") }}</v-btn>
+      </v-card-actions>
     </v-card>
   </v-dialog>
 
   <!-- Diálogo para ver imagen -->
   <v-dialog v-model="dialogPhoto" persistent max-width="600px">
-    <v-card>
+    <v-card rounded-lg>
       <v-toolbar color="#03626C">
         <span class="text-subtitle-2 ml-4">Detalle</span> <v-spacer></v-spacer>
         <v-btn @click="dialogPhoto = false">
@@ -397,11 +269,8 @@
       <v-card-text>
         <template v-if="loadingImage">
           <div class="d-flex justify-center align-center" style="min-height: 200px">
-            <v-progress-circular
-              indeterminate
-              color="#03626C"
-              style="width: 100px; height: 100px"
-            ></v-progress-circular>
+            <v-progress-circular indeterminate color="#03626C"
+              style="width: 100px; height: 100px"></v-progress-circular>
           </div>
         </template>
         <template v-else>
@@ -560,6 +429,59 @@ export default {
   },
 
   methods: {
+    formatIntuitiveDate(dateString) {
+      if (!dateString) return "Sin fecha";
+
+      // 1. Parsear la fecha de entrada (formato YYYY-MM-DD)
+      const [year, month, day] = dateString.split("-");
+      const inputDate = new Date(year, month - 1, day); // Mes es 0-based
+
+      // 2. Obtener fecha actual (sin horas/minutos/segundos)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // 3. Normalizar ambas fechas a UTC para evitar problemas de zona horaria
+      const inputUTC = Date.UTC(
+        inputDate.getFullYear(),
+        inputDate.getMonth(),
+        inputDate.getDate()
+      );
+      const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+
+      // 4. Calcular diferencia en días
+      const diffDays = Math.floor((inputUTC - todayUTC) / (1000 * 60 * 60 * 24));
+
+      // 5. Determinar el texto a mostrar
+      switch (diffDays) {
+        case 0:
+          return "Hoy";
+        case 1:
+          return "Mañana";
+        case 2:
+          return "Pasado mañana";
+        case -1:
+          return "Ayer";
+        case -2:
+          return "Anteayer";
+        default:
+          return inputDate
+            .toLocaleDateString("es-ES", {
+              weekday: "short",
+              day: "numeric",
+              month: "short",
+            })
+            .replace(/\./g, "");
+      }
+    },
+    
+    getTypeColor(type) {
+      const colorMap = {
+        Gasto: "red-lighten-1",
+        Ingreso: "green-lighten-1",
+        // Agrega más tipos si es necesario
+      };
+      return colorMap[type] || "grey-lighten-1"; // Color por defecto
+    },
     updateDate(value) {
     // value viene como objeto Date desde el date-picker
     // Convertimos a formato YYYY-MM-DD
@@ -959,6 +881,31 @@ export default {
 </script>
 
 <style scoped>
+.icono-concavo {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  margin-right: 5px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+  text-align: center; /* Aseguramos alineación horizontal */
+  padding: 4px; /* Espacio interno para respiro */
+}
+
+.date-text {
+  width: 100%;
+  font-size: 0.75rem; /* Equivalente a text-caption */
+  line-height: 1.2; /* Mejor interlineado */
+  font-weight: 500; /* Medium weight */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
 .text-truncate-3-lines {
   display: -webkit-box;
   -webkit-line-clamp: 3;

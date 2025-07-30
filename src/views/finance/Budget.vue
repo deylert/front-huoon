@@ -1,14 +1,6 @@
 <template>
-  <v-snackbar
-    class="mt-12"
-    location="right top"
-    :timeout="sb_timeout"
-    :color="sb_type"
-    elevation="24"
-    :multi-line="true"
-    vertical
-    v-model="snackbar"
-  >
+  <v-snackbar class="mt-12" location="right top" :timeout="sb_timeout" :color="sb_type" elevation="24"
+    :multi-line="true" vertical v-model="snackbar">
     <v-row>
       <v-col md="2">
         <v-avatar :icon="sb_icon" color="sb_type" size="40"></v-avatar>
@@ -20,161 +12,186 @@
     </v-row>
   </v-snackbar>
   <v-container class="pa-4">
-    <!-- Encabezado -->
-    <v-row justify="space-between" align="center" class="mb-6">
-      <h2 class="text-h5 font-weight-bold">{{ $t("viewTitles.budget") }}</h2>
-      <v-btn
-        icon
-        color="deep-purple-accent-4"
-        variant="flat"
-        class="elevation-3"
-        @click="showAdd"
-      >
-        <v-icon>mdi-plus</v-icon>
-      </v-btn>
-    </v-row>
-    <template v-if="budgets.length > 0">
-      <!-- Tarjetas de presupuestos -->
-      <v-card
-        v-for="(budget, index) in budgets"
-        :key="index"
-        class="mb-3 rounded-lg"
-        elevation="2"
-      >
-        <v-row no-gutters class="ma-0">
-          <!-- Barra lateral con fecha -->
-          <v-col cols="1" class="py-2 d-flex flex-column align-center justify-center">
-            <div class="date white--text font-weight-bold text-body-2 text-center">
-              {{ formatDate(budget.start_date) }}
-            </div>
-          </v-col>
-
-          <!-- Contenido principal -->
-          <v-col cols="10" class="d-flex align-center pe-2 gap-2 py-2">
+    <v-card class="pa-4" elevation="4" rounded="lg" style="max-height: 100vh; min-height: 40vh; overflow-y: auto">
+      <!-- Encabezado con foto y datos -->
+      <v-card-text>
+        <!-- Encabezado -->
+        <v-row justify="space-between" align="center" class="mb-6">
+          <h2 class="text-body-2 font-weight-bold">{{ $t("viewTitles.budget") }}</h2>
+          <v-btn icon color="deep-purple-accent-4" variant="flat" class="elevation-3" @click="showAdd">
+            <v-icon>mdi-plus</v-icon>
+          </v-btn>
+        </v-row>
+        <template v-if="budgets.length > 0">
+          <!-- Tarjetas de presupuestos -->
+          <v-card v-for="(budget, index) in budgets" :key="index" class="mb-3 rounded-lg pa-2" elevation="2">
+            <v-row>
+              <v-col cols="1" class="d-flex flex-column align-center justify-center">
+                <div class="icono-concavo d-flex flex-column justify-center align-center" :style="{
+                    'background-color': getPeriodColor(budget.typeName),
+                    'color': getContrastText(getPeriodColor(budget.typeName))
+                  }" style="min-height: 48px; min-width: 48px">
+                  <div class="text-body-2 font-weight-medium">
+                    {{ getPeriodAbbreviation(budget.typeName) }}
+                  </div>
+                </div>
+              </v-col>
+              <v-col cols="7" class="d-flex align-center pe-4">
+                <v-row align="center">
+                  <div>
+                    <div class="font-weight-bold text-body-2">
+                      <span>
+                        {{ budget.description }}
+                      </span>
+                      <v-tooltip activator="parent" location="bottom">
+                        <span>{{ $t('budget.fields.description') }}: {{ budget.description }}</span>
+                      </v-tooltip>
+                    </div>
+                    <div class="text-caption text-grey-darken-1">
+                      <span>
+                        {{ budget.categoryName }}
+                      </span>
+                      <v-tooltip activator="parent" location="bottom">
+                        <span>{{ $t('budget.fields.category') }}: {{ budget.categoryName }}</span>
+                      </v-tooltip>
+                    </div>
+                  </div>
+                </v-row>
+              </v-col>
+              <v-col cols="1" class="d-flex align-center pe-4">
+                <v-row align="center">
+                  <div>
+                    <div class="font-weight-bold text-body-2">
+                      <span>
+                        {{ budget.amount }}
+                      </span>
+                      <v-tooltip activator="parent" location="bottom">
+                        <span>{{ $t('budget.fields.amount') }}: {{ budget.amount }}</span>
+                      </v-tooltip>
+                    </div>
+                    <!--<div class="text-caption text-grey-darken-1">
+                      <span>
+                        {{ budget.used_amount }}
+                      </span>
+                      <v-tooltip activator="parent" location="bottom">
+                        <span>{{ $t('budget.fields.used_amount') }}: {{ budget.used_amount }}</span>
+                      </v-tooltip>
+                    </div>
+                    <div class="text-caption text-grey-darken-1">
+                      <span>
+                        {{ budget.remaining_amount }}
+                      </span>
+                      <v-tooltip activator="parent" location="bottom">
+                        <span>Disponible: {{ budget.remaining_amount }}</span>
+                      </v-tooltip>
+                    </div>-->
+                  </div>
+                </v-row>
+              </v-col>
+              <v-col cols="1" class="d-flex align-center pe-4">
+                <v-row align="center">
+                  <div>
+                    <div class="font-weight-bold text-body-2">
+                      <span>
+                        <v-icon :color="getTypeColor(budget.budget_type)"
+                          style="font-size: 10px; filter: drop-shadow(0 0 2px currentColor)" icon="mdi-circle"
+                          class="mr-0"></v-icon>
+                      </span>
+                      <span class="text-grey-darken-1 text-body-2">{{
+                        budget.budget_type
+                        }}</span>
+                      <v-tooltip activator="parent" location="bottom">
+                        <span>{{ $t('budget.fields.budget_type') }}: {{ budget.budget_type }}</span>
+                      </v-tooltip>
+                    </div>
+                  </div>
+                </v-row>
+              </v-col>
+              <v-col cols="1" class="d-flex align-center pe-4">
+                <v-row align="center">
+                  <div>
+                    <div class="font-weight-bold text-body-2">
+                      <span>
+                        <v-icon :color="getCurrencyColor(budget.currency)"
+                          style="font-size: 10px; filter: drop-shadow(0 0 2px currentColor)" icon="mdi-currency-sign"
+                          class="mr-1"></v-icon>
+                      </span>
+                      <span class="text-grey-darken-1 text-body-2">
+                        {{ getCurrencySymbol(budget.currency) }}
+                      </span>
+                      <v-tooltip activator="parent" location="bottom">
+                        <span>{{ $t('budget.fields.currency') }}: {{ getCurrencyName(budget.currency) }}</span>
+                      </v-tooltip>
+                    </div>
+                  </div>
+                </v-row>
+              </v-col>
+              <!--<v-col cols="4" class="d-flex align-center pe-2 py-2">
             <v-row align="center" justify="space-between" no-gutters>
               <div>
-                <!-- Datos principales -->
-                <div class="d-flex flex-wrap align-center gap-2 mb-2">
+                <div class="d-flex flex-wrap align-center mb-2">
                 <v-tooltip bottom>
-              <template v-slot:activator="{ props }">
-                <v-chip
-                  v-bind="props"
-                  size="small"
-                  color="primary"
-                  class="mr-1"
-                  text-color="white"
-                >
-                  <v-icon start size="small" icon="mdi-tag" color="white"></v-icon>
                   <span class="text-body-2">
-                    {{ $t('budget.fields.category') }}: {{ budget.categoryName }}
+                  {{ budget.categoryName }}
                   </span>
-                </v-chip>
-              </template>
-              <span>{{ $t('budget.fields.category') }}: {{ budget.categoryName }}</span>
-            </v-tooltip>
+                    <span>{{ $t('budget.fields.category') }}: {{ budget.categoryName }}</span>
+                  </v-tooltip>
                   <v-tooltip
                     v-for="(item, i) in compactBudgetData(budget)"
                     :key="i"
                     bottom
                   >
-                    <template v-slot:activator="{ props }">
-                      <v-chip
-                        v-bind="props"
-                        size="small"
-                        :color="item.color"
-                        class="mr-1"
-                        text-color="white"
-                      >
-                        <v-icon
-                          start
-                          size="small"
-                          :icon="item.icon"
-                          color="white"
-                        ></v-icon>
                         <span class="text-body-2"
-                          >{{ item.label }}: {{ item.value }}</span
+                          >{{ item.value }}</span
                         >
-                      </v-chip>
-                    </template>
                     <span
                       >{{ item.fullLabel || item.label }}:
                       {{ item.fullValue || item.value }}</span
                     >
                   </v-tooltip>
                 </div>
-
-                <!-- Sección de Detalles -->
                 <div class="mt-2">
-                  <div class="text-caption font-weight-bold text-grey-darken-2 mb-1">
-                    {{ $t("budget.fields.description") }}:
-                  </div>
-                  <div class="d-flex flex-wrap gap-1">
+                   <div class="d-flex flex-wrap gap-1">
                     <v-tooltip
                       v-for="(detail, i) in compactDetails(budget)"
                       :key="'detail' + i"
                       bottom
                     >
-                      <template v-slot:activator="{ props }">
-                        <v-chip
-                          v-bind="props"
-                          size="small"
-                          variant="outlined"
-                          :color="detail.color"
-                          class="mr-1"
-                        >
+                      
                           <v-icon left size="small" :icon="detail.icon"></v-icon>
-                          <span class="text-body-2">{{ detail.label }}</span>
                           <span class="ml-1 text-body-2">- {{ detail.text }}</span>
-                        </v-chip>
-                      </template>
+
                       <span>{{ detail.fullLabel }}: {{ detail.fullText }}</span>
                     </v-tooltip>
                   </div>
                 </div>
               </div>
             </v-row>
+          </v-col>-->
+              <v-col cols="1" class="d-flex align-center pe-4">
+                <v-btn icon variant="text" color="green-darken-2" size="small" @click="editItem(budget)">
+                  <v-icon>mdi-pencil</v-icon>
+                </v-btn>
+                <v-btn icon variant="text" color="red-darken-2" size="small" @click="deleteItem(budget)" class="mr-1">
+                  <v-icon>mdi-delete</v-icon>
+                </v-btn>
+              </v-col>
+            </v-row>
+          </v-card>
+        </template>
+        <template v-else>
+          <v-col cols="12" class="text-center py-8 pa-0">
+            <v-icon size="64" color="grey-lighten-1">mdi-wallet-outline</v-icon>
+            <div class="text-h6 text-grey mt-4">
+              {{ $t("budget.noRecords") }}
+            </div>
           </v-col>
-
-          <!-- Acciones -->
-          <v-col cols="1" class="d-flex align-center pe-4 gap-2">
-            <v-btn
-              icon
-              variant="text"
-              color="green-darken-2"
-              size="small"
-              @click="editItem(budget)"
-            >
-              <v-icon>mdi-pencil</v-icon>
-            </v-btn>
-            <v-btn
-              icon
-              variant="text"
-              color="red-darken-2"
-              size="small"
-              @click="deleteItem(budget)"
-            >
-              <v-icon>mdi-close</v-icon>
-            </v-btn>
-          </v-col>
-        </v-row>
-      </v-card>
-    </template>
-    <template v-else>
-      <v-col cols="12" class="text-center py-8 pa-0">
-        <v-icon size="64" color="grey-lighten-1">mdi-wallet-outline</v-icon>
-        <div class="text-h6 text-grey mt-4">
-          {{ $t("budget.noRecords") }}
-        </div>
-      </v-col>
-    </template>
+        </template>
+      </v-card-text>
+    </v-card>
   </v-container>
-  <v-dialog
-    v-model="dialog"
-    fullscreen
-    persistent
-    transition="dialog-bottom-transition"
-    content-class="fullscreen-dialog"
-  >
+  <v-dialog v-model="dialog" fullscreen persistent transition="dialog-bottom-transition"
+    content-class="fullscreen-dialog">
     <v-form ref="form" v-model="valid" class="h-100">
       <v-card class="pa-10">
         <v-card-text class="pt-12">
@@ -187,25 +204,19 @@
             <!-- Side steps -->
             <v-col cols="3">
               <v-timeline align="start" side="end" dense>
-                <v-timeline-item
-                  v-for="(s, index) in steps"
-                  :key="index"
-                  :dot-color="
+                <v-timeline-item v-for="(s, index) in steps" :key="index" :dot-color="
                     step > index
                       ? 'green'
                       : step === index
                       ? 'deep-purple'
                       : 'grey-lighten-1'
-                  "
-                  :icon="
+                  " :icon="
                     step >= index
                       ? step === index
                         ? `mdi-numeric-${index + 1}`
                         : 'mdi-check'
                       : null
-                  "
-                  size="large"
-                >
+                  " size="large">
                   <template #opposite>
                     <div class="text-end">
                       <strong>{{ $t(`budget.steps.${s.title}.title`) }}</strong>
@@ -227,27 +238,18 @@
               <!-- Paso 1: Información básica -->
               <v-row dense v-if="step === 0">
                 <v-col cols="12" md="6">
-                  <v-autocomplete
-                    v-model="editedItem.category_id"
-                    :items="categories"
-                    :label="$t('budget.fields.category')"
-                    item-title="nameCategory"
-                    item-value="id"
-                    variant="underlined"
-                    :rules="selectRules"
-                  >
+                  <v-autocomplete v-model="editedItem.category_id" :items="categories"
+                    :label="$t('budget.fields.category')" item-title="nameCategory" item-value="id" variant="underlined"
+                    :rules="selectRules">
                     <template v-slot:item="{ props, item }">
                       <v-list-item v-bind="props">
                         <template v-slot:prepend>
                           <v-avatar size="24">
                             <!-- Verifica si es URL o ícono -->
                             <template v-if="isImage(item.raw.iconCategory)">
-                              <img
-                                :src="`${this.$axios.defaults.baseURL}images/${
+                              <img :src="`${this.$axios.defaults.baseURL}images/${
                                   item.raw.iconCategory
-                                }?t=${Date.now()}`"
-                                alt="icon"
-                              />
+                                }?t=${Date.now()}`" alt="icon" />
                             </template>
                             <template v-else>
                               <v-icon>{{ getIconName(item.raw.iconCategory) }}</v-icon>
@@ -263,29 +265,19 @@
                 </v-col>
 
                 <v-col cols="12" sm="6">
-                  <v-autocomplete
-                    v-model="editedItem.budget_type"
-                    :items="types"
-                    :label="$t('budget.fields.budget_type')"
-                    item-title="name"
-                    item-value="id"
-                    variant="underlined"
-                    :rules="typeRules"
-                  >
+                  <v-autocomplete v-model="editedItem.budget_type" :items="types"
+                    :label="$t('budget.fields.budget_type')" item-title="name" item-value="id" variant="underlined"
+                    :rules="typeRules">
                     <template v-slot:item="{ props, item }">
                       <v-list-item v-bind="props">
                         <v-list-item-subtitle class="d-flex flex-column">
                           <v-tooltip bottom>
                             <template v-slot:activator="{ props: tooltipProps }">
-                              <div
-                                class="truncate"
-                                v-bind="tooltipProps"
-                                style="
+                              <div class="truncate" v-bind="tooltipProps" style="
                                   white-space: nowrap;
                                   overflow: hidden;
                                   text-overflow: ellipsis;
-                                "
-                              >
+                                ">
                                 {{ item.raw.description }}
                               </div>
                             </template>
@@ -298,37 +290,25 @@
                 </v-col>
 
                 <v-col cols="12" sm="6">
-                  <v-text-field
-                    v-model="editedItem.amount"
-                    :label="$t('budget.fields.amount')"
-                    variant="underlined"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    :rules="amountRules"
-                  />
+                  <v-text-field v-model="editedItem.amount" :label="$t('budget.fields.amount')" variant="underlined"
+                    type="number" step="0.01" min="0" :rules="amountRules" />
                 </v-col>
 
                 <v-col cols="12" sm="6">
-                  <v-select
-                    v-model="editedItem.currency"
-                    :label="$t('budget.fields.currency')"
-                    :items="[
+                  <v-select v-model="editedItem.currency" :label="$t('budget.fields.currency')" :items="[
+                      { title: $t('budget.currencies.CLP'), value: 'CLP' },
                       { title: $t('budget.currencies.USD'), value: 'USD' },
                       { title: $t('budget.currencies.EUR'), value: 'EUR' },
                       { title: $t('budget.currencies.BRL'), value: 'BRL' },
                       { title: $t('budget.currencies.MXN'), value: 'MXN' },
                       { title: $t('budget.currencies.COP'), value: 'COP' },
-                    ]"
-                    variant="underlined"
-                    :rules="currencyRules"
-                  />
+                    ]" variant="underlined" :rules="currencyRules" />
                 </v-col>
               </v-row>
 
               <!-- Step 2: Fechas y detalles -->
               <v-row dense v-if="step === 1">
-                <v-col cols="12" sm="6">
+                <!--<v-col cols="12" sm="6">
                   <v-menu
                     v-model="startDateMenu"
                     :close-on-content-click="false"
@@ -382,39 +362,42 @@
                       ></v-date-picker>
                     </v-locale-provider>
                   </v-menu>
-                </v-col>
-
+                </v-col>-->
+                <v-autocomplete v-model="editedItem.type_id" :items="typesPeriodo" :label="$t('budget.fields.period')"
+                  item-title="name" item-value="id" variant="underlined" :rules="selectRules">
+                  <template v-slot:item="{ props, item }">
+                    <v-list-item v-bind="props">
+                      <v-list-item-subtitle class="d-flex flex-column">
+                        <v-tooltip bottom>
+                          <template v-slot:activator="{ props: tooltipProps }">
+                            <div class="truncate" v-bind="tooltipProps"
+                              style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                              {{ item.raw.description }}
+                            </div>
+                          </template>
+                          <span>{{ item.raw.description }}</span>
+                        </v-tooltip>
+                      </v-list-item-subtitle>
+                    </v-list-item>
+                  </template>
+                </v-autocomplete>
                 <v-col cols="12">
-                  <v-textarea
-                    v-model="editedItem.description"
-                    :label="$t('budget.fields.description')"
-                    variant="underlined"
-                    rows="3"
-                    auto-grow
-                  />
+                  <v-textarea v-model="editedItem.description" :label="$t('budget.fields.description')"
+                    variant="underlined" rows="3" auto-grow />
                 </v-col>
               </v-row>
 
               <!-- Navegación -->
               <div class="d-flex justify-space-between mt-8">
-                <v-btn
-                  variant="text"
-                  class="text-grey-darken-1"
-                  @click="step > 0 ? step-- : this.close()"
-                >
+                <v-btn variant="text" class="text-grey-darken-1" @click="step > 0 ? step-- : this.close()">
                   {{ step === 0 ? $t("buttons.close") : $t("buttons.previous") }}
                 </v-btn>
 
-                <v-btn
-                  variant="text"
-                  class="text-deep-purple-accent-3"
-                  @click="nextStep"
-                  :disabled="!valid"
-                >
+                <v-btn variant="text" class="text-deep-purple-accent-3" @click="nextStep" :disabled="!valid">
                   {{
-                    step === steps.length - 1
-                      ? $t("buttons.saveAndClose")
-                      : $t("buttons.next")
+                  step === steps.length - 1
+                  ? $t("buttons.saveAndClose")
+                  : $t("buttons.next")
                   }}
                 </v-btn>
               </div>
@@ -425,27 +408,20 @@
     </v-form>
   </v-dialog>
   <v-dialog v-model="dialogDelete" max-width="500px">
-    <v-card>
+    <v-card rounded-lg>
       <v-toolbar color="#DA7171">
         <span class="text-subtitle-2 ml-4">
-          {{ $t("deleteDialog.title", { item: $t(`deleteDialog.items.budget`) }) }}</span
-        >
+          {{ $t("deleteDialog.title", { item: $t(`deleteDialog.items.budget`) }) }}</span>
       </v-toolbar>
       <v-card-text class="mt-2 mb-2"> {{ $t("deleteDialog.message") }}</v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="#DA7171" variant="flat" @click="closeDelete">{{
+        <v-btn color="grey" variant="flat" @click="closeDelete">{{
           $t("taskForm.buttons.cancel")
-        }}</v-btn>
-        <v-btn
-          color="#03626C"
-          variant="flat"
-          :loading="loading"
-          @click="deleteItemConfirm"
-        >
-          {{ $t("taskForm.buttons.confirmDelete") }}</v-btn
-        >
+          }}</v-btn>
+        <v-btn color="#03626C" variant="flat" :loading="loading" @click="deleteItemConfirm">
+          {{ $t("taskForm.buttons.confirmDelete") }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -492,8 +468,9 @@ export default {
     budgets: [],
     types: [],
     categories: [],
+    typesPeriodo: [],
     //budgetTypes: ["Mensual", "Trimestral", "Semestral", "Anual", "Personalizado"],
-    currencies: ["USD", "EUR", "COP", "MXN", "Otro"],
+    currencies: ["CLP", "USD", "EUR", "COP", "MXN", "Otro"],
     startDateMenu: false,
     endDateMenu: false,
     startDateInput: null,
@@ -510,6 +487,7 @@ export default {
       status: "",
       description: "",
       currency: "",
+      type_id: null,
     },
 
     defaultItem: {
@@ -523,6 +501,7 @@ export default {
       status: "",
       description: "",
       currency: "",
+      type_id: null,
     },
 
     editedIndex: -1,
@@ -591,6 +570,72 @@ export default {
   },
 
   methods: {
+    getCurrencyColor(currency) {
+    const colorMap = {
+      'CLP': 'blue-darken-2',  // Chile
+      'USD': 'green-darken-1', // USA
+      'EUR': 'indigo-darken-1',// Europa
+      'BRL': 'amber-darken-3', // Brasil
+      'MXN': 'green-darken-3', // México
+      'COP': 'yellow-darken-2' // Colombia
+    };
+    return colorMap[currency] || 'grey-lighten-1';
+  },
+  
+  getCurrencySymbol(currency) {
+    const symbols = {
+      'CLP': 'CLP',  // O 'CLP$' si prefieres
+      'USD': 'USD',
+      'EUR': 'EUR',
+      'BRL': 'BRL',
+      'MXN': 'MXN',
+      'COP': 'COP'
+    };
+    return symbols[currency] || currency || '?';
+  },
+  
+  getCurrencyName(currency) {
+    return this.$t(`budget.currencies.${currency}`) || this.$t('general.not_specified');
+  },
+     getTypeColor(type) {
+       if (!type) return "grey-lighten-1";
+      const colorMap = {
+        Personal: "indigo-lighten-2",  // Azul intenso claro
+    Hogar: "deep-orange-lighten-1",  // Naranja intenso
+        // Agrega más tipos si es necesario
+      };
+      return colorMap[type] || "grey-lighten-1"; // Color por defecto
+    },
+   getPeriodColor(periodName) {
+      const colorMap = {
+        'Mensual': '#4CAF50',  // Verde
+        'Diario': '#2196F3',    // Azul
+        'Anual': '#FF9800',     // Naranja
+        'Semanal': '#9C27B0',   // Morado
+        // Default
+        'default': '#607D8B'    // Gris
+      };
+      return colorMap[periodName] || colorMap['default'];
+    },
+    getContrastText(bgColor) {
+      // Convierte color HEX a RGB y calcula brillo
+      const r = parseInt(bgColor.substr(1, 2), 16);
+      const g = parseInt(bgColor.substr(3, 2), 16);
+      const b = parseInt(bgColor.substr(5, 2), 16);
+      const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+      return brightness > 128 ? '#000000' : '#FFFFFF';
+    },
+    getPeriodAbbreviation(periodName) {
+      const abbreviations = {
+        'Mensual': 'MES',
+        'Diario': 'DIA',
+        'Anual': 'AÑO',
+        'Semanal': 'SEM',
+        // Default
+        'default': periodName?.charAt(0)?.toUpperCase() || ''
+      };
+      return abbreviations[periodName] || abbreviations['default'];
+    },
     isImage(icon) {
       // Validar si el valor es una URL válida (puedes personalizar esta lógica)
       return (
@@ -640,9 +685,11 @@ export default {
         if (result.success) {
           this.categories = result.data.categories || [];
           this.types = result.data.types || [];
+          this.typesPeriodo = result.data.typesPeriodo || [];
         } else {
           this.categories = [];
           this.types = [];
+          this.typesPeriodo = [];
         }
       } catch (error) {
         this.showAlert(
@@ -717,6 +764,7 @@ export default {
           "status",
           "description",
           "currency",
+          "type_id"
         ];
 
         let updatedFields = Object.keys(this.editedItem)
@@ -762,6 +810,7 @@ export default {
           "status",
           "description",
           "currency",
+          "type_id"
         ];
 
         let updatedFields = Object.keys(this.editedItem)
@@ -820,9 +869,11 @@ export default {
         if (result.success) {
           this.categories = result.data.categories || [];
           this.types = result.data.types || [];
+          this.typesPeriodo = result.data.typesPeriodo || [];
         } else {
           this.categories = [];
           this.types = [];
+          this.typesPeriodo= [];
         }
       } catch (error) {
         this.showAlert(
@@ -856,7 +907,7 @@ export default {
           id: this.editedItem.id,
         };
         const result = await handleRequest({
-          endpoint: "delete-budget",
+          endpoint: "budget-destroy",
           method: "POST",
           data: request,
         });
@@ -971,6 +1022,27 @@ export default {
 </script>
 
 <style scoped>
+
+.icono-concavo {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  margin-right: 8px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.icono-concavo:hover {
+  transform: scale(1.05);
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.15), 
+              0 2px 8px rgba(0,0,0,0.1);
+}
+
 .date {
   padding: 4px 8px;
   border-radius: 4px;

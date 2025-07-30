@@ -215,6 +215,9 @@ const english = {
         diagnosis: "diagnosis",
         medicalConsultation: "medical consultation",
         default: "item",
+        budget: "budget",
+        income: "income",
+        expense: "expense"
       },
     },
     personDetails: {
@@ -635,6 +638,9 @@ const english = {
         date: "Date",
         file: "Receipt",
         attach_file: "Attach Receipt",
+        budget: "Budget", // New field
+        category: "Category", // Also recommended if missing
+        currency: "Currency"
       },
       actions: {
         viewFile: "View Receipt",
@@ -738,6 +744,7 @@ const english = {
         currency: "Currency",
         available: "Available",
         total: "Total",
+        period: "Period",
       },
       currencies: {
         USD: "US Dollar",
@@ -745,6 +752,7 @@ const english = {
         BRL: "Brazilian Real",
         MXN: "Mexican Peso",
         COP: "Colombian Peso",
+        CLP: "Chilean Peso",
       },
       status: {
         active: "Active",

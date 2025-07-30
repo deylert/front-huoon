@@ -214,6 +214,9 @@ const portuguese = {
         diagnosis: "diagnóstico",
         medicalConsultation: "consulta médica",
         default: "item",
+        budget: "orçamento",
+        income: "receita", // Para ingresos/ganancias
+        expense: "despesa" 
       },
     },
     personDetails: {
@@ -635,6 +638,9 @@ const portuguese = {
         attach_file: "Anexar Comprovante",
         available: "Disponível",
         total: "Total",
+        budget: "Orçamento", // Novo campo
+        category: "Categoria", // Também recomendado se não existir
+        currency: "Moeda"
       },
       actions: {
         viewFile: "Ver Comprovante",
@@ -736,6 +742,7 @@ const portuguese = {
         description: "Descrição",
         status: "Status",
         currency: "Moeda",
+        period: "Período",
       },
       currencies: {
         USD: "Dólar Americano",
@@ -743,6 +750,7 @@ const portuguese = {
         BRL: "Real Brasileiro",
         MXN: "Peso Mexicano",
         COP: "Peso Colombiano",
+        CLP: "Peso Chileno",
       },
       status: {
         active: "Ativo",

@@ -23,7 +23,7 @@
   <v-container class="pa-4">
     <!-- Encabezado -->
     <v-row justify="space-between" align="center" class="mb-6">
-      <h2 class="text-h5 font-weight-bold">{{ $t("viewTitles.expenses") }}</h2>
+      <h2 class="text-body-2 font-weight-bold">{{ $t("viewTitles.expenses") }}</h2>
       <v-btn
         icon
         color="deep-purple-accent-4"
@@ -44,67 +44,58 @@
       >
         <v-row no-gutters class="ma-0">
           <!-- Columna 1: Fecha -->
-          <v-col cols="2" md="1" class="py-3 d-flex align-center justify-center">
-            <div class="text-body-2 font-weight-bold">
-              {{ formatDate(spent.date) }}
+          <v-col cols="1" md="1" class="py-3 d-flex align-center justify-center">
+            <div class="icono-concavo" :class="`bg-${getTypeColor('Ingreso')}`">
+              <div class="date-text">
+                {{ formatIntuitiveDate(spent.date) }}
+              </div>
             </div>
           </v-col>
 
           <!-- Columna 2: Tipo y Método -->
-          <v-col cols="2" md="2" class="px-2 py-3">
-            <div class="text-caption font-weight-bold text-grey-darken-2 mb-1">
-              {{ $t("finances.fields.type") }}:
-            </div>
-            <div class="text-subtitle-1 font-weight-bold text-blue-darken-4">
+          <v-col cols="1" class="d-flex align-center pe-4 gap-2">
+           <div class="text-body-2 font-weight-bold">
               {{ spent.type || $t("finances.notRecorded") }}
             </div>
           </v-col>
 
-          <v-col cols="2" md="2" class="px-1 py-3" v-if="spent.categoryName">
-            <div class="h-100">
-              <div class="text-caption font-weight-bold text-grey-darken-2 mb-1">
-                {{ $t("budget.fields.category") }}:
-              </div>
-              <div class="text-body-2 text-purple-darken-2">
-                {{ spent.categoryName || $t("finances.notAssigned") }}
-              </div>
-            </div>
+          <v-col cols="2" class="d-flex align-center pe-4 gap-2" v-if="spent.categoryName">
+            <div class="text-body-2 text-grey-darken-1">
+                      <span>
+                        {{ spent.categoryName }}
+                      </span>
+                      <v-tooltip activator="parent" location="bottom">
+                        <span>{{ $t('finances.fields.budget') }}: {{ spent.categoryName }}</span>
+                      </v-tooltip>
+                    </div>
           </v-col>
 
           <!-- Columna 3: Ingresos -->
-          <v-col cols="1" md="2" class="px-1 py-3">
-            <div class="h-100">
-              <div class="text-caption font-weight-bold text-grey-darken-2 mb-1">
-                {{ $t("finances.fields.spent") }}:
+          <v-col cols="1" class="d-flex align-center pe-4 gap-2">
+          <div class="text-body-2 text-red-darken-1">
+             <span>
+                        {{ formatCurrency(spent.spent) }}
+                      </span>
+                      <v-tooltip activator="parent" location="bottom">
+                        <span>{{ $t('finances.fields.currency') }}: {{ formatCurrency(spent.spent) }}</span>
+                      </v-tooltip>
               </div>
-              <div class="text-body-2 text-green-darken-2">
-                {{ formatCurrency(spent.spent) }}
-              </div>
-            </div>
           </v-col>
 
           <!-- Columna 4: Descripción -->
-          <v-col cols="2" md="3" class="px-1 py-3">
-            <div v-if="spent.description" class="h-100">
-              <div class="text-caption font-weight-bold text-grey-darken-2 mb-1">
-                {{ $t("finances.fields.description") }}:
-              </div>
-              <v-tooltip bottom max-width="400px">
-                <template v-slot:activator="{ props }">
-                  <div
-                    v-bind="props"
-                    class="text-body-2 text-grey-darken-3 text-truncate-3-lines"
-                  >
-                    {{ spent.description }}
-                  </div>
-                </template>
-                <span>{{ spent.description }}</span>
-              </v-tooltip>
-            </div>
+          <v-col cols="5" class="d-flex align-center pe-4 gap-2">
+            <div class="text-body-2 text-grey-darken-1">
+                      <span>
+                        {{ spent.description }}
+                      </span>
+                      <v-tooltip activator="parent" location="bottom">
+                        <span>{{ $t('finances.fields.description') }}: {{ spent.description }}</span>
+                      </v-tooltip>
+                    </div>
           </v-col>
 
           <!-- Columna 5: Archivo y Acciones -->
-          <v-col cols="3" md="2" class="px-2 py-3 d-flex justify-end align-center">
+          <v-col cols="2" class="d-flex align-center pe-4 gap-2 justify-end align-center">
             <!-- Archivo -->
             <div
               v-if="spent.image && spent.image !== 'finances/default.jpg'"
@@ -141,7 +132,7 @@
                 @click="deleteItem(spent)"
                 class="mx-1"
               >
-                <v-icon>mdi-close</v-icon>
+                <v-icon>mdi-delete</v-icon>
               </v-btn>
             </div>
           </v-col>
@@ -416,11 +407,11 @@
 
   <!-- Diálogo de confirmación para eliminar -->
   <v-dialog v-model="dialogDelete" max-width="500px">
-    <v-card>
+    <v-card rounded-lg>
       <v-toolbar color="#DA7171">
         <span class="text-subtitle-2 ml-4">
           {{
-            $t("deleteDialog.title", { item: $t(`deleteDialog.items.incomeRecord`) })
+            $t("deleteDialog.title", { item: $t(`deleteDialog.items.expense`) })
           }}</span
         >
       </v-toolbar>
@@ -428,7 +419,7 @@
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="#DA7171" variant="flat" @click="closeDelete">{{
+        <v-btn color="grey" variant="flat" @click="closeDelete">{{
           $t("taskForm.buttons.cancel")
         }}</v-btn>
         <v-btn
@@ -531,7 +522,7 @@ export default {
       description: "",
       date: null,
       image: null,
-      budget_id: "",
+      budget_id: null,
     },
     defaultItem: {
       id: "",
@@ -542,7 +533,7 @@ export default {
       description: "",
       date: null,
       image: null,
-      budget_id: "",
+      budget_id: null,
     },
     originalItem: {
       id: "",
@@ -553,11 +544,12 @@ export default {
       description: "",
       date: null,
       image: null,
-      budget_id: "",
+      budget_id: null,
     },
     editedIndex: -1,
     search: "",
     types: [],
+    selectRules: [(v) => !!v || "Seleccionar al menos un elemento"],
   }),
 
   computed: {
@@ -643,6 +635,59 @@ export default {
   },
 
   methods: {
+     formatIntuitiveDate(dateString) {
+      if (!dateString) return "Sin fecha";
+
+      // 1. Parsear la fecha de entrada (formato YYYY-MM-DD)
+      const [year, month, day] = dateString.split("-");
+      const inputDate = new Date(year, month - 1, day); // Mes es 0-based
+
+      // 2. Obtener fecha actual (sin horas/minutos/segundos)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // 3. Normalizar ambas fechas a UTC para evitar problemas de zona horaria
+      const inputUTC = Date.UTC(
+        inputDate.getFullYear(),
+        inputDate.getMonth(),
+        inputDate.getDate()
+      );
+      const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+
+      // 4. Calcular diferencia en días
+      const diffDays = Math.floor((inputUTC - todayUTC) / (1000 * 60 * 60 * 24));
+
+      // 5. Determinar el texto a mostrar
+      switch (diffDays) {
+        case 0:
+          return "Hoy";
+        case 1:
+          return "Mañana";
+        case 2:
+          return "Pasado mañana";
+        case -1:
+          return "Ayer";
+        case -2:
+          return "Anteayer";
+        default:
+          return inputDate
+            .toLocaleDateString("es-ES", {
+              weekday: "short",
+              day: "numeric",
+              month: "short",
+            })
+            .replace(/\./g, "");
+      }
+    },
+    
+    getTypeColor(type) {
+      const colorMap = {
+        Gasto: "red-lighten-1",
+        Ingreso: "green-lighten-1",
+        // Agrega más tipos si es necesario
+      };
+      return colorMap[type] || "grey-lighten-1"; // Color por defecto
+    },
     isImage(icon) {
       // Validar si el valor es una URL válida (puedes personalizar esta lógica)
       return (
@@ -810,12 +855,12 @@ export default {
         this.valid = false;
         const fieldsToUpdate = [
           "home_id",
+          "budget_id",
           "spent",
           "income",
           "image",
           "date",
           "description",
-          "image",
           "type",
           "method",
         ];
@@ -874,6 +919,7 @@ export default {
         this.valid = false;
         const fieldsToUpdate = [
           "home_id",
+          "budget_id",
           "spent",
           "income",
           "image",
@@ -1004,7 +1050,7 @@ export default {
       this.loading = true;
       try {
         const result = await handleRequest({
-          endpoint: "delete-financial-record",
+          endpoint: "finance-destroy",
           method: "POST",
           data: { id: this.editedItem.id },
         });
@@ -1126,6 +1172,31 @@ export default {
 </script>
 
 <style scoped>
+.icono-concavo {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  margin-right: 5px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+  text-align: center; /* Aseguramos alineación horizontal */
+  padding: 4px; /* Espacio interno para respiro */
+}
+
+.date-text {
+  width: 100%;
+  font-size: 0.75rem; /* Equivalente a text-caption */
+  line-height: 1.2; /* Mejor interlineado */
+  font-weight: 500; /* Medium weight */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
 .text-truncate-3-lines {
   display: -webkit-box;
   -webkit-line-clamp: 3;

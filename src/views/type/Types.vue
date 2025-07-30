@@ -235,6 +235,10 @@ export default {
         name: "Tratamientos",
         id: "Tratamiento",
       },
+      {
+        name: "Presupuesto",
+        id: "Presupuesto",
+      },
     ],
     editedIndex: -1,
     search: "",

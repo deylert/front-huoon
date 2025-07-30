@@ -30,7 +30,7 @@
               <v-icon color="green-darken-2">mdi-finance</v-icon>
             </v-avatar>
             <div>
-              <div class="text-h6 font-weight-bold mb-1">
+              <div class="text-body-2 font-weight-bold mb-1">
                 {{ $t("finances.header.title") }}
               </div>
               <div class="text-body-2 text-grey-darken-1">
@@ -41,7 +41,11 @@
 
           <!-- Columna de la tarjeta de sugerencia -->
           <v-col cols="12" sm="3" md="3">
-            <v-card class="pa-3 d-flex align-center" elevation="1" rounded="lg">
+            <v-card class="pa-2 d-flex align-center signo-card"
+              elevation="1"
+              rounded="lg"
+              @click="dialogAlerta = true"
+              style="cursor: pointer">
               <v-avatar size="40" class="me-3" color="purple-lighten-4" variant="tonal">
                 <v-icon color="purple">mdi-lightbulb-on-outline</v-icon>
               </v-avatar>
@@ -51,8 +55,8 @@
                 </div>
                 <div class="text-caption text-grey-darken-1">
                   {{
-                    $t("finances.suggestions.alerts.message", 5, {
-                      count: 5,
+                    $t("finances.suggestions.alerts.message", this.suggestions.length, {
+                      count: this.suggestions.length,
                     })
                   }}
                 </div>
@@ -223,15 +227,15 @@
                   <strong :class="`text-${budget.color}`"
                     >${{ formatCurrency(budget.current) }}</strong
                   >
-                  <span v-if="parseFloat(budget.percentage) > 0">
-                    (+{{ budget.percentage }}%)</span
+                  <span v-if="parseFloat(budget.currentUsage) > 0">
+                    (+{{ budget.currentUsage }}%)</span
                   >
-                  <span v-else-if="parseFloat(budget.percentage) < 0">
-                    ({{ budget.percentage }}%)</span
+                  <span v-else-if="parseFloat(budget.currentUsage) < 0">
+                    ({{ budget.currentUsage }}%)</span
                   >
                 </div>
                 <div class="text-caption text-grey-darken-1">
-                  vs <strong>${{ formatCurrency(budget.lastMonth) }}</strong>
+                  vs <strong>${{ formatCurrency(budget.lastUsage) }}</strong>
                   {{ $t("finances.comparison.lastMonth") }}
                 </div>
               </div>
@@ -782,7 +786,7 @@
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn variant="flat" color="grey-lighten-1" @click="closeDialogBugets"
+        <v-btn @click="closeDialogBugets"
           >Cerrar</v-btn
         >
       </v-card-actions>
@@ -979,6 +983,42 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+  <v-dialog v-model="dialogAlerta" max-width="500">
+    <v-card rounded-lg>
+      <v-card-title class="text-body-2">Alertas para Hoy</v-card-title>
+      <v-card-text>
+        <v-list v-if="suggestions.length">
+        <v-list-item v-for="(alerta, i) in suggestions" :key="i">
+          <template v-slot:prepend>
+            <v-icon color="deep-orange" icon="mdi-alert"></v-icon>
+          </template>
+          
+          <v-list-item-title class="text-subtitle-2">
+            {{ alerta.title }}
+          </v-list-item-title>
+                   <v-list-item-subtitle class="text-caption text-truncate">
+  {{ alerta.description }}
+  <v-tooltip
+    activator="parent"
+    location="bottom"
+    max-width="350px"
+    class="custom-tooltip"
+  >
+    <span style="white-space: normal; word-break: break-word">
+      {{ alerta.description }}
+    </span>
+  </v-tooltip>
+</v-list-item-subtitle>
+        </v-list-item>
+      </v-list>
+        <div v-else class="text-caption text-grey">No hay alertas para hoy.</div>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn text @click="dialogAlerta = false">Cerrar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
@@ -1000,6 +1040,7 @@ export default {
   },
   data() {
     return {
+      dialogAlerta: false,
       dialogChatTask: false,
       chatDialog: false,
       dialogBugets: false,

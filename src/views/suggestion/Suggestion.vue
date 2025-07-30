@@ -21,9 +21,12 @@
   </v-snackbar>
   
   <v-container class="pa-4">
+  <v-card class="pa-4" elevation="4" rounded="lg" style="max-height: 100vh; min-height: 40vh; overflow-y: auto">
+      <!-- Encabezado con foto y datos -->
+      <v-card-text>
     <!-- Encabezado -->
     <v-row justify="space-between" align="center" class="mb-6">
-      <h2 class="text-h5 font-weight-bold">{{ $t("viewTitles.suggestions") }}</h2>
+      <h2 class="text-body-2 font-weight-bold">{{ $t("viewTitles.suggestions") }}</h2>
       <v-btn
         icon
         color="deep-purple-accent-4"
@@ -39,68 +42,78 @@
       <v-card
         v-for="(suggestion, index) in filteredSuggestions"
         :key="index"
-        class="mb-4 rounded-lg"
+        class="mb-3 rounded-lg pa-1"
         elevation="2"
       >
-        <v-row no-gutters class="ma-0">
+        <v-row>
           <!-- Columna 1: Fecha -->
-          <v-col cols="auto" md="1" class="py-3 d-flex align-center justify-center">
-            <div class="text-body-2 font-weight-bold">
-              {{ formatDate(suggestion.date) }}
-            </div>
-          </v-col>
+              <v-col cols="1" class="pa-4 d-flex flex-column align-center">
+            <div
+                  class="icono-concavo d-flex flex-column justify-center align-center mr-2"
+                  :class="`bg-${getTypeColor(suggestion.taskData.type)}`"
+                  style="min-height: 48px; min-width: 48px"
+                >
+              <div class="text-body-2 font-weight-medium">
+                    {{ formatIntuitiveDate(suggestion.date) }}
+                  </div>
+              </div>
+            </v-col>
 
           <!-- Columna 2: Título y Tipo -->
-          <v-col cols="3" class="px-2 py-3">
-            <div class="text-caption font-weight-bold text-grey-darken-2 mb-1">
-              {{ $t("suggestions.fields.title") }}:
-            </div>
-            <div class="text-subtitle-1 font-weight-bold text-blue-darken-4">
-              {{ suggestion.title || $t("suggestions.notRecorded") }}
-            </div>
-          </v-col>
-
-          <!-- Columna 3: Descripción -->
-          <v-col cols="6" class="px-1 py-3">
-            <div v-if="suggestion.description" class="h-100">
-              <div class="text-caption font-weight-bold text-grey-darken-2 mb-1">
-                {{ $t("suggestions.fields.description") }}:
-              </div>
-              <v-tooltip bottom max-width="400px">
-                <template v-slot:activator="{ props }">
-                  <div 
-                    v-bind="props"
-                    class="text-body-2 text-grey-darken-3 text-truncate-3-lines"
-                  >
+          <v-col cols="7" class="d-flex align-center pe-4 gap-2">
+              <v-row align="center" no-gutters>
+                 <div>
+                  <div class="font-weight-semibold text-body-2">
+                    {{ suggestion.title }}
+                  </div>
+                  <div class="text-caption text-grey-darken-1">
                     {{ suggestion.description }}
                   </div>
-                </template>
-                <span>{{ suggestion.description }}</span>
-              </v-tooltip>
-            </div>
-          </v-col>
-
+                </div>
+              </v-row>
+            </v-col>
+            <v-col cols="1" class="d-flex align-center pe-4 gap-2">
+                <div>
+                  <v-icon
+                    :color="getTypeColor(suggestion.taskData.type)"
+                    style="font-size: 10px; filter: drop-shadow(0 0 2px currentColor)"
+                    icon="mdi-circle"
+                    class="mr-0"
+                  ></v-icon>
+                  <span class="text-grey-darken-1 text-body-2">{{
+                    suggestion.taskData.type
+                  }}</span>
+                </div>
+              </v-col>
           <!-- Columna 4: Tipo -->
-          <v-col cols="auto" class="px-1 py-3">
-            <div class="h-100">
-              <div class="text-caption font-weight-bold text-grey-darken-2 mb-1">
-                {{ $t("suggestions.fields.type") }}:
-              </div>
+          <v-col cols="1" class="d-flex align-center pe-4 gap-2">
+            <v-row align="center" no-gutters>
               <div class="text-body-2 text-grey-darken-3">
                 {{ suggestion.type || $t("suggestions.notRecorded") }}
               </div>
-            </div>
+            </v-row>
           </v-col>
-          <v-col cols="auto" class="px-1 py-3">           
-            <div class="h-100">
-              <div class="text-caption font-weight-bold text-grey-darken-2 mb-1">
-                {{ $t("suggestions.fields.status") }}:
-              </div>
+          <v-col cols="1" class="d-flex align-center pe-4 gap-2">           
+           <v-row align="center">
               <v-chip size="small" :color="getStatusColor(suggestion.status)">
                 {{ suggestion.status }}
               </v-chip>
-            </div>
+           </v-row>
           </v-col>
+          <v-col cols="1" class="d-flex align-center justify-end pe-4 gap-2">
+              <div>
+                <v-btn
+                  variant="text"
+                  size="small"
+                  color="primary"
+                  class="font-weight-semibold text-body-2"
+                  @click="handleSeeMore(suggestion)"
+                  style="text-transform: none;"
+                >
+                  {{ $t("buttons.seeMore") }}
+                </v-btn>
+              </div>
+            </v-col>
 
           <!-- Columna 5: Acciones 
           <v-col cols="auto" class="px-2 py-3 d-flex justify-end align-center">
@@ -140,6 +153,8 @@
         </div>
       </v-col>
     </template>
+     </v-card-text>
+    </v-card>
   </v-container>
 
   <!-- Diálogo para agregar/editar sugerencias -->
@@ -341,6 +356,20 @@
         </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <v-dialog v-model="dialogOpen" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-text>
+        <!-- Pasamos los parámetros al componente ChatTask -->
+        <ChatTask :taskData="currentItem" @close-dialog="closeDialgChat()"   @close-all-dialogs="closeAllDialogs($event)"/>
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn text @click="closeDialgChat()">Cerrar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
@@ -349,9 +378,15 @@ import LocalStorageService from "@/LocalStorageService";
 import { handleRequest } from "@/utils/api";
 import _ from "lodash";
 import { shallowRef } from "vue";
+import ChatTask from "../chat/ChatTask.vue";
 
 export default {
+  components: {
+    ChatTask,
+  },
   data: () => ({
+    dialogOpen: false,
+      currentItem: null,
     selected: shallowRef([2]),
     selected2: null,
     step: 0,
@@ -480,6 +515,111 @@ export default {
   },
 
   methods: {
+    closeAllDialogs(sourceComponent) {
+    console.log(`Cerrando todo desde: ${sourceComponent}`);
+    this.dialogChatTask = false;
+    this.dialogChatFinance = false;
+    this.dialogChatBudget = false;
+    this.dialogOpen = false;
+    this.currentItem = false;
+    this.texto = "";
+    this.textoTemporal = "";
+    this.currentTask = null;
+    this.currentFinance = null;
+    this.currentBudget = null;
+  },
+    handleCloseDialog() {
+      // Lógica adicional al cerrar el diálogo si es necesaria
+      console.log("Diálogo cerrado");
+      this.closeDialgChat();
+    },
+    closeDialgChat() {
+      this.dialogOpen = false;
+      this.currentItem = null; // Limpia la tarea actual
+      this.dialogChatTask = false;
+      this.dialogChatFinance = false;
+      this.dialogChatBudget = false;
+      this.texto = "";
+      this.textoTemporal = "";
+      this.currentTask = null;
+      this.currentFinance = null;
+      this.currentBudget = null;
+      //this.initialize();
+    },
+    handleSeeMore(item) {
+      /*this.currentItem = typeof item.taskData === 'string' 
+        ? JSON.parse(item.taskData) 
+        : item.taskData || item; // Fallback al item completo
+      
+      this.dialogOpen = true;*/
+      this.currentItem = null;
+      this.$nextTick(() => {
+        const taskData =
+          typeof item.taskData === "string" ? JSON.parse(item.taskData) : item.taskData;
+
+        this.currentItem = _.cloneDeep(taskData);
+        this.dialogOpen = true;
+      });
+    },
+    
+    closeDialog() {
+      this.dialogOpen = false;
+      this.currentItem = null;
+      this.$emit('close-dialog');
+    },
+    formatIntuitiveDate(dateString) {
+      if (!dateString) return "Sin fecha";
+
+      // 1. Parsear la fecha de entrada (formato YYYY-MM-DD)
+      const [year, month, day] = dateString.split("-");
+      const inputDate = new Date(year, month - 1, day); // Mes es 0-based
+
+      // 2. Obtener fecha actual (sin horas/minutos/segundos)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // 3. Normalizar ambas fechas a UTC para evitar problemas de zona horaria
+      const inputUTC = Date.UTC(
+        inputDate.getFullYear(),
+        inputDate.getMonth(),
+        inputDate.getDate()
+      );
+      const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+
+      // 4. Calcular diferencia en días
+      const diffDays = Math.floor((inputUTC - todayUTC) / (1000 * 60 * 60 * 24));
+
+      // 5. Determinar el texto a mostrar
+      switch (diffDays) {
+        case 0:
+          return "Hoy";
+        case 1:
+          return "Mañana";
+        case 2:
+          return "Pasado mañana";
+        case -1:
+          return "Ayer";
+        case -2:
+          return "Anteayer";
+        default:
+          return inputDate
+            .toLocaleDateString("es-ES", {
+              weekday: "short",
+              day: "numeric",
+              month: "short",
+            })
+            .replace(/\./g, "");
+      }
+    },
+    
+    getTypeColor(type) {
+      const colorMap = {
+        Tarea: "warning",
+        Evento: "teal-lighten-2",
+        // Agrega más tipos si es necesario
+      };
+      return colorMap[type] || "grey-lighten-1"; // Color por defecto
+    },
     getStatusColor(status) {
       switch(status) {
         case 'Pendiente': return 'orange';
@@ -743,6 +883,20 @@ export default {
 </script>
 
 <style scoped>
+.icono-concavo {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  margin-right: 5px;
+  color: white;
+  /* Mantenemos solo el efecto cóncavo en el ícono 
+  box-shadow: inset;*/
+  position: relative;
+  overflow: hidden;
+}
 .text-truncate-3-lines {
   display: -webkit-box;
   -webkit-line-clamp: 3;

@@ -170,7 +170,7 @@
 
                   <!-- Componente dinámico -->
                   <component v-if="message.component && !message.isEditing" :is="message.component"
-                    v-bind="message.props" @type-selected="handleTypeSelection($event)"
+                    v-bind="message.props" @type-selected="handleTypeSelection($event)" @period-selected="handlePeriodSelection($event)"
                     @date-updated="updateDate($event)" />
                 </div>
               </div>
@@ -265,6 +265,7 @@ import _ from "lodash";
 import { defineAsyncComponent, markRaw } from "vue";
 import DatePicker from "@/components/chatTask/DatePicker.vue";
 import TypePersonalOptions from "@/components/chatTask/TypePersonalOptions.vue";
+import PeriodOptions from "@/components/chatTask/PeriodOptions.vue";
 
 
 export default {
@@ -282,8 +283,9 @@ export default {
   components: {
     DatePicker,
     TypePersonalOptions,
+    PeriodOptions,
     ChatFinance: defineAsyncComponent(() => import('./ChatFinance.vue')),
-  ChatTask: defineAsyncComponent(() => import('./ChatTask.vue')),
+    ChatTask: defineAsyncComponent(() => import('./ChatTask.vue')),
   },
   data() {
     return {
@@ -304,32 +306,35 @@ export default {
       tools: [],
       budgetParameters: {
         budget_type: null,
+        type_id: null,
         amount: null,
         description: null,
         start_date: null,
         end_date: null,
         category_id: null,
-        currency: "USD",
+        currency: "CLP",
         status: "Activo",
       },
       originalItem: {
         budget_type: null,
+        type_id: null,
         amount: null,
         description: null,
         start_date: null,
         end_date: null,
         category_id: null,
-        currency: "USD",
-        status: "Activo",
+        currency: null,
+        status: null,
       },
       defaultItem: {
         budget_type: null,
+        type_id: null,
         amount: null,
         description: null,
         start_date: null,
         end_date: null,
         category_id: null,
-        currency: "USD",
+        currency: "CLP",
         status: "Activo",
       },
       textFieldRefs: [],
@@ -341,6 +346,7 @@ export default {
       roles: [],
       people: [],
       recurrences: [],
+      typesPeriod: [],
       status: [],
       isTyping: false,
       imageUrl: "",
@@ -511,15 +517,15 @@ export default {
       return "mdi-help-circle";
     },
     onBudgetSelected(index, selectedBudget) {
-  console.log("Categoría seleccionada:", selectedBudget);
-  this.chatMessages[index].editValue = selectedBudget;
-  
-  // Si es selección inicial, guardar inmediatamente
-  if (this.isInitialCategorySelection) {
-    this.saveFieldEdit(index);
-  }
-  // Si es edición, esperará a blur o acción explícita
-},
+      console.log("Categoría seleccionada:", selectedBudget);
+      this.chatMessages[index].editValue = selectedBudget;
+      
+      // Si es selección inicial, guardar inmediatamente
+      if (this.isInitialCategorySelection) {
+        this.saveFieldEdit(index);
+      }
+      // Si es edición, esperará a blur o acción explícita
+    },
 
     onBudgetBlur(index) {
       setTimeout(() => {
@@ -611,6 +617,10 @@ export default {
         let displayValue = validatedValue;
         if (message.fieldKey === "category_id" && typeof message.editValue === "object" && message.editValue !== null) {
           displayValue = message.editValue.nameCategory;
+        }
+
+        if (message.fieldKey === "type_id" && typeof message.editValue === "object" && message.editValue !== null) {
+          displayValue = message.editValue.nameTranslated	;
         }
 
         message.currentValue = validatedValue;
@@ -878,9 +888,11 @@ export default {
         if (result.success) {
           this.categories = result.data.categories || [];
           this.types = result.data.types || [];
+          this.typesPeriod = result.data.typesPeriodo || [];
         } else {
           this.categories = [];
           this.types = [];
+          this.typesPeriod = [];
         }
       } catch (error) {
         this.showAlert(
@@ -894,23 +906,60 @@ export default {
     },
     async showInitialData(budgetData) {
       if (!budgetData) return;
-        this.isInitialCategorySelection = (
-    budgetData.category_id === null || 
-    budgetData.category_id === undefined
-  );
-  
-  this.isInitialDataCollection = !budgetData;
-      await this.showSummary(budgetData);
-      await this.startAutomaticDataCollection();
+            this.isInitialCategorySelection = (
+        budgetData.category_id === null || 
+        budgetData.category_id === undefined
+      );
+      
+      this.isInitialDataCollection = !budgetData;
+          await this.showSummary(budgetData);
+          await this.startAutomaticDataCollection();
+    },
+    async showPeriodOptions() {
+      this.isTyping = true;
+      setTimeout(() => {
+        this.chatMessages.push({
+          from: "ai",
+          text: "Selecciona el período del presupuesto:",
+          component: "PeriodOptions",
+          props: {
+            options: this.typesPeriod,
+            selectedId: this.budgetParameters.type_id,
+          },
+          timestamp: new Date().toLocaleTimeString(),
+        });
+        this.isTyping = false;
+        this.scrollToBottom();
+      }, 100);
+    },
+    handlePeriodSelection(period){
+      this.budgetParameters.type_id = period.id;
+
+      // Actualizar el mensaje de prioridad existente o crear uno nuevo
+      const priorityMessageIndex = this.chatMessages.findIndex(
+        (m) => m.from === "ai" && m.component === "PeriodOptions"
+      );
+
+      if (priorityMessageIndex !== -1) {
+        this.chatMessages[priorityMessageIndex].props.selectedId = period.id;
+      }
+
+       if (this.isInitialCategorySelection) {
+      this.startAutomaticDataCollection();
+    } else {
+      // Si estamos editando, actualizar el resumen
+      this.updateSummaryMessage();
+    }
     },
     async showSummary(budgetData) {
           // Definir los campos a mostrar, excluyendo spent/income mutuamente y budget_id condicionalmente
       const fieldsToShow = [
         { key: "description", label: "Descripción" },
         { key: "amount", label: "Monto" },
-        { key: "start_date", label: "Fecha inicio" },
-        { key: "end_date", label: "Fecha fin" },
+        //{ key: "start_date", label: "Fecha inicio" },
+        //{ key: "end_date", label: "Fecha fin" },
         { key: "currency", label: "Moneda" },
+        //{ key: "type_id", label: "Período" },
         { key: "category_id", label: "Categoría" },
       ];
       // Mostrar campos normales como texto
@@ -962,17 +1011,34 @@ export default {
         });
         this.shownChatFields.add("budget_type");
       }
+      if (budgetData.type_id) {
+        this.chatMessages.push({
+          from: "ai",
+          text: "Período:", // El componente PeriodOptions se encargará de mostrar el nombre
+          component: "PeriodOptions", // O "PeriodOptions" si lo renombraste
+          props: {
+            options: this.typesPeriod,
+            selectedId: budgetData.type_id,
+          },
+          timestamp: new Date().toLocaleTimeString(),
+          // Nota: Este mensaje con componente no sigue el patrón isEditable/isEditing
+          // porque su edición se maneja internamente por el componente PeriodOptions.
+          // Si quieres editarlo inline como los otros, necesitarías cambiarlo a texto + autocomplete.
+        });
+        this.shownChatFields.add("type_id");
+      }
     },
     async startAutomaticDataCollection() {
       const parametersOrder = [
         "description",
         "amount",
-        "start_date",
-        "end_date",
+        //"start_date",
+        //"end_date",
         "currency",
         "budget_type",
         "category_id",
         "currency",
+        "type_id"
       ];
 
       const nextField = parametersOrder.find((field) => {
@@ -991,8 +1057,9 @@ export default {
       this.shownChatFields.add(nextField);
        if (nextField === 'category_id' && !this.isInitialCategorySelection) {
         this.completeCreation(); // Saltar a confirmación
-      } 
-      else if (nextField === "budget_type") {
+      } else if (nextField === "type_id") {
+        await this.showPeriodOptions();
+      }else if (nextField === "budget_type") {
         await this.showTypeOptions();
       } else if (nextField) {
         this.showFieldInput(nextField);
@@ -1008,6 +1075,7 @@ export default {
         end_date: "la fecha (YYYY-MM-DD)",
         currency: "la moneda (USD, EUR, MXN, etc.)",
         budget_type: "el tipo de transacción",
+        type_id: "el período",
         category_id: "Categoría",
       };
 
@@ -1046,7 +1114,11 @@ export default {
 
       if (field === "budget_type") {
         await this.showTypeOptions();
-      } else if (field === "start_date" || field === "end_date") {
+      }
+      else if (field === "type_id") {
+        await this.showPeriodOptions();
+      }
+       else if (field === "start_date" || field === "end_date") {
         this.showDatePicker(field);
       }
     },
@@ -1137,6 +1209,23 @@ export default {
           // }
           return value.trim();
 
+        case "type_id": // o "type" si el campo se llama "type" en el objeto
+          if (value === null || value === undefined || value === "") {
+            // Si es opcional, devolver null. Si es requerido, lanzar error.
+            // return null; // <-- Si es opcional
+            throw new Error("Debes seleccionar un  período"); // <-- Si es requerido
+          }
+          const typeId = parseInt(value, 10);
+          if (isNaN(typeId) || typeId <= 0) {
+            throw new Error("ID período debe ser un número entero positivo");
+          }
+          // Opcional: Validar que la categoría exista en una lista predefinida
+          // Esto dependería de cómo cargues las categorías disponibles.
+          // if (this.categories && !this.categories.some(c => c.id === categoryId)) {
+          //   throw new Error("La categoría seleccionada no es válida");
+          // }
+          return categoryId;
+
         case "category_id":
           // Permitir que category_id sea null/undefined si es opcional al inicio
           if (value === null || value === undefined || value === "") {
@@ -1204,11 +1293,11 @@ export default {
       }
 
        if (this.isInitialCategorySelection) {
-    this.startAutomaticDataCollection();
-  } else {
-    // Si estamos editando, actualizar el resumen
-    this.updateSummaryMessage();
-  }
+      this.startAutomaticDataCollection();
+    } else {
+      // Si estamos editando, actualizar el resumen
+      this.updateSummaryMessage();
+    }
     },
     showAlert(type, message, timeout) {
       this.sb_type = type;
@@ -1219,82 +1308,86 @@ export default {
     },
 
     generateBudgetSummary() {
-  let summary = `Resumen del presupuesto:\n\n`;
-  
-  const parametersToShow = [
-    { key: "description", label: "Descripción" },
-    { key: "amount", label: "Monto" },
-    { key: "start_date", label: "Fecha inicio" },
-    { key: "end_date", label: "Fecha fin" },
-    { key: "currency", label: "Moneda" },
-    { key: "budget_type", label: "Tipo" },
-    { key: "category_id", label: "Categoría" },
-  ];
+      let summary = `Resumen del presupuesto:\n\n`;
+      
+      const parametersToShow = [
+        { key: "description", label: "Descripción" },
+        { key: "amount", label: "Monto" },
+        //{ key: "start_date", label: "Fecha inicio" },
+        //{ key: "end_date", label: "Fecha fin" },
+        { key: "currency", label: "Moneda" },
+        { key: "budget_type", label: "Tipo" },
+        { key: "type_id", label: "Período" },
+        { key: "category_id", label: "Categoría" },
+      ];
 
-  parametersToShow.forEach(({ key, label }) => {
-    const value = this.budgetParameters[key];
-    if (value !== null && value !== undefined && value !== "") {
-      if (key === "budget_type") {
-        const type = this.types.find((t) => t.id === value);
-        summary += `• ${label}: ${type?.name || "No especificado"}\n`;
-      } else if (key === "category_id") {
-        const category = this.categories.find((b) => b.id === value);
-        summary += `• ${label}: ${category?.nameCategory || `ID: ${value}`}\n`;
-      } else {
-        summary += `• ${label}: ${value}\n`;
-      }
-    }
-  });
+      parametersToShow.forEach(({ key, label }) => {
+        const value = this.budgetParameters[key];
+        if (value !== null && value !== undefined && value !== "") {
+          if (key === "budget_type") {
+            const type = this.types.find((t) => t.id === value);
+            summary += `• ${label}: ${type?.name || "No especificado"}\n`;
+          } else if (key === "type_id") {
+            const period = this.typesPeriod.find((b) => b.id === value);
+            summary += `• ${label}: ${period?.nameTranslated || `ID: ${value}`}\n`;
+          } else if (key === "category_id") {
+            const category = this.categories.find((b) => b.id === value);
+            summary += `• ${label}: ${category?.nameCategory || `ID: ${value}`}\n`;
+          } else {
+            summary += `• ${label}: ${value}\n`;
+          }
+        }
+      });
 
-  return summary;
-},
+      return summary;
+    },
     completeCreation() {
-  this.isTyping = true;
-  this.budgetDataCollectionMode = false;
+      this.isTyping = true;
+      this.budgetDataCollectionMode = false;
 
-  // Eliminar mensajes de resumen y confirmación anteriores si existen
-  this.chatMessages = this.chatMessages.filter(msg => 
-    !msg.isSummary && !msg.isConfirmation
-  );
+      // Eliminar mensajes de resumen y confirmación anteriores si existen
+      this.chatMessages = this.chatMessages.filter(msg => 
+        !msg.isSummary && !msg.isConfirmation
+      );
 
-  // Generar y mostrar resumen actualizado
-  const summary = this.generateBudgetSummary();
-  
-  this.chatMessages.push({
-    from: "ai",
-    text: summary,
-    timestamp: new Date().toLocaleTimeString(),
-    isSummary: true // Marcar como mensaje de resumen
-  });
+      // Generar y mostrar resumen actualizado
+      const summary = this.generateBudgetSummary();
+      
+      this.chatMessages.push({
+        from: "ai",
+        text: summary,
+        timestamp: new Date().toLocaleTimeString(),
+        isSummary: true // Marcar como mensaje de resumen
+      });
 
-  // Mostrar confirmación
-  this.chatMessages.push({
-    from: "ai",
-    text: "¿Deseas crear este presupuesto con los datos proporcionados?",
-    timestamp: new Date().toLocaleTimeString(),
-    isConfirmation: true, // Marcar como mensaje de confirmación
-    buttons: [
-      {
-        text: "Cancelar",
-        color: "error",
-        variant: "outlined",
-        action: () => this.handleCancellation("no"),
-        props: { class: "mr-2", size: "default" }
-      },
-      {
-        text: "Confirmar y crear",
-        color: "primary",
-        variant: "flat",
-        action: () => this.handleConfirmation("si"),
-        props: { size: "default" }
-      }
-    ]
-  });
+      // Mostrar confirmación
+      this.chatMessages.push({
+        from: "ai",
+        text: "¿Deseas crear este presupuesto con los datos proporcionados?",
+        timestamp: new Date().toLocaleTimeString(),
+        isConfirmation: true, // Marcar como mensaje de confirmación
+        buttons: [
+          {
+            text: "Cancelar",
+            color: "grey",
+            variant: "outlined",
+            action: () => this.handleCancellation("no"),
+            props: { class: "mr-2", size: "default" }
+          },
+          {
+            text: "Confirmar y crear",
+            color: "primary",
+            variant: "flat",
+            action: () => this.handleConfirmation("si"),
+            props: { size: "default" }
+          }
+        ]
+      });
 
-  this.waitingForConfirmation = true;
-  this.isTyping = false;
-  this.scrollToBottom();
-},
+      this.waitingForConfirmation = true;
+      this.isTyping = false;
+      this.scrollToBottom();
+    },
     // Maneja la confirmación del usuario
     async handleConfirmation(userResponse) {
       this.waitingForConfirmation = false;
@@ -1304,12 +1397,13 @@ export default {
           "category_id",
           "amount",
           "used_amount",
-          "start_date",
-          "end_date",
+          //"start_date",
+          //"end_date",
           "budget_type",
           "status",
           "description",
           "currency",
+          "type_id",
         ];
 
         let updatedFields = Object.keys(this.budgetParameters)
@@ -1417,7 +1511,7 @@ export default {
         start_date: null,
         end_date: null,
         category_id: null,
-        currency: "USD",
+        currency: "CLP",
         status: "Activo",
       };
       this.waitingForConfirmation = false;
@@ -1444,34 +1538,34 @@ export default {
     },
     //date y time
     handleDateSelection(field, dateEvent) {
-  const { value } = dateEvent;
-  
-  if (!value) {
-    this.showAlert("error", "Fecha inválida", 2000);
-    return;
-  }
+      const { value } = dateEvent;
+      
+      if (!value) {
+        this.showAlert("error", "Fecha inválida", 2000);
+        return;
+      }
 
-  // Actualizar el valor en el modelo
-  this.budgetParameters[field] = value;
-  
-  // Actualizar el mensaje en el chat
-  const messageIndex = this.chatMessages.findIndex(m => m.fieldKey === field);
-  if (messageIndex !== -1) {
-    const message = this.chatMessages[messageIndex];
-    message.currentValue = value;
-    message.editValue = value;
-    message.text = `• ${message.fieldLabel}: ${value}`;
-    message.isEditing = false;
-    message.showDatePicker = false;
-  }
+      // Actualizar el valor en el modelo
+      this.budgetParameters[field] = value;
+      
+      // Actualizar el mensaje en el chat
+      const messageIndex = this.chatMessages.findIndex(m => m.fieldKey === field);
+      if (messageIndex !== -1) {
+        const message = this.chatMessages[messageIndex];
+        message.currentValue = value;
+        message.editValue = value;
+        message.text = `• ${message.fieldLabel}: ${value}`;
+        message.isEditing = false;
+        message.showDatePicker = false;
+      }
 
-  this.scrollToBottom();
-  
-  // Continuar el flujo si es necesario
-  if (this.isInitialDataCollection) {
-    this.startAutomaticDataCollection();
-  }
-},
+      this.scrollToBottom();
+      
+      // Continuar el flujo si es necesario
+      if (this.isInitialDataCollection) {
+        this.startAutomaticDataCollection();
+      }
+    },
   },
 };
 </script>

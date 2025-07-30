@@ -44,7 +44,7 @@
                     'rounded-xl',
                     message.from === 'user'
                       ? 'bg-primary text-white'
-                      : 'bg-grey-lighten-2 text-black',
+                      : 'bg-grey-darken-1-lighten-2 text-black',
                     message.isEditing
                       ? 'pa-4' // Estilo cuando está en edición
                       : 'px-8 py-3', // Estilo normal
@@ -220,7 +220,7 @@
                   <v-img src="@/assets/logo-verde.png" alt="Avatar" />
                 </v-avatar>
                 <div
-                  class="chat-bubble px-8 py-3 rounded-xl bg-grey-lighten-2 text-black"
+                  class="chat-bubble px-8 py-3 rounded-xl bg-grey-darken-1-lighten-2 text-black"
                 >
                   <span class="typing-indicator">•••</span>
                 </div>
@@ -230,7 +230,7 @@
 
           <!-- Herramientas -->
           <v-divider />
-          <v-card-actions class="pa-3 bg-grey-lighten-5 tools-bar">
+          <v-card-actions class="pa-3 bg-grey-darken-1-lighten-5 tools-bar">
             <v-btn
               v-for="tool in tools"
               :key="tool.name"
@@ -636,7 +636,7 @@ export default {
       this.chatMessages[index].isEditing = true;
       this.chatMessages[index].editValue = this.chatMessages[index].currentValue;
 
-      if (["start_date", "end_date", "date"].includes(this.chatMessages[index].fieldKey)) {
+      if (["date"].includes(this.chatMessages[index].fieldKey)) {
         this.$nextTick(() => {
           this.chatMessages[index].showDatePicker = true;
         });
@@ -1181,7 +1181,7 @@ export default {
             buttons: [
               {
                 text: "Cancelar",
-                color: "error",
+                color: "grey-darken-1",
                 variant: "outlined",
                 action: () => this.handleCancellation("no"),
                 props: { class: "mr-2", size: "default" },
@@ -1300,6 +1300,7 @@ export default {
       if (userResponse.toLowerCase() === "si" || userResponse.toLowerCase() === "sí") {
         const fieldsToUpdate = [
           "home_id",
+          "budget_id",
           "spent",
           "income",
           "image",
@@ -1388,7 +1389,7 @@ export default {
         buttons: [
           {
             text: "Salir",
-            color: "grey",
+            color: "grey-darken-1",
             variant: "outlined", // Botón con borde
             action: () => this.closeDialog(),
             props: {

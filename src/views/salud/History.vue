@@ -338,21 +338,31 @@
   </v-container>
   <!-- Modal para ver las alertas -->
   <v-dialog v-model="dialogAlerta" max-width="500">
-    <v-card>
-      <v-card-title class="text-h6">Alertas para Hoy</v-card-title>
+    <v-card rounded-lg>
+      <v-card-title class="text-body-2">Alertas para Hoy</v-card-title>
       <v-card-text>
-        <v-list v-if="listaAlertas.length">
-        <v-list-item v-for="(alerta, i) in listaAlertas" :key="i">
+        <v-list v-if="suggestions.length">
+        <v-list-item v-for="(alerta, i) in suggestions" :key="i">
           <template v-slot:prepend>
             <v-icon color="deep-orange" icon="mdi-alert"></v-icon>
           </template>
           
           <v-list-item-title class="text-subtitle-2">
-            {{ alerta.titulo }}
+            {{ alerta.title }}
           </v-list-item-title>
-          <v-list-item-subtitle class="text-caption">
-            {{ alerta.descripcion }}
-          </v-list-item-subtitle>
+                   <v-list-item-subtitle class="text-caption text-truncate">
+  {{ alerta.description }}
+  <v-tooltip
+    activator="parent"
+    location="bottom"
+    max-width="350px"
+    class="custom-tooltip"
+  >
+    <span style="white-space: normal; word-break: break-word">
+      {{ alerta.description }}
+    </span>
+  </v-tooltip>
+</v-list-item-subtitle>
         </v-list-item>
       </v-list>
         <div v-else class="text-caption text-grey">No hay alertas para hoy.</div>

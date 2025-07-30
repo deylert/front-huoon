@@ -1325,7 +1325,7 @@ export default {
         buttons: [
           {
             text: "Cancelar",
-            color: "error",
+            color: "grey",
             variant: "outlined",
             action: () => this.handleCancellation("no"),
             props: { class: "mr-2", size: "default" }

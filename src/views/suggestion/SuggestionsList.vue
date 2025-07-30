@@ -211,8 +211,6 @@ export default {
           return "Hoy";
         case 1:
           return "Mañana";
-        case 2:
-          return "Pasado mañana";
         case -1:
           return "Ayer";
         case -2:

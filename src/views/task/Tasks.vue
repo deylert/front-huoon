@@ -12,114 +12,170 @@
     </v-row>
   </v-snackbar>
   <v-container class="pa-4">
+  <v-card class="pa-4" elevation="4" rounded="lg">
+      <!-- Encabezado con foto y datos -->
+      <v-card-text>
     <!-- Encabezado -->
     <v-row justify="space-between" align="center" class="mb-6">
-      <h2 class="text-h5 font-weight-bold">{{ $t('viewTitles.tasks') }}</h2>
+      <h2 class="text-h5 font-weight-bold">{{ $t("viewTitles.tasks") }}</h2>
       <v-btn icon color="deep-purple-accent-4" variant="flat" class="elevation-3" @click="showAdd">
         <v-icon>mdi-plus</v-icon>
       </v-btn>
     </v-row>
-    <template v-if="tasks.length > 0">
+   <div class="d-flex flex-wrap align-center gap-2">
+  <v-spacer></v-spacer>
+  <v-text-field
+    v-model="searchDate"
+    label="Buscar por fecha"
+    variant="outlined"
+    placeholder="DD-MM-YYYY"
+    density="compact"
+    style="max-width: 350px"
+    clearable
+    :rules="dateRules"
+  >
+    <template v-slot:append-inner>
+      <v-locale-provider>
+        <v-menu 
+          v-model="dateMenu" 
+          :close-on-content-click="false" 
+          transition="scale-transition" 
+          offset-y 
+          min-width="auto"
+        >
+          <template v-slot:activator="{ props }">
+            <v-icon
+              v-bind="props"
+              color="#03626C"
+              @click="dateMenu = true"
+            >
+              mdi-calendar
+            </v-icon>
+          </template>
+          <v-date-picker 
+            color="#03626C"
+            v-model="pickerDate"
+            @update:model-value="updateSearchDate"
+          ></v-date-picker>
+        </v-menu>
+      </v-locale-provider>
+    </template>
+  </v-text-field>
+</div>
+    <v-row>
+      <v-col cols="12" style="max-height: 60vh; min-height: 40vh; overflow-y: auto">
+    <template v-if="filteredTasks.length > 0">
       <!-- Tarjetas de reuniones -->
-      <v-card v-for="(meeting, index) in tasks" :key="index" class="mb-3 rounded-lg" elevation="2" :class="{'smooth-hover': true}">
-        <v-row no-gutters class="ma-0">
+      <v-card v-for="(meeting, index) in filteredTasks" :key="index" class="mb-4 rounded-lg pa-2" density="comfortable" elevation="2"
+        :class="{ 'smooth-hover': true }">
+        <v-row>
           <!-- Barra lateral de color e info -->
-          <v-col cols="auto" class="pa-2 d-flex flex-column align-center">
-          <div class="icono-concavo d-flex flex-column justify-center align-center mr-2"
-                      :class="`bg-${getTypeColor(meeting.type)}`" 
-                      style="min-height: 48px; min-width: 48px;">
-            <div>{{ formatIntuitiveDate(meeting.start_date) }}</div>
-            <div>{{ formatTime(meeting.start_time) }}</div>
+          <v-col cols="1" class="d-flex justify-start">
+           <div class="icono-concavo d-flex flex-column justify-center justify-start"
+              :class="`bg-${getTypeColor(meeting.type)}`">
+            <div class="date-display">
+              {{ formatIntuitiveDate(meeting.start_date) }}
             </div>
+            <div v-if="meeting.start_time" class="time-display">
+              {{ formatTime(meeting.start_time) }}
+            </div>
+          </div>
           </v-col>
 
           <!-- Contenido principal -->
-          <v-col cols="7" class="d-flex align-center pe-4 gap-2">
-            <v-row align="center" justify="space-between" no-gutters>
-
-              <v-row align="center" class="gap-3" no-gutters>
-
+          <v-col cols="6" class="d-flex align-center justify-start">
+              <v-row align="center" class="gap-3">
                 <div>
                   <div class="font-weight-bold text-body-2">{{ meeting.title }}</div>
                   <div class="text-caption d-flex align-center text-grey-darken-1">
-
                     {{ meeting.description }}
                   </div>
                   <div class="text-caption d-flex align-center text-grey-darken-1">
-
                     {{ meeting.geo_location }}
                   </div>
                 </div>
-              </v-row>
             </v-row>
           </v-col>
-          <v-col cols="auto" class="d-flex align-center justify-end pe-4 gap-2">
+          <v-col cols="1" class="d-flex align-center justify-start">
             <!-- Info usuario -->
-            <v-row align="center" class="gap-3" no-gutters>
+            <v-row align="center" class="gap-3">
               <div class="avatar-row d-flex flex-wrap justify-end gap-1">
-                <v-tooltip v-for="person in meeting.people" :key="person.id" bottom  :open-delay="300" :close-delay="100">
+                <v-tooltip v-for="person in meeting.people" :key="person.id" bottom :open-delay="300"
+                  :close-delay="100">
                   <template v-slot:activator="{ props }">
                     <v-avatar class="avatar-item hover-expand" size="32" v-bind="props">
-                      <v-img :src="`${this.$axios.defaults.baseURL}images/${person.image}?t=${Date.now()}`"
-                        alt="avatar" />
+                      <v-img :src="`${this.$axios.defaults.baseURL}images/${
+                          person.image
+                        }?t=${Date.now()}`" alt="avatar" />
                     </v-avatar>
                   </template>
-                  <span>{{ person.name }}<br>{{ person.roleName }}</span>
+                  <span>{{ person.name }}<br />{{ person.roleName }}</span>
                 </v-tooltip>
               </div>
             </v-row>
           </v-col>
-          <v-col cols="auto" class="d-flex align-center pe-4 gap-2">
-                      <div>
-                        <v-icon :color="getTypeColor(meeting.type)" style="
-                              font-size: 10px;
-                              filter: drop-shadow(0 0 2px currentColor);
-                            " icon="mdi-circle" class="mr-0"></v-icon>
-                        <span class="text-black">{{ meeting.typeName }}</span>
-                      </div>
-                  </v-col>
-                  <v-col cols="auto" class="d-flex align-center pe-4 gap-2">
-                      <div>
-                        <span class="text-black">{{ meeting.namePriority }}</span>
-                      </div>
-                  </v-col>
-          <v-col cols="auto" class="d-flex align-center justify-end pe-4 gap-2">
+          <v-col cols="1" class="d-flex align-center justify-start">
+            <div>
+              <v-icon :color="getTypeColor(meeting.type)"
+                style="font-size: 10px; filter: drop-shadow(0 0 2px currentColor)" icon="mdi-circle"
+                class="mr-0"></v-icon>
+              <span class="text-black">{{ meeting.typeName }}</span>
+            </div>
+          </v-col>
+          <v-col cols="1" class="d-flex align-center justify-start">
+            <div>
+              <span class="text-black">{{ meeting.namePriority }}</span>
+            </div>
+          </v-col>
+          <v-col cols="1" class="d-flex align-center justify-end justify-start">
             <v-row>
               <!-- Fecha y estado -->
               <div class="text-end">
                 <v-dialog v-model="meeting.statusDialog" width="400">
                   <template v-slot:activator="{ props }">
-                    <v-btn v-bind="props" :color="'#' + (getStatusById(meeting.status_id)?.colorStatus || 'grey')"
-                      variant="text" size="small"
-                      :prepend-icon="getStatusById(meeting.status_id)?.iconStatus || 'mdi-help-circle'">
-                      {{ getStatusById(meeting.status_id)?.nameStatus || 'Desconocido' }}
+                    <v-btn v-bind="props" :color="
+                        '#' + (getStatusById(meeting.status_id)?.colorStatus || 'grey')
+                      " variant="text" size="small" :prepend-icon="
+                        getStatusById(meeting.status_id)?.iconStatus || 'mdi-help-circle'
+                      ">
+                      {{ getStatusById(meeting.status_id)?.nameStatus || "Desconocido" }}
                     </v-btn>
                   </template>
                   <v-card>
                     <v-card-title class="pa-4 text-center">
-                      {{ $t('taskForm.updateStatus') }}
+                      {{ $t("taskForm.updateStatus") }}
                     </v-card-title>
                     <v-divider></v-divider>
                     <v-card-text class="pa-0">
                       <v-row class="px-2 pb-1" dense>
                         <v-col cols="12" v-for="(statusOption, i) in status" :key="i" class="py-1">
-                          <v-card @click="changeTaskStatus(meeting, statusOption.id)"
-                            :class="['status-option mx-1', {'current-status': meeting.status_id === statusOption.id}]"
-                            :style="meeting.status_id === statusOption.id ? {
-                                  'background-color': `#${statusOption.colorStatus}`,
-                                  'border-color': `#${statusOption.colorStatus}`,
-                                  'color': 'white'
-                                } : {}" variant="outlined" :elevation="meeting.status_id === statusOption.id ? 2 : 0"
-                            style="border-radius: 12px; cursor: pointer;">
+                          <v-card @click="changeTaskStatus(meeting, statusOption.id)" :class="[
+                              'status-option mx-1',
+                              { 'current-status': meeting.status_id === statusOption.id },
+                            ]" :style="
+                              meeting.status_id === statusOption.id
+                                ? {
+                                    'background-color': `#${statusOption.colorStatus}`,
+                                    'border-color': `#${statusOption.colorStatus}`,
+                                    color: 'white',
+                                  }
+                                : {}
+                            " variant="outlined" :elevation="meeting.status_id === statusOption.id ? 2 : 0"
+                            style="border-radius: 12px; cursor: pointer">
                             <v-card-item class="pa-2">
                               <div class="d-flex align-center">
-                                <v-icon
-                                  :color="meeting.status_id === statusOption.id ? 'white' : '#' + statusOption.colorStatus"
-                                  :icon="statusOption.iconStatus" size="large" class="mr-3"></v-icon>
+                                <v-icon :color="
+                                    meeting.status_id === statusOption.id
+                                      ? 'white'
+                                      : '#' + statusOption.colorStatus
+                                  " :icon="statusOption.iconStatus" size="large" class="mr-3"></v-icon>
                                 <v-card-title :style="{
-                                      'color': meeting.status_id === statusOption.id ? 'white' : 'inherit',
-                                      'font-size': '1rem'
-                                    }">
+                                    color:
+                                      meeting.status_id === statusOption.id
+                                        ? 'white'
+                                        : 'inherit',
+                                    'font-size': '1rem',
+                                  }">
                                   {{ statusOption.nameStatus }}
                                 </v-card-title>
                                 <v-spacer></v-spacer>
@@ -145,7 +201,7 @@
           </v-col>
 
           <!-- Acciones -->
-          <v-col cols="auto" class="d-flex align-center ml-auto pe-4" style="margin-left: auto !important;">
+          <v-col cols="1" class="d-flex align-center ml-auto pe-4" style="margin-left: auto !important">
             <v-btn icon variant="text" color="green-darken-2" size="small" @click="editItem(meeting)">
               <v-icon>mdi-pencil</v-icon>
             </v-btn>
@@ -159,30 +215,45 @@
     <template v-else>
       <v-col cols="12" class="text-center py-8 pa-0">
         <v-icon size="64" color="grey-lighten-1">mdi-check-circle-outline</v-icon>
-        <div class="text-h6 text-grey mt-4">{{ $t('taskForm.noTasksToday') }}</div>
+        <div class="text-h6 text-grey mt-4">{{ $t("taskForm.noTasksToday") }}</div>
       </v-col>
     </template>
+  </v-col>
+  </v-row>
+  </v-card-text>
+  </v-card>
   </v-container>
-  <v-dialog v-model="dialog" fullscreen persistent transition="dialog-bottom-transition" content-class="fullscreen-dialog">
+  <v-dialog v-model="dialog" fullscreen persistent transition="dialog-bottom-transition"
+    content-class="fullscreen-dialog">
     <v-form ref="form" v-model="valid" class="h-100">
       <v-card class="pa-10">
         <v-card-text class="pt-12">
-
           <!-- Pasos laterales -->
 
-          <h5 class="text-grey-darken-2 font-weight-medium"> {{ formTitle }}</h5>
-          <p class="text-grey-lighten-1">{{ $t('formInstructions') }}</p>
+          <h5 class="text-grey-darken-2 font-weight-medium">{{ formTitle }}</h5>
+          <p class="text-grey-lighten-1">{{ $t("formInstructions") }}</p>
           <v-row class="mt-12">
             <v-col cols="3">
               <v-timeline align="start" side="end" dense>
-                <v-timeline-item v-for="(s, index) in steps" :key="index"
-                  :dot-color="step > index ? 'green' : step === index ? 'deep-purple' : 'grey-lighten-1'"
-                  :icon="step >= index ? (step === index ? `mdi-numeric-${index + 1}` : 'mdi-check') : null"
-                  size="large">
+                <v-timeline-item v-for="(s, index) in steps" :key="index" :dot-color="
+                    step > index
+                      ? 'green'
+                      : step === index
+                      ? 'deep-purple'
+                      : 'grey-lighten-1'
+                  " :icon="
+                    step >= index
+                      ? step === index
+                        ? `mdi-numeric-${index + 1}`
+                        : 'mdi-check'
+                      : null
+                  " size="large">
                   <template #opposite>
                     <div class="text-end">
                       <strong>{{ $t(`steps.${s.title}.title`) }}</strong>
-                      <div class="text-caption text-grey">{{ $t(`steps.${s.title}.subtitle`) }}</div>
+                      <div class="text-caption text-grey">
+                        {{ $t(`steps.${s.title}.subtitle`) }}
+                      </div>
                     </div>
                   </template>
                 </v-timeline-item>
@@ -191,7 +262,9 @@
 
             <!-- Contenido dinámico según paso -->
             <v-col cols="9">
-              <h3 class="text-deep-purple-accent-3 mb-8">{{ $t(`steps.${steps[step].title}.title`) }}</h3>
+              <h3 class="text-deep-purple-accent-3 mb-8">
+                {{ $t(`steps.${steps[step].title}.title`) }}
+              </h3>
 
               <v-row dense v-if="step === 0">
                 <v-col cols="12" sm="6">
@@ -226,61 +299,65 @@
                     <v-list v-model:selected="selectedItems[role.id]" @update:selected="updateSelection(role, $event)"
                       select-strategy="leaf" multiple>
                       <v-list-subheader>{{ role.nameRol }}</v-list-subheader>
-                      <v-list-item
-                      v-for="person in filteredPeople(role.id)"
-                      :key="`${role.id}-${person.id}`"
-                      :value="person.id"
-                      active-class="text-green"
-                      :prepend-avatar="`${$axios.defaults.baseURL}images/${person.imagePerson}`"
-                      class="py-3"
-                    >
-                      <!-- Contenido del ítem - Nueva estructura Vuetify 3 -->
-                      <template v-slot:prepend>
-                        <v-avatar>
-                          <v-img :src="`${$axios.defaults.baseURL}images/${person.imagePerson}`" />
-                        </v-avatar>
-                      </template>
+                      <v-list-item v-for="person in filteredPeople(role.id)" :key="`${role.id}-${person.id}`"
+                        :value="person.id" active-class="text-green"
+                        :prepend-avatar="`${$axios.defaults.baseURL}images/${person.imagePerson}`" class="py-3">
+                        <!-- Contenido del ítem - Nueva estructura Vuetify 3 -->
+                        <template v-slot:prepend>
+                          <v-avatar>
+                            <v-img :src="`${$axios.defaults.baseURL}images/${person.imagePerson}`" />
+                          </v-avatar>
+                        </template>
 
-                      <!-- Nombre y rol -->
-                      <v-list-item-title>{{ person.namePerson }}</v-list-item-title>
-                      <v-list-item-subtitle class="mb-1 text-high-emphasis opacity-100">
-                        {{ person.roleName }}
-                      </v-list-item-subtitle>
+                        <!-- Nombre y rol -->
+                        <v-list-item-title>{{ person.namePerson }}</v-list-item-title>
+                        <v-list-item-subtitle class="mb-1 text-high-emphasis opacity-100">
+                          {{ person.roleName }}
+                        </v-list-item-subtitle>
 
-                      <!-- Icono de selección -->
-                      <template v-slot:append>
-                        <v-icon
-                          v-if="isPersonSelected(person.id, role.id)"
-                          :color="getRoleIcon(role.id) === 'mdi-star' ? 'green-darken-3' : 'green-darken-3'"
-                        >
-                          {{ getRoleIcon(role.id) === 'mdi-star' ? 'mdi-star' : 'mdi-circle-slice-8' }}
-                        </v-icon>
-                        <v-icon
-                          v-else
-                          class="opacity-30"
-                          :color="getRoleIcon(role.id) === 'mdi-star' ? 'green-darken-3' : undefined"
-                        >
-                          {{ getRoleIcon(role.id) === 'mdi-star' ? 'mdi-star-outline' : 'mdi-checkbox-blank-circle-outline' }}
-                        </v-icon>
-                      </template>
-                    </v-list-item>
+                        <!-- Icono de selección -->
+                        <template v-slot:append>
+                          <v-icon v-if="isPersonSelected(person.id, role.id)" :color="
+                              getRoleIcon(role.id) === 'mdi-star'
+                                ? 'green-darken-3'
+                                : 'green-darken-3'
+                            ">
+                            {{
+                            getRoleIcon(role.id) === "mdi-star"
+                            ? "mdi-star"
+                            : "mdi-circle-slice-8"
+                            }}
+                          </v-icon>
+                          <v-icon v-else class="opacity-30" :color="
+                              getRoleIcon(role.id) === 'mdi-star'
+                                ? 'green-darken-3'
+                                : undefined
+                            ">
+                            {{
+                            getRoleIcon(role.id) === "mdi-star"
+                            ? "mdi-star-outline"
+                            : "mdi-checkbox-blank-circle-outline"
+                            }}
+                          </v-icon>
+                        </template>
+                      </v-list-item>
                     </v-list>
                   </v-card>
                 </v-col>
               </v-row>
               <v-row dense v-if="step === 2">
                 <v-col cols="12" md="6">
+                    <v-locale-provider>
                   <v-menu v-model="menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
                     offset-y min-width="290px">
                     <template v-slot:activator="{ props }">
                       <v-text-field v-bind="props" :modelValue="dateFormatted" variant="underlined"
                         :label="$t('taskForm.today')"></v-text-field>
                     </template>
-                    <v-locale-provider>
                       <v-date-picker color="#03626C" :modelValue="input" @update:model-value="updateDate"
                         format="yyyy-MM-dd"></v-date-picker>
-                    </v-locale-provider>
                   </v-menu>
+                    </v-locale-provider>
                 </v-col>
 
                 <v-col cols="12" md="6">
@@ -311,9 +388,8 @@
                   </v-select>
                 </v-col>
                 <v-col cols="12" md="6" v-if="editedIndex !== -1">
-                  <v-autocomplete v-model="editedItem.status_id"
-                    :items="status" :label="$t('taskForm.fields.status')" item-title="nameStatus" item-value="id"
-                    variant="underlined" density="compact" :rules="selectRules">
+                  <v-autocomplete v-model="editedItem.status_id" :items="status" :label="$t('taskForm.fields.status')"
+                    item-title="nameStatus" item-value="id" variant="underlined" density="compact" :rules="selectRules">
                     <!-- Slot para el item seleccionado (en el input) -->
                     <template v-slot:selection="{ item }">
                       <div class="d-flex align-center">
@@ -327,9 +403,10 @@
                     <!-- Slot para los items del dropdown -->
                     <template v-slot:item="{ props, item }">
                       <v-list-item v-bind="props" :style="{
-                          'background-color': item.props.value === editedItem.status_id 
-                            ? `#${item.raw.colorStatus}20`  // Aplica opacidad (20 = 12%)
-                            : 'transparent',
+                          'background-color':
+                            item.props.value === editedItem.status_id
+                              ? `#${item.raw.colorStatus}20` // Aplica opacidad (20 = 12%)
+                              : 'transparent',
                         }">
                         <template v-slot:prepend>
                           <v-avatar size="24" :color="'#' + item.raw.colorStatus">
@@ -345,6 +422,7 @@
                 </v-col>
                 <v-row v-if="editedItem.type === 'Evento'">
                   <v-col cols="12" md="6">
+                   <v-locale-provider>
                     <v-menu v-model="menu2" :close-on-content-click="false" offset-y min-width="auto">
                       <template v-slot:activator="{ props }">
                         <v-text-field v-bind="props" :model-value="dateFormatted2"
@@ -353,6 +431,7 @@
                       <v-date-picker v-model="editedItem.end_date" color="#03626C"
                         :min="editedItem.start_date"></v-date-picker>
                     </v-menu>
+                    </v-locale-provider>
                   </v-col>
 
                   <v-col cols="12" md="6">
@@ -364,11 +443,15 @@
 
               <div class="d-flex justify-space-between mt-8">
                 <v-btn variant="text" class="text-grey-darken-1" @click="step > 0 ? step-- : this.close()">
-                  {{ step === 0 ? $t('buttons.close') : $t('buttons.previous') }}
+                  {{ step === 0 ? $t("buttons.close") : $t("buttons.previous") }}
                 </v-btn>
 
                 <v-btn variant="text" class="text-deep-purple-accent-3" @click="nextStep" :disabled="!valid">
-                  {{ step === steps.length - 1 ? $t('buttons.saveAndClose') : $t('buttons.next') }}
+                  {{
+                  step === steps.length - 1
+                  ? $t("buttons.saveAndClose")
+                  : $t("buttons.next")
+                  }}
                 </v-btn>
               </div>
             </v-col>
@@ -380,14 +463,18 @@
   <v-dialog v-model="dialogDelete" max-width="500px">
     <v-card>
       <v-toolbar color="#DA7171">
-        <span class="text-subtitle-2 ml-4"> {{ $t('deleteDialog.title', { item: $t(`deleteDialog.items.task`) }) }}</span>
+        <span class="text-subtitle-2 ml-4">
+          {{ $t("deleteDialog.title", { item: $t(`deleteDialog.items.task`) }) }}</span>
       </v-toolbar>
-      <v-card-text class="mt-2 mb-2"> {{ $t('deleteDialog.message') }}</v-card-text>
+      <v-card-text class="mt-2 mb-2"> {{ $t("deleteDialog.message") }}</v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="#DA7171" variant="flat" @click="closeDelete">{{ $t('taskForm.buttons.cancel') }}</v-btn>
-        <v-btn color="#03626C" variant="flat" :loading="loading" @click="deleteItemConfirm"> {{ $t('taskForm.buttons.confirmDelete') }}</v-btn>
+        <v-btn color="grey" variant="flat" @click="closeDelete">{{
+          $t("taskForm.buttons.cancel")
+          }}</v-btn>
+        <v-btn color="#03626C" variant="flat" :loading="loading" @click="deleteItemConfirm">
+          {{ $t("taskForm.buttons.confirmDelete") }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -481,33 +568,34 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref } from "vue";
 import LocalStorageService from "@/LocalStorageService";
 import { handleRequest } from "@/utils/api"; // Ruta al archivo
 import _ from "lodash";
-import { shallowRef } from 'vue'
-import { VTimePicker } from 'vuetify/labs/components';
-
-
+import { shallowRef } from "vue";
+import { VTimePicker } from "vuetify/labs/components";
 
 export default {
   components: {
-    'v-time-picker': VTimePicker
+    "v-time-picker": VTimePicker,
   },
   data: () => ({
     selected: shallowRef([2]),
     selected2: null,
     step: 0,
+    dateMenu: false,
+      searchDate: '',
+      pickerDate: null,
     time: null,
-      modal2: false,
-      timePickerDialog: false,
+    modal2: false,
+    timePickerDialog: false,
     steps: [
-      { title: 'Información Básica', subtitle: 'Ingresa el título y descripción' },
-      { title: 'Asignación', subtitle: 'Selecciona responsables y participantes' },
-      { title: 'Programación', subtitle: 'Elige fecha y hora de la tarea' },
+      { title: "Información Básica", subtitle: "Ingresa el título y descripción" },
+      { title: "Asignación", subtitle: "Selecciona responsables y participantes" },
+      { title: "Programación", subtitle: "Elige fecha y hora de la tarea" },
     ],
-     itemsPerPage: 6,
-     currentPage: 1,
+    itemsPerPage: 6,
+    currentPage: 1,
     snackbar: false,
     sb_type: "",
     sb_message: "",
@@ -620,12 +708,11 @@ export default {
       people: [],
     },
 
-
-    tab: 'tab-1',
+    tab: "tab-1",
     tabs: [
-      { text: 'General', value: 'general', icon: 'mdi-file-document-outline' },
-      { text: 'Personas', value: 'personas', icon: 'mdi-account-group-outline' },
-      { text: 'Módulo', value: 'modulo', icon: 'mdi-view-dashboard-outline' },
+      { text: "General", value: "general", icon: "mdi-file-document-outline" },
+      { text: "Personas", value: "personas", icon: "mdi-account-group-outline" },
+      { text: "Módulo", value: "modulo", icon: "mdi-view-dashboard-outline" },
       //{ text: 'Estado', value: 'estado', icon: 'mdi-progress-check' },
     ],
 
@@ -643,22 +730,45 @@ export default {
     selectRules: [(v) => !!v || "Seleccionar al menos un elemento"],
 
     sections: [
-      { label: 'General', value: 'general', icon: 'mdi-file-document-outline' },
-      { label: 'Personas', value: 'personas', icon: 'mdi-account-group-outline' },
-      { label: 'Módulo', value: 'modulo', icon: 'mdi-view-dashboard-outline' },
-      { label: 'Estado', value: 'estado', icon: 'mdi-progress-check' },
+      { label: "General", value: "general", icon: "mdi-file-document-outline" },
+      { label: "Personas", value: "personas", icon: "mdi-account-group-outline" },
+      { label: "Módulo", value: "modulo", icon: "mdi-view-dashboard-outline" },
+      { label: "Estado", value: "estado", icon: "mdi-progress-check" },
     ],
-
-    title: '',
-    description: '',
-    date: '',
-    module: '',
+    dateRules: [
+      value => {
+        if (!value) return true;
+        
+        // Validación directa sin depender de this
+        if (!/^\d{2}-\d{2}-\d{4}$/.test(value)) return 'Formato debe ser DD-MM-YYYY';
+        
+        const [day, month, year] = value.split('-').map(Number);
+        
+        // Validaciones básicas
+        if (month < 1 || month > 12) return 'Mes inválido';
+        if (day < 1 || day > 31) return 'Día inválido';
+        
+        // Validación de días por mes
+        const monthLength = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+        
+        // Ajuste para años bisiestos
+        if (year % 400 === 0 || (year % 100 !== 0 && year % 4 === 0)) {
+          monthLength[1] = 29;
+        }
+        
+        return day <= monthLength[month - 1] || 'Fecha inválida para este mes';
+      }
+    ],
+    title: "",
+    description: "",
+    date: "",
+    module: "",
   }),
   computed: {
     formTitle() {
       return this.editedIndex === -1
-        ? this.$t('taskForm.titles.new')
-        : this.$t('taskForm.titles.edit');
+        ? this.$t("taskForm.titles.new")
+        : this.$t("taskForm.titles.edit");
     },
     formTitlePerson() {
       return this.tittlePerson === -1
@@ -689,26 +799,77 @@ export default {
       return this.input2 ? new Date(this.input2) : new Date();
     },
     paginatedTasks() {
-    if (!Array.isArray(this.tasks)) return []; // Verifica que tasks sea un array
-    const start = (this.currentPage - 1) * this.itemsPerPage;
-    const end = start + this.itemsPerPage;
-    return this.tasks.slice(start, end);
-  },
-  pageCount() {
-    return this.tasks?.length
-      ? Math.ceil(this.tasks.length / this.itemsPerPage)
-      : 0;
-  },
-  translatedSteps() {
+      if (!Array.isArray(this.tasks)) return []; // Verifica que tasks sea un array
+      const start = (this.currentPage - 1) * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.tasks.slice(start, end);
+    },
+    pageCount() {
+      return this.tasks?.length ? Math.ceil(this.tasks.length / this.itemsPerPage) : 0;
+    },
+    translatedSteps() {
       // Fallback en caso de que la traducción no esté disponible
       const defaultSteps = [
-        { title: 'Información Básica', subtitle: 'Ingresa el título y descripción' },
-        { title: 'Asignación', subtitle: 'Selecciona responsables y participantes' },
-        { title: 'Programación', subtitle: 'Elige fecha y hora de la tarea' }
-      ]
-      
-      return this.$t('steps') || defaultSteps
+        { title: "Información Básica", subtitle: "Ingresa el título y descripción" },
+        { title: "Asignación", subtitle: "Selecciona responsables y participantes" },
+        { title: "Programación", subtitle: "Elige fecha y hora de la tarea" },
+      ];
+
+      return this.$t("steps") || defaultSteps;
+    },
+    filteredTasks() {
+  return this.tasks.filter((task) => {
+    // Si no hay búsqueda, mostrar todo
+    if (!this.searchDate || this.searchDate.trim() === '') {
+      return true;
     }
+
+    const search = this.searchDate.trim();
+
+    // Intentar interpretar como búsqueda de fecha parcial
+    if (this.isValidDatePartial(search)) {
+      // Formato esperado en task.start_date: 'YYYY-MM-DD'
+      const taskDate = task.start_date; // ej: '2025-04-15'
+
+      // Convertir búsqueda dd[-mm[-yyyy]] a patrón comparable con YYYY-MM-DD
+      const parts = search.split('-');
+      let pattern = '';
+
+      if (parts.length === 1) {
+        // Solo día: '15' → buscar cualquier fecha que termine en '-15' o '-15'
+        const day = parts[0].padStart(2, '0');
+        pattern = `-${day}`; // Coincide con cualquier mes que termine en -15
+      } else if (parts.length === 2) {
+        // Día y mes: '15-04' → convertir a '-04-15'
+        const day = parts[0].padStart(2, '0');
+        const month = parts[1].padStart(2, '0');
+        pattern = `-${month}-${day}`;
+      } else if (parts.length === 3) {
+        // Completo: '15-04-2025' → convertir a '2025-04-15'
+        const day = parts[0].padStart(2, '0');
+        const month = parts[1].padStart(2, '0');
+        const year = parts[2];
+        if (year.length === 4) {
+          pattern = `${year}-${month}-${day}`;
+        } else {
+          pattern = search; // fallback
+        }
+      }
+
+      // Verificar si la fecha de la tarea incluye el patrón
+      if (pattern && taskDate.includes(pattern)) {
+        return true;
+      }
+    }
+
+    // Búsqueda de texto general en otros campos (opcional)
+    const matchesText = Object.values(task).some(val =>
+      String(val).toLowerCase().includes(search.toLowerCase())
+    );
+
+    return matchesText;
+  });
+},
   },
   mounted() {
     this.home_id = JSON.parse(LocalStorageService.getItem("home_id"));
@@ -717,62 +878,123 @@ export default {
     this.timeSlots = this.generateTimeSlots(); // Genera los horarios al montar el componente
   },
   methods: {
-    formatIntuitiveDate(dateString) {
-        if (!dateString) return 'Sin fecha';
+    isValidDatePartial(dateStr) {
+  const parts = dateStr.split('-');
+  if (parts.length > 3) return false;
 
-        // 1. Parsear la fecha de entrada (formato YYYY-MM-DD)
-        const [year, month, day] = dateString.split('-');
-        const inputDate = new Date(year, month - 1, day); // Mes es 0-based
+  const day = parts[0];
+  const month = parts[1];
+  const year = parts[2];
 
-        // 2. Obtener fecha actual (sin horas/minutos/segundos)
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+  // Validar día (1-31)
+  if (!/^\d{1,2}$/.test(day) || parseInt(day) < 1 || parseInt(day) > 31) {
+    return false;
+  }
 
-        // 3. Normalizar ambas fechas a UTC para evitar problemas de zona horaria
-        const inputUTC = Date.UTC(inputDate.getFullYear(), inputDate.getMonth(), inputDate.getDate());
-        const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  // Si hay mes, validar (1-12)
+  if (month && (!/^\d{1,2}$/.test(month) || parseInt(month) < 1 || parseInt(month) > 12)) {
+    return false;
+  }
 
-        // 4. Calcular diferencia en días
-        const diffDays = Math.floor((inputUTC - todayUTC) / (1000 * 60 * 60 * 24));
+  // Si hay año, validar longitud (4 dígitos)
+  if (year && !/^\d{4}$/.test(year)) {
+    return false;
+  }
 
-        // 5. Determinar el texto a mostrar
-        switch (diffDays) {
-          case 0: return 'Hoy';
-          case 1: return 'Mañana';
-          case -1: return 'Ayer';
-          case -2: return 'Anteayer';
-          default:
-            return inputDate.toLocaleDateString('es-ES', {
-              weekday: 'short',
-              day: 'numeric',
-              month: 'short'
-            }).replace(/\./g, '');
-        }
-      },
-
-      formatTime(timeString) {
-        if (!timeString) return "";
-
-        const [hours, minutes] = timeString.split(":");
-        return `${hours}:${minutes}`;
-      },
-    formatDate(dateString) {
-    const [year, month, day] = dateString.split('-');
-    return `${day}-${month}-${year}`;
+  return true;
+},
+   isValidDate(dateStr) {
+    const rule = this.dateRules[0]; // Usamos la misma regla de validación
+    const result = rule(dateStr);
+    return result === true;
   },
+  
+  // Resto de tus métodos...
+  handleManualDateInput(value) {
+    if (value && this.isValidDate(value)) {
+      const [day, month, year] = value.split('-');
+      this.pickerDate = new Date(year, month - 1, day);
+    } else {
+      this.pickerDate = null;
+    }
+  },
+  
+  updateSearchDate(value) {
+    if (value) {
+      const day = String(value.getDate()).padStart(2, '0');
+      const month = String(value.getMonth() + 1).padStart(2, '0');
+      const year = value.getFullYear();
+      this.searchDate = `${day}-${month}-${year}`;
+    } else {
+      this.searchDate = '';
+    }
+    this.dateMenu = false;
+  },
+    formatIntuitiveDate(dateString) {
+      console.log("formatIntuitiveDate", dateString);
+      if (!dateString) return "Sin fecha";
+
+      // 1. Parsear la fecha de entrada (formato YYYY-MM-DD)
+      const [year, month, day] = dateString.split("-");
+      const inputDate = new Date(year, month - 1, day); // Mes es 0-based
+
+      // 2. Obtener fecha actual (sin horas/minutos/segundos)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // 3. Normalizar ambas fechas a UTC para evitar problemas de zona horaria
+      const inputUTC = Date.UTC(
+        inputDate.getFullYear(),
+        inputDate.getMonth(),
+        inputDate.getDate()
+      );
+      const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+
+      // 4. Calcular diferencia en días
+      const diffDays = Math.floor((inputUTC - todayUTC) / (1000 * 60 * 60 * 24));
+
+      // 5. Determinar el texto a mostrar
+      switch (diffDays) {
+        case 0:
+          return "Hoy";
+        case 1:
+          return "Mañana";
+        case -1:
+          return "Ayer";
+        default:
+          return inputDate
+            .toLocaleDateString("es-ES", {
+              weekday: "short",
+              day: "numeric",
+              month: "short",
+            })
+            .replace(/\./g, "");
+      }
+    },
     getTypeColor(type) {
       const colorMap = {
-        'Tarea': 'warning',
-        'Evento': 'teal-lighten-2',
+        Tarea: "warning",
+        Meta: "purple",
         // Agrega más tipos si es necesario
       };
-      return colorMap[type] || 'grey-lighten-1'; // Color por defecto
+      return colorMap[type] || "grey-lighten-1"; // Color por defecto
+    },
+
+    formatTime(timeString) {
+      if (!timeString) return "";
+
+      const [hours, minutes] = timeString.split(":");
+      return `${hours}:${minutes}`;
+    },
+    formatDate(dateString) {
+      const [year, month, day] = dateString.split("-");
+      return `${day}-${month}-${year}`;
     },
     getStatusById(statusId) {
-      return this.status.find(status => status.id === statusId);
+      return this.status.find((status) => status.id === statusId);
     },
     async changeTaskStatus(task, newStatusId) {
-      console.log('tarea y estado');
+      console.log("tarea y estado");
       console.log(task.id);
       console.log(newStatusId);
       // Tu lógica para cambiar el estado
@@ -784,9 +1006,9 @@ export default {
 
       try {
         const result = await handleRequest({
-          endpoint: 'task-update',
-          method: 'POST',
-          data: this.data
+          endpoint: "task-update",
+          method: "POST",
+          data: this.data,
         });
 
         // Manejo de la respuesta según el resultado
@@ -798,7 +1020,11 @@ export default {
         }
       } catch (error) {
         // Este bloque captura errores inesperados fuera del manejo estándar
-        this.showAlert("error", "Ocurrió un error inesperado al procesar la solicitud.", 3000);
+        this.showAlert(
+          "error",
+          "Ocurrió un error inesperado al procesar la solicitud.",
+          3000
+        );
       } finally {
         this.loading = false;
       }
@@ -806,65 +1032,70 @@ export default {
       // Aquí probablemente quieras hacer una llamada API para actualizar el estado en el backend
     },
     // Filtra las personas para mostrar en cada card según el rol
-   filteredPeople(roleId) {
-      return this.people.filter(person => {
-        const assignedPerson = this.editedItem.people.find(p => p.id === person.id);
+    filteredPeople(roleId) {
+      return this.people.filter((person) => {
+        const assignedPerson = this.editedItem.people.find((p) => p.id === person.id);
         return !assignedPerson || assignedPerson.roleId === roleId;
       });
     },
-    
+
     isPersonSelected(personId, roleId) {
-      return this.editedItem.people.some(
-        p => p.id === personId && p.roleId === roleId
-      );
+      return this.editedItem.people.some((p) => p.id === personId && p.roleId === roleId);
     },
-    
-    
+
     getRoleIcon(roleId) {
-      const role = this.roles.find(r => r.id === roleId);
-      if (!role) return 'mdi-account';
-      
-      switch(role.name.toLowerCase()) {
-        case 'responsable': return 'mdi-star';
-        case 'colaborado': return 'mdi-account-group';
-        default: return 'mdi-account';
+      const role = this.roles.find((r) => r.id === roleId);
+      if (!role) return "mdi-account";
+
+      switch (role.name.toLowerCase()) {
+        case "responsable":
+          return "mdi-star";
+        case "colaborado":
+          return "mdi-account-group";
+        default:
+          return "mdi-account";
       }
     },
-    
+
     updateSelection(role, selectedIds) {
-      console.log('Selection changed:', {role, selectedIds});
-      
+      console.log("Selection changed:", { role, selectedIds });
+
       // Eliminar personas de este rol que ya no están seleccionadas
       this.editedItem.people = this.editedItem.people.filter(
-        p => p.roleId !== role.id || selectedIds.includes(p.id)
+        (p) => p.roleId !== role.id || selectedIds.includes(p.id)
       );
-      
+
       // Agregar nuevas selecciones
-      selectedIds.forEach(personId => {
-        if (!this.editedItem.people.some(p => p.id === personId && p.roleId === role.id)) {
-          const person = this.people.find(p => p.id === personId);
+      selectedIds.forEach((personId) => {
+        if (
+          !this.editedItem.people.some((p) => p.id === personId && p.roleId === role.id)
+        ) {
+          const person = this.people.find((p) => p.id === personId);
           if (person) {
             this.editedItem.people.push({
               id: person.id,
               name: person.namePerson,
               image: person.imagePerson,
               roleId: role.id,
-              roleName: role.nameRol
+              roleName: role.nameRol,
             });
           }
         }
       });
-      
-      console.log('Updated people:', this.editedItem.people);
+
+      console.log("Updated people:", this.editedItem.people);
     },
-   initializeSelections() {
+    initializeSelections() {
       // Verificar si person_id no está en editedItem.people
-      if (this.person_id && !this.editedItem.people.some(p => p.id === this.person_id)) {
+      if (
+        this.person_id &&
+        !this.editedItem.people.some((p) => p.id === this.person_id)
+      ) {
         // Buscar el rol "Responsable" en los roles disponibles
-        const responsableRole = this.roles.find(role => role.name === 'Responsable');
+        const responsableRole = this.roles.find((role) => role.name === "Responsable");
         // Buscar la persona correspondiente al person_id (asumiendo que tienes acceso a las personas)
-        const person = this.people.find(p => p.id === this.person_id); // Asegúrate de tener this.people disponible
-        
+        const person = this.people.find((p) => p.id === this.person_id); // Asegúrate de tener this.people disponible
+
         if (responsableRole && person) {
           // Agregar la persona con el rol de Responsable y toda la estructura requerida
           this.editedItem.people.push({
@@ -872,24 +1103,24 @@ export default {
             name: person.namePerson,
             image: person.imagePerson,
             roleId: responsableRole.id,
-            roleName: responsableRole.nameRol
+            roleName: responsableRole.nameRol,
           });
         }
       }
 
       // Inicializar selectedItems para cada rol
-      this.roles.forEach(role => {
+      this.roles.forEach((role) => {
         this.selectedItems[role.id] = this.editedItem.people
-          .filter(p => p.roleId === role.id)
-          .map(p => p.id);
+          .filter((p) => p.roleId === role.id)
+          .map((p) => p.id);
       });
     },
     nextStep() {
       if (this.step < this.steps.length - 1) {
-        this.step++
+        this.step++;
       } else {
-        this.dialog = false
-        this.step = 0
+        this.dialog = false;
+        this.step = 0;
         this.save();
       }
     },
@@ -1312,7 +1543,7 @@ export default {
                 home_id: Number(this.editedItem.home_id), // Asegurar que sea un número
                 person_id: Number(person.id), // Asegurar que sea un número
                 role_id: Number(person.roleId),
-                roleName: person.roleName
+                roleName: person.roleName,
               }));
             } else {
               obj[key] = this.editedItem[key];
@@ -1326,9 +1557,9 @@ export default {
           updatedFields.start_date = this.editedItem.start_date
             ? this.editedItem.start_date
             : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(
-              2,
-              "0"
-            )}-${String(new Date().getDate()).padStart(2, "0")}`;
+                2,
+                "0"
+              )}-${String(new Date().getDate()).padStart(2, "0")}`;
           updatedFields.estimated_time = this.editedItem.estimated_time
             ? this.editedItem.estimated_time
             : 0;
@@ -1418,11 +1649,9 @@ export default {
               // Transformar el campo `people`
               obj[key] = this.editedItem.people.map((person) => ({
                 home_id: Number(this.editedItem.home_id), // Asegurar que sea un número
-                person_id: person.id
-                  ? Number(person.id)
-                  : Number(person.id), // Asegurar que sea un número
+                person_id: person.id ? Number(person.id) : Number(person.id), // Asegurar que sea un número
                 role_id: Number(person.roleId),
-                roleName: person.roleName            // Asegurar que sea un número
+                roleName: person.roleName, // Asegurar que sea un número
               }));
             } else {
               obj[key] = this.editedItem[key];
@@ -1649,33 +1878,47 @@ export default {
 </script>
 <style scoped>
 .icono-concavo {
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 10px;
-  margin-right: 5px;
   color: white;
   /* Mantenemos solo el efecto cóncavo en el ícono 
   box-shadow: inset;*/
   position: relative;
   overflow: hidden;
 }
-.date-time-display .date {
-  font-size: 0.9rem;
-  font-weight: 500; /* medium */
-  color: inherit; /* usa el color por defecto del tema */
+
+.icono-concavo::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  border-radius: 8px;
+  background: transparent;
 }
 
-.date-time-display .time {
-  font-size: 0.9rem;
-  font-weight: 400; /* regular */
-  color: rgba(0, 0, 0, 0.6); /* gris medio */
-  margin-top: 8px;
+.date-display {
+  font-size: 0.75rem; /* Equivale a text-caption */
+  line-height: 1.1;
+  font-weight: 500;
+  text-align: center;
+  word-break: break-word;
+  white-space: normal;
+}
+
+/* Estilos para la hora */
+.time-display {
+  font-size: 0.625rem;
+  line-height: 1;
+  margin-top: 2px;
 }
 .smooth-hover {
-  transition: all 0.50s ease;
+  transition: all 0.5s ease;
 }
 
 .smooth-hover:hover {
@@ -1839,7 +2082,7 @@ export default {
 /* Efecto hover más pronunciado */
 .v-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.1) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1) !important;
 }
 
 /* Estilo para el tiempo de la reunión */
@@ -1868,5 +2111,15 @@ export default {
 .v-avatar:hover {
   transform: scale(1.1);
   z-index: 2;
+}
+.date-text {
+  width: 100%;
+  font-size: 0.75rem; /* Equivalente a text-caption */
+  line-height: 1.2; /* Mejor interlineado */
+  font-weight: 500; /* Medium weight */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 </style>

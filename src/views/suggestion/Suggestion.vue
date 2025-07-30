@@ -597,8 +597,6 @@ export default {
           return "Mañana";
         case -1:
           return "Ayer";
-        case -2:
-          return "Anteayer";
         default:
           return inputDate
             .toLocaleDateString("es-ES", {

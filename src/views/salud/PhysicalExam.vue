@@ -20,9 +20,12 @@
     </v-row>
   </v-snackbar>
   <v-container class="pa-4">
+  <v-card class="pa-4" elevation="4" rounded="lg">
+      <!-- Encabezado con foto y datos -->
+      <v-card-text>
     <!-- Encabezado -->
     <v-row justify="space-between" align="center" class="mb-6">
-      <h2 class="text-h5 font-weight-bold">{{ $t('viewTitles.physicalExams') }}</h2>
+      <h2 class="text-body-2 font-weight-bold">{{ $t('viewTitles.physicalExams') }}</h2>
       <v-btn
         icon
         color="deep-purple-accent-4"
@@ -38,14 +41,17 @@
       <v-card
         v-for="(exam, index) in physicalExams"
         :key="index"
-        class="mb-3 rounded-lg"
+        class="mb-3 rounded-lg pa-2"
         elevation="2"
       >
-        <v-row no-gutters class="ma-0">
+        <v-row>
           <!-- Barra lateral con fecha -->
-          <v-col cols="1" class="py-2 d-flex flex-column align-center justify-center">
-            <div class="date white--text font-weight-bold text-body-2 text-center">
-              {{ formatDate(exam.exam_date) }}
+          <v-col cols="1" class="d-flex align-center justify-center">
+            <div class="icono-concavo d-flex flex-column justify-center justify-start"
+              :class="`bg-${getTypeColor(exam.pulse)}`">
+              <div class="date-display">
+                {{ formatIntuitiveDate(exam.exam_date) }}
+              </div>
             </div>
           </v-col>
 
@@ -115,7 +121,8 @@
           </v-col>
 
           <!-- Acciones -->
-          <v-col cols="1" class="d-flex align-center pe-4 gap-2">
+           <v-col cols="1" class="d-flex align-center ml-auto pe-4">
+                <div class="d-flex">
             <v-btn
               icon
               variant="text"
@@ -132,8 +139,9 @@
               size="small"
               @click="deleteItem(exam)"
             >
-              <v-icon>mdi-close</v-icon>
+              <v-icon>mdi-delete</v-icon>
             </v-btn>
+            </div>
           </v-col>
         </v-row>
       </v-card>
@@ -146,6 +154,8 @@
         </div>
       </v-col>
     </template>
+    </v-card-text>
+    </v-card>
   </v-container>
   <v-dialog
     v-model="dialog"
@@ -425,7 +435,7 @@
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="#DA7171" variant="flat" @click="closeDelete">{{
+        <v-btn color="grey" variant="flat" @click="closeDelete">{{
           $t("taskForm.buttons.cancel")
         }}</v-btn>
         <v-btn
@@ -647,18 +657,58 @@ export default {
     this.initialize();
   },
   methods: {
+    formatIntuitiveDate(dateString) {
+      if (!dateString) return "Sin fecha";
+
+      // 1. Parsear la fecha de entrada (formato YYYY-MM-DD)
+      const [year, month, day] = dateString.split("-");
+      const inputDate = new Date(year, month - 1, day); // Mes es 0-based
+
+      // 2. Obtener fecha actual (sin horas/minutos/segundos)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // 3. Normalizar ambas fechas a UTC para evitar problemas de zona horaria
+      const inputUTC = Date.UTC(
+        inputDate.getFullYear(),
+        inputDate.getMonth(),
+        inputDate.getDate()
+      );
+      const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+
+      // 4. Calcular diferencia en días
+      const diffDays = Math.floor((inputUTC - todayUTC) / (1000 * 60 * 60 * 24));
+
+      // 5. Determinar el texto a mostrar
+      switch (diffDays) {
+        case 0:
+          return "Hoy";
+        case 1:
+          return "Mañana";
+        case -1:
+          return "Ayer";
+        default:
+          return inputDate
+            .toLocaleDateString("es-ES", {
+              weekday: "short",
+              day: "numeric",
+              month: "short",
+            })
+            .replace(/\./g, "");
+      }
+    },
+    getTypeColor(type) {
+      const colorMap = {
+        Tarea: "warning",
+        Meta: "purple",
+        // Agrega más tipos si es necesario
+      };
+      return colorMap[type] || "grey-lighten-1"; // Color por defecto
+    },
     formatDate(dateString) {
     const [year, month, day] = dateString.split('-');
     return `${day}-${month}-${year}`;
   },
-    getTypeColor(type) {
-      const colorMap = {
-        'Tarea': 'deep-purple-lighten-2',
-        'Evento': 'teal-lighten-2',
-        // Agrega más tipos si es necesario
-      };
-      return colorMap[type] || 'grey-lighten-1'; // Color por defecto
-    },
     getStatusById(statusId) {
       return this.status.find(status => status.id === statusId);
     },
@@ -1221,6 +1271,38 @@ export default {
 };
 </script>
 <style scoped>
+.icono-concavo {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  color: white;
+  /* Mantenemos solo el efecto cóncavo en el ícono 
+  box-shadow: inset;*/
+  position: relative;
+  overflow: hidden;
+}
+
+.icono-concavo::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  border-radius: 8px;
+  background: transparent;
+}
+
+.date-display {
+  font-size: 0.75rem; /* Equivale a text-caption */
+  font-weight: 500;
+  text-align: center;
+  word-break: break-word;
+  white-space: normal;
+}
 .date-time-display .date {
   font-size: 0.9rem;
   font-weight: 500; /* medium */

@@ -178,7 +178,7 @@
           </v-col>
 
           <v-col cols="12" sm="3" md="3">
-            <v-card class="pa-3 d-flex align-center" elevation="1" rounded="lg">
+            <v-card class="pa-3 d-flex align-center" elevation="1" rounded="lg" @click="showAddIncomeSpent()">
               <v-avatar
                 size="40"
                 class="me-3"
@@ -792,6 +792,21 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+   <v-dialog v-model="dialogIncomeSpent" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-text>
+        <!-- Aquí pasamos el 'selectedWorker' al componente dentro del diálogo -->
+        <IncomeSpent />
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn @click="closeDialogIncomeSpent"
+          >Cerrar</v-btn
+        >
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
   <v-dialog
     v-model="showSuggestedTasksDialog"
     fullscreen
@@ -1030,6 +1045,7 @@ import _ from "lodash";
 import Budget from "./Budget.vue";
 import ChatTaskFinance from "../chat/ChatTaskFinance.vue";
 import SuggestionsList from "../suggestion/SuggestionsList.vue";
+import IncomeSpent from "./IncomeSpent.vue";
 export default {
   components: {
     Income,
@@ -1037,11 +1053,13 @@ export default {
     Budget,
     ChatTaskFinance,
     SuggestionsList,
+    IncomeSpent
   },
   data() {
     return {
       dialogAlerta: false,
       dialogChatTask: false,
+      dialogIncomeSpent: false,
       chatDialog: false,
       dialogBugets: false,
       currentTask: null,
@@ -2127,8 +2145,15 @@ export default {
     showAddBuget() {
       this.dialogBugets = true; // Abrimos el diálogo
     },
+    showAddIncomeSpent() {
+      this.dialogIncomeSpent = true; // Abrimos el diálogo
+    },
     closeDialogBugets() {
       this.dialogBugets = false; // Cerramos el diálogo
+      this.initialize();
+    },
+    closeDialogIncomeSpent() {
+      this.dialogIncomeSpent = false; // Cerramos el diálogo
       this.initialize();
     },
     showAlert(sb_type, sb_message, sb_timeout) {

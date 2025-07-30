@@ -37,6 +37,7 @@
                   <!-- Campo editable con componente -->
                   <template v-if="message.isEditable && message.isEditing">
                     <div v-if="['start_date', 'end_date'].includes(message.fieldKey)">
+                    <v-locale-provider>
                       <v-menu v-model="message.showDatePicker" :close-on-content-click="false"
                         transition="scale-transition" offset-y location="bottom"
                         @update:modelValue="handleMenuClose(message, index)">
@@ -52,6 +53,7 @@
                         handleDateSelection(message.fieldKey, $event)
                       " />
                       </v-menu>
+                      </v-locale-provider>
                     </div>
                     <!-- Para campos de hora -->
                     <div v-else-if="
@@ -774,17 +776,30 @@ export default {
         this.shownChatFields.add("type");
       }
       const fieldsToShow = [
-        { key: "title", label: "Título" },
-        { key: "description", label: "Descripción" },
-        { key: "start_date", label: "Fecha de inicio" },
-        { key: "start_time", label: "Hora de inicio" },
-        { key: "end_date", label: "Fecha de finalización" },
-        { key: "end_time", label: "Hora de finalización" },
-        { key: "estimated_time", label: "Duración estimada (minutos)" },
-      ];
+  { key: "title", label: "Título" },
+  { key: "description", label: "Descripción" },
+  { key: "start_date", label: "Fecha de inicio" },
+  { key: "start_time", label: "Hora de inicio" },
+  { key: "end_date", label: "Fecha de finalización" },
+  { key: "end_time", label: "Hora de finalización" },
+  { key: "estimated_time", label: "Duración estimada (minutos)" },
+];
 
+// Determinar si es Meta (solo en ese caso se muestran end_date y end_time)
+const isMeta = taskData.type === "Meta";
+console.log("isMeta:", isMeta);
+
+// Filtrar los campos: solo se excluyen end_date y end_time si NO es Meta
+const filteredFields = fieldsToShow.filter(field => {
+  // Si NO es Meta, excluimos estos dos campos
+  if (!isMeta) {
+    return !["end_date", "end_time"].includes(field.key);
+  }
+  // Si es Meta, mostramos todos los campos
+  return true;
+});
       // Mostrar campos normales como texto
-      fieldsToShow.forEach((field) => {
+      filteredFields.forEach((field) => {
         const value = taskData[field.key];
         if (value) {
           this.chatMessages.push({
@@ -1088,13 +1103,14 @@ export default {
       // Llamar a showPeopleSelector después de seleccionar recurrencia
       this.startAutomaticDataCollection();
     },
-   handleTtypeSelected(type) {
+   async handleTtypeSelected(type) {
   const newType = type.id === "none" ? null : type.id;
   const oldType = this.taskParameters.type;
-
+    
+       await this.updateEndDateVisibilityInChat(newType);
   // Si no cambia el tipo, salir
   if (newType === oldType) {
-    this.startAutomaticDataCollection();
+    await this.startAutomaticDataCollection();
     return;
   }
 
@@ -1764,7 +1780,7 @@ export default {
       }
     },
     //date y time
-    handleDateSelection(field, dateEvent) {
+    async handleDateSelection(field, dateEvent) {
       const { value } = dateEvent;
 
       // Actualizar el valor en taskParameters
@@ -1781,8 +1797,56 @@ export default {
       }
 
       // Continuar con el flujo automático
-      this.startAutomaticDataCollection();
+      await this.startAutomaticDataCollection();
     },
+    async updateEndDateVisibilityInChat(isMeta) {
+  //const isMeta = this.taskParameters.type === "Meta";
+  console.log("Actualizando visibilidad de fechas. ¿Es Meta?", isMeta);
+
+  // Campos que queremos controlar
+  const dateFields = ["end_date", "end_time"];
+
+  dateFields.forEach((fieldKey) => {
+    const messageIndex = this.chatMessages.findIndex(
+      (m) => m.fieldKey === fieldKey
+    );
+
+    if (isMeta) {
+      // Si es Meta y el mensaje no existe, hay que crearlo
+      if (messageIndex === -1) {
+        const value = this.taskParameters[fieldKey];
+        if (value) {
+          const fieldLabel = fieldKey === "end_date" ? "Fecha de finalización" : "Hora de finalización";
+
+          const newMessage = {
+            from: "ai",
+            text: `• ${fieldLabel}: ${value}`,
+            timestamp: new Date().toLocaleTimeString(),
+            isEditable: true,
+            fieldKey: fieldKey,
+            fieldLabel: fieldLabel,
+            currentValue: value,
+            editValue: value,
+            isEditing: false,
+            showDatePicker: false,
+          };
+
+          // Insertar en orden adecuado (opcional: busca posición lógica)
+          const insertIndex = this.chatMessages.findIndex(m => m.fieldKey === "start_time") + 1;
+          this.chatMessages.splice(insertIndex >= 0 ? insertIndex : this.chatMessages.length, 0, newMessage);
+        }
+      }
+      // Si ya existe, aseguramos que esté visible (no hacemos nada, ya está)
+    } else {
+      // Si NO es Meta, debemos eliminarlo del chat si existe
+      if (messageIndex > -1) {
+        this.chatMessages.splice(messageIndex, 1);
+        // Opcional: también limpiar de shownChatFields
+        this.shownChatFields.delete(fieldKey);
+      }
+    }
+  });
+},
     handleTimeSelection(field, timeEvent) {
       const { value } = timeEvent;
 

@@ -477,11 +477,7 @@
   </v-dialog>
 
   <!--Datos de las consultas-->
-  <v-dialog
-    v-model="dialogConsultations"
-    fullscreen
-    transition="dialog-bottom-transition"
-  >
+  <v-dialog v-model="dialogConsultations" fullscreen transition="dialog-bottom-transition" >
     <v-card>
       <v-card-text>
         <!-- Aquí pasamos el 'selectedWorker' al componente dentro del diálogo -->
@@ -490,7 +486,7 @@
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn variant="flat" color="grey-lighten-1" @click="closeDialogConsultations"
+        <v-btn text @click="closeDialogConsultations"
           >Cerrar</v-btn
         >
       </v-card-actions>

@@ -20,9 +20,12 @@
     </v-row>
   </v-snackbar>
   <v-container class="pa-4">
+  <v-card class="pa-4" elevation="4" rounded="lg">
+      <!-- Encabezado con foto y datos -->
+      <v-card-text>
     <!-- Encabezado -->
     <v-row justify="space-between" align="center" class="mb-6">
-      <h2 class="text-h5 font-weight-bold">{{ $t("viewTitles.consultations") }}</h2>
+      <h2 class="text-body-2 font-weight-bold">{{ $t("viewTitles.consultations") }}</h2>
       <v-btn
         icon
         color="deep-purple-accent-4"
@@ -38,81 +41,66 @@
       <v-card
         v-for="(consultation, index) in consultations"
         :key="index"
-        class="mb-3 rounded-lg"
+        class="mb-3 rounded-lg pa-2"
         elevation="2"
       >
-        <v-row no-gutters class="ma-0">
-          <!-- Barra lateral con fecha -->
-          <v-col cols="1" class="py-2 d-flex flex-column align-center justify-center">
-            <div class="font-weight-bold text-body-2 text-center text-grey-darken-2">
-              {{ formatDate(consultation.date) }}
+        <v-row>
+         <v-col cols="1" class="d-flex align-center justify-center">
+            <div class="icono-concavo d-flex flex-column justify-center justify-start"
+              :class="`bg-${getTypeColor(consultation.typeName)}`">
+              <div class="date-display">
+                {{ formatIntuitiveDate(consultation.date) }}
+              </div>
             </div>
           </v-col>
-
-          <!-- Contenido principal en columnas -->
-          <v-col cols="10" class="d-flex align-start pe-2 gap-2 py-2">
-            <v-row no-gutters>
-              <!-- Primera columna: Tipo y Profesional -->
-              <v-col cols="12" md="4" class="pa-2">
-                <div class="d-flex flex-column gap-1">
-                  <!-- Tipo de consulta -->
-                  <div>
-                    <div class="text-caption font-weight-bold text-grey-darken-2">
-                      {{ $t("consultations.fields.type") }}:
-                    </div>
-                    <div class="text-body-2">
-                      {{ consultation.typeName || 'N/A' }}
-                    </div>
-                  </div>
-                  
-                  <!-- Profesional -->
-                  <div class="mt-2">
-                    <div class="text-caption font-weight-bold text-grey-darken-2">
-                      {{ $t("consultations.fields.profesional") }}:
-                    </div>
-                    <div class="text-body-2">
-                      {{ consultation.professional || 'N/A' }}
-                    </div>
-                  </div>
+          <v-col cols="4" class="d-flex align-center pe-4 gap-2">
+           <v-row align="center" class="gap-3">
+              <div>
+                <div class="text-body-2 font-weight-bold">
+                  <span>
+                    {{ consultation.typeName }}
+                  </span>
+                  <v-tooltip activator="parent" location="bottom" max-width="350px">
+                    <span style="white-space: normal; word-break: break-word">{{ $t('consultations.fields.type') }}: {{
+                      consultation.typeName }}</span>
+                  </v-tooltip>
+                </div>
+                <div class="text-caption d-flex align-center text-grey-darken-1">
+                  <span>
+                    {{ consultation.reason }}
+                  </span>
+                  <v-tooltip activator="parent" location="bottom" max-width="350px">
+                    <span style="white-space: normal; word-break: break-word">{{ $t('consultations.fields.reason') }}: {{ consultation.reason }}</span>
+                  </v-tooltip>
+                </div>
+              </div>
+              </v-row>
+              </v-col>
+               <v-col cols="3" class="d-flex align-center pe-4 gap-2">
+                <div class="text-body-2">
+                  <span>
+                    {{ consultation.medicalNotes}}
+                  </span>
+                  <v-tooltip activator="parent" location="bottom" max-width="350px">
+                    <span style="white-space: normal; word-break: break-word">{{ $t("consultations.fields.medicalNotes") }}:
+                      {{ consultation.medicalNotes}}</span>
+                  </v-tooltip>
                 </div>
               </v-col>
-
-              <!-- Segunda columna: Motivo -->
-              <v-col cols="12" md="4" class="pa-2">
-                <div>
-                  <div class="text-caption font-weight-bold text-grey-darken-2">
-                    {{ $t("consultations.fields.reason") }}:
-                  </div>
-                  <div class="text-body-2 text-pre-wrap">
-                    {{ consultation.reason || 'N/A' }}
-                  </div>
+            <v-col cols="3" class="d-flex align-center pe-4 gap-2">
+                <div class="text-body-2">
+                  <span>
+                    {{ consultation.professional}}
+                  </span>
+                  <v-tooltip activator="parent" location="bottom" max-width="350px">
+                    <span style="white-space: normal; word-break: break-word">{{ $t("consultations.fields.profesional") }}:
+                      {{ consultation.professional}}</span>
+                  </v-tooltip>
                 </div>
               </v-col>
-
-              <!-- Tercera columna: Notas médicas -->
-              <v-col cols="12" md="4" class="pa-2">
-                <div class="text-caption font-weight-bold text-grey-darken-2 mb-1">
-                  {{ $t('consultations.fields.medicalNotes') }}:
-                </div>
-
-                <v-tooltip location="bottom" max-width="400px">
-                  <template v-slot:activator="{ props }">
-                    <div 
-                      v-bind="props"
-                      class="text-body-2 text-truncate"
-                      style="max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
-                    >
-                      {{ consultation.medicalNotes || $t('consultations.notRecorded') }}
-                    </div>
-                  </template>
-                  <span>{{ consultation.medicalNotes || $t('consultations.notRecorded') }}</span>
-                </v-tooltip>
-              </v-col>
-            </v-row>
-          </v-col>
-
           <!-- Acciones -->
-          <v-col cols="1" class="d-flex align-center justify-center pe-4 gap-2">
+          <v-col cols="1" class="d-flex align-center ml-auto pe-4">
+                <div class="d-flex">
             <v-btn
               icon
               variant="text"
@@ -129,8 +117,9 @@
               size="small"
               @click="deleteItem(consultation)"
             >
-              <v-icon>mdi-close</v-icon>
+              <v-icon>mdi-delete</v-icon>
             </v-btn>
+            </div>
           </v-col>
         </v-row>
       </v-card>
@@ -143,6 +132,8 @@
         </div>
       </v-col>
     </template>
+    </v-card-text>
+    </v-card>
   </v-container>
   <v-dialog
     v-model="dialog"
@@ -330,7 +321,7 @@
       <v-toolbar color="#DA7171">
         <span class="text-subtitle-2 ml-4">
           {{
-            $t("deleteDialog.title", { item: $t(`deleteDialog.items.consultation`) })
+            $t("deleteDialog.title", { item: $t(`deleteDialog.items.medicalConsultation`) })
           }}</span
         >
       </v-toolbar>
@@ -338,7 +329,7 @@
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="#DA7171" variant="flat" @click="closeDelete">{{
+        <v-btn color="grey" variant="flat" @click="closeDelete">{{
           $t("taskForm.buttons.cancel")
         }}</v-btn>
         <v-btn
@@ -468,6 +459,54 @@ export default {
   },
 
   methods: {
+    formatIntuitiveDate(dateString) {
+      if (!dateString) return "Sin fecha";
+
+      // 1. Parsear la fecha de entrada (formato YYYY-MM-DD)
+      const [year, month, day] = dateString.split("-");
+      const inputDate = new Date(year, month - 1, day); // Mes es 0-based
+
+      // 2. Obtener fecha actual (sin horas/minutos/segundos)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // 3. Normalizar ambas fechas a UTC para evitar problemas de zona horaria
+      const inputUTC = Date.UTC(
+        inputDate.getFullYear(),
+        inputDate.getMonth(),
+        inputDate.getDate()
+      );
+      const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+
+      // 4. Calcular diferencia en días
+      const diffDays = Math.floor((inputUTC - todayUTC) / (1000 * 60 * 60 * 24));
+
+      // 5. Determinar el texto a mostrar
+      switch (diffDays) {
+        case 0:
+          return "Hoy";
+        case 1:
+          return "Mañana";
+        case -1:
+          return "Ayer";
+        default:
+          return inputDate
+            .toLocaleDateString("es-ES", {
+              weekday: "short",
+              day: "numeric",
+              month: "short",
+            })
+            .replace(/\./g, "");
+      }
+    },
+    getTypeColor(type) {
+      const colorMap = {
+        Tarea: "warning",
+        Meta: "purple",
+        // Agrega más tipos si es necesario
+      };
+      return colorMap[type] || "grey-lighten-1"; // Color por defecto
+    },
     formatDate(dateString) {
       if (!dateString) return "N/R";
       const [year, month, day] = dateString.split("-");
@@ -770,6 +809,38 @@ export default {
 </script>
 
 <style scoped>
+.icono-concavo {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  color: white;
+  /* Mantenemos solo el efecto cóncavo en el ícono 
+  box-shadow: inset;*/
+  position: relative;
+  overflow: hidden;
+}
+
+.icono-concavo::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  border-radius: 8px;
+  background: transparent;
+}
+
+.date-display {
+  font-size: 0.75rem; /* Equivale a text-caption */
+  font-weight: 500;
+  text-align: center;
+  word-break: break-word;
+  white-space: normal;
+}
 /* Mantener los mismos estilos que en Diagnosis.vue */
 .date {
   padding: 4px 8px;

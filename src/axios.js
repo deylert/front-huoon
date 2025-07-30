@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const instance = axios.create({
-  //baseURL: 'http://127.0.0.1:8000/api/',
-  baseURL: 'https://huoon.api.wezen.cl/api/',
+  baseURL: 'http://127.0.0.1:8000/api/',
+  //baseURL: 'https://huoon.api.wezen.cl/api/',
   timeout: 30000,
    headers: {
     'Accept': 'application/json; charset=utf-8',

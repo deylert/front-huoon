@@ -20,9 +20,12 @@
     </v-row>
   </v-snackbar>
   <v-container class="pa-4">
+      <v-card class="pa-4" elevation="4" rounded="lg">
+      <!-- Encabezado con foto y datos -->
+      <v-card-text>
     <!-- Encabezado -->
     <v-row justify="space-between" align="center" class="mb-6">
-      <h2 class="text-h5 font-weight-bold">{{ $t("viewTitles.personalBackground") }}</h2>
+      <h2 class="text-body-2 font-weight-bold">{{ $t("viewTitles.personalBackground") }}</h2>
       <v-btn
         icon
         color="deep-purple-accent-4"
@@ -38,88 +41,79 @@
       <v-card
         v-for="(background, index) in backgroundPersons"
         :key="index"
-        class="mb-3 rounded-lg"
+        class="mb-3 rounded-lg pa-2"
         elevation="2"
       >
-        <v-row no-gutters class="ma-0">
+        <v-row>
           <!-- Barra lateral con fecha -->
-          <v-col cols="1" class="py-2 d-flex flex-column align-center justify-center">
-            <div class="date white--text font-weight-bold text-body-2 text-center">
-              {{ formatDate(background.startDate) }}
+           <v-col cols="1" class="d-flex align-center justify-center">
+            <div class="icono-concavo d-flex flex-column justify-center justify-start"
+              :class="`bg-${getTypeColor(background.typeName)}`">
+              <div class="date-display">
+                {{ formatIntuitiveDate(background.startDate) }}
+              </div>
             </div>
           </v-col>
-
-          <!-- Contenido principal -->
-          <v-col cols="10" class="d-flex align-center pe-2 gap-2 py-2">
-            <v-row align="center" justify="space-between" no-gutters>
+          <v-col cols="4" class="d-flex align-center pe-4 gap-2">
+           <v-row align="center" class="gap-3">
               <div>
-                <!-- Datos principales -->
-                <div class="d-flex flex-wrap align-center gap-2 mb-2">
-                  <v-tooltip
-                    v-for="(item, i) in compactBackgroundData(background)"
-                    :key="i"
-                    bottom
-                  >
-                    <template v-slot:activator="{ props }">
-                      <v-chip
-                        v-bind="props"
-                        size="small"
-                        :color="item.color"
-                        class="mr-1"
-                        text-color="white"
-                      >
-                        <v-icon
-                          start
-                          size="small"
-                          :icon="item.icon"
-                          color="white"
-                        ></v-icon>
-                        <span class="text-body-2"
-                          >{{ item.label }}: {{ item.value }}</span
-                        >
-                      </v-chip>
-                    </template>
-                    <span
-                      >{{ item.fullLabel || item.label }}:
-                      {{ item.fullValue || item.value }}</span
-                    >
+                <div class="text-body-2 font-weight-bold">
+                  <span>
+                    {{ background.typeName }}
+                  </span>
+                  <v-tooltip activator="parent" location="bottom" max-width="350px">
+                    <span style="white-space: normal; word-break: break-word">{{ $t('personalBackground.fields.type') }}: {{
+                      background.typeName }}</span>
                   </v-tooltip>
                 </div>
-
-                <!-- Sección de Detalles -->
-                <div class="mt-2">
-                  <div class="text-caption font-weight-bold text-grey-darken-2 mb-1">
-                    {{ $t("personalBackground.fields.details") }}:
-                  </div>
-                  <div class="d-flex flex-wrap gap-1">
-                    <v-tooltip
-                      v-for="(detail, i) in compactDetails(background)"
-                      :key="'detail' + i"
-                      bottom
-                    >
-                      <template v-slot:activator="{ props }">
-                        <v-chip
-                          v-bind="props"
-                          size="small"
-                          variant="outlined"
-                          :color="detail.color"
-                          class="mr-1"
-                        >
-                          <v-icon left size="small" :icon="detail.icon"></v-icon>
-                          <span class="text-body-2">{{ detail.label }}</span>
-                          <span class="ml-1 text-body-2">- {{ detail.text }}</span>
-                        </v-chip>
-                      </template>
-                      <span>{{ detail.fullLabel }}: {{ detail.fullText }}</span>
-                    </v-tooltip>
-                  </div>
+                <div class="text-caption d-flex align-center text-grey-darken-1">
+                  <span>
+                    {{ background.description }}
+                  </span>
+                  <v-tooltip activator="parent" location="bottom" max-width="350px">
+                    <span style="white-space: normal; word-break: break-word">{{ $t('personalBackground.fields.description') }}: {{ background.description }}</span>
+                  </v-tooltip>
                 </div>
               </div>
-            </v-row>
-          </v-col>
+              </v-row>
+              </v-col>
+          <v-col cols="1" class="d-flex align-center pe-4 gap-2">
+                <div class="text-body-2">
+                  <span>
+                    {{ background.status}}
+                  </span>
+                  <v-tooltip activator="parent" location="bottom" max-width="350px">
+                    <span style="white-space: normal; word-break: break-word">{{ $t("personalBackground.fields.status") }}:
+                      {{ background.status}}</span>
+                  </v-tooltip>
+                </div>
+              </v-col>
+          <v-col cols="1" class="d-flex align-center pe-4 gap-2">
+                <div class="text-body-2">
+                  <span>
+                    {{ background.severity}}
+                  </span>
+                  <v-tooltip activator="parent" location="bottom" max-width="350px">
+                    <span style="white-space: normal; word-break: break-word">{{ $t("personalBackground.fields.severity") }}:
+                      {{ background.severity}}</span>
+                  </v-tooltip>
+                </div>
+              </v-col>
+           <v-col cols="4" class="d-flex align-center pe-4 gap-2">
+                <div class="text-body-2">
+                  <span>
+                    {{ background.details}}
+                  </span>
+                  <v-tooltip activator="parent" location="bottom" max-width="350px">
+                    <span style="white-space: normal; word-break: break-word">{{ $t("personalBackground.fields.details") }}:
+                      {{ background.details}}</span>
+                  </v-tooltip>
+                </div>
+              </v-col>
 
           <!-- Acciones -->
-          <v-col cols="1" class="d-flex align-center pe-4 gap-2">
+         <v-col cols="1" class="d-flex align-center ml-auto pe-4">
+                <div class="d-flex">
             <v-btn
               icon
               variant="text"
@@ -136,8 +130,9 @@
               size="small"
               @click="deleteItem(background)"
             >
-              <v-icon>mdi-close</v-icon>
+              <v-icon>mdi-delete</v-icon>
             </v-btn>
+            </div>
           </v-col>
         </v-row>
       </v-card>
@@ -150,6 +145,8 @@
         </div>
       </v-col>
     </template>
+    </v-card-text>
+    </v-card>
   </v-container>
   <v-dialog
     v-model="dialog"
@@ -416,7 +413,7 @@
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="#DA7171" variant="flat" @click="closeDelete">{{
+        <v-btn color="grey" variant="flat" @click="closeDelete">{{
           $t("taskForm.buttons.cancel")
         }}</v-btn>
         <v-btn
@@ -604,6 +601,54 @@ export default {
     this.initialize();
   },
   methods: {
+    formatIntuitiveDate(dateString) {
+      if (!dateString) return "Sin fecha";
+
+      // 1. Parsear la fecha de entrada (formato YYYY-MM-DD)
+      const [year, month, day] = dateString.split("-");
+      const inputDate = new Date(year, month - 1, day); // Mes es 0-based
+
+      // 2. Obtener fecha actual (sin horas/minutos/segundos)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // 3. Normalizar ambas fechas a UTC para evitar problemas de zona horaria
+      const inputUTC = Date.UTC(
+        inputDate.getFullYear(),
+        inputDate.getMonth(),
+        inputDate.getDate()
+      );
+      const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+
+      // 4. Calcular diferencia en días
+      const diffDays = Math.floor((inputUTC - todayUTC) / (1000 * 60 * 60 * 24));
+
+      // 5. Determinar el texto a mostrar
+      switch (diffDays) {
+        case 0:
+          return "Hoy";
+        case 1:
+          return "Mañana";
+        case -1:
+          return "Ayer";
+        default:
+          return inputDate
+            .toLocaleDateString("es-ES", {
+              weekday: "short",
+              day: "numeric",
+              month: "short",
+            })
+            .replace(/\./g, "");
+      }
+    },
+    getTypeColor(type) {
+      const colorMap = {
+        Tarea: "warning",
+        Meta: "purple",
+        // Agrega más tipos si es necesario
+      };
+      return colorMap[type] || "grey-lighten-1"; // Color por defecto
+    },
     formatDate(dateString) {
       const [year, month, day] = dateString.split("-");
       return `${day}-${month}-${year}`;
@@ -889,7 +934,7 @@ export default {
       this.sb_timeout = sb_timeout;
       this.snackbar = true;
     },
-    compactBackgroundData(background) {
+    /*compactBackgroundData(background) {
       return [
         {
           label: this.$t("personalBackground.fields.type"),
@@ -916,7 +961,7 @@ export default {
           color: "orange-darken-2",
         },
       ].filter((item) => item.value !== "N/R");
-    },
+    },*/
     compactDetails(background) {
       return [
         {
@@ -972,6 +1017,38 @@ export default {
 };
 </script>
 <style scoped>
+.icono-concavo {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  color: white;
+  /* Mantenemos solo el efecto cóncavo en el ícono 
+  box-shadow: inset;*/
+  position: relative;
+  overflow: hidden;
+}
+
+.icono-concavo::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  border-radius: 8px;
+  background: transparent;
+}
+
+.date-display {
+  font-size: 0.75rem; /* Equivale a text-caption */
+  font-weight: 500;
+  text-align: center;
+  word-break: break-word;
+  white-space: normal;
+}
 .date-time-display .date {
   font-size: 0.9rem;
   font-weight: 500; /* medium */

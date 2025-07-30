@@ -13,19 +13,22 @@
   </v-snackbar>
 
   <v-container class="pa-4">
+  <v-card class="pa-4" elevation="4" rounded="lg">
+      <!-- Encabezado con foto y datos -->
+      <v-card-text>
     <!-- Encabezado -->
     <v-row justify="space-between" align="center" class="mb-6">
-      <h2 class="text-h5 font-weight-bold">{{ $t("viewTitles.incomes") }}</h2>
+      <h2 class="text-body-2 font-weight-bold">{{ $t("viewTitles.incomes") }}</h2>
       <v-btn icon color="deep-purple-accent-4" variant="flat" class="elevation-3" @click="showAdd">
         <v-icon>mdi-plus</v-icon>
       </v-btn>
     </v-row>
 
     <template v-if="filteredIncomes.length > 0">
-      <v-card v-for="(income, index) in filteredIncomes" :key="index" class="mb-4 rounded-lg" elevation="2">
+      <v-card v-for="(income, index) in filteredIncomes" :key="index" class="mb-4 rounded-lg pa-2" density="comfortable" elevation="2">
         <v-row no-gutters class="ma-0">
           <!-- Columna 1: Fecha -->
-          <v-col cols="1" md="1" class="py-3 d-flex align-center justify-center">
+          <v-col cols="1" md="1" class="d-flex align-center justify-center">
             <div class="icono-concavo" :class="`bg-${getTypeColor('Ingreso')}`">
               <div class="date-text">
                 {{ formatIntuitiveDate(income.date) }}
@@ -41,7 +44,7 @@
           </v-col>
 
           <!-- Columna 3: Ingresos -->
-          <v-col cols="1" class="d-flex align-center pe-4 gap-2">
+          <v-col cols="2" class="d-flex align-center pe-4 gap-2">
             <div class="text-body-2 text-green-darken-1">
               <span>
                 {{ formatCurrency(income.income) }}
@@ -53,7 +56,7 @@
           </v-col>
 
           <!-- Columna 4: Descripción -->
-          <v-col cols="7" class="d-flex align-center pe-4 gap-2">
+          <v-col cols="6" class="d-flex align-center pe-4 gap-2">
             <div class="text-body-2 text-grey-darken-1">
               <span>
                 {{ income.description }}
@@ -94,6 +97,8 @@
         </div>
       </v-col>
     </template>
+    </v-card-text>
+    </v-card>
   </v-container>
 
   <!-- Diálogo para agregar/editar ingresos -->
@@ -457,12 +462,8 @@ export default {
           return "Hoy";
         case 1:
           return "Mañana";
-        case 2:
-          return "Pasado mañana";
         case -1:
           return "Ayer";
-        case -2:
-          return "Anteayer";
         default:
           return inputDate
             .toLocaleDateString("es-ES", {
@@ -882,29 +883,27 @@ export default {
 
 <style scoped>
 .icono-concavo {
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 10px;
-  margin-right: 5px;
+  margin-right: 2px;
   color: white;
+  /* Mantenemos solo el efecto cóncavo en el ícono 
+  box-shadow: inset;*/
   position: relative;
   overflow: hidden;
-  text-align: center; /* Aseguramos alineación horizontal */
-  padding: 4px; /* Espacio interno para respiro */
 }
 
 .date-text {
-  width: 100%;
-  font-size: 0.75rem; /* Equivalente a text-caption */
-  line-height: 1.2; /* Mejor interlineado */
-  font-weight: 500; /* Medium weight */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  font-size: 0.75rem; /* Equivale a text-caption */
+  line-height: 1.1;
+  font-weight: 500;
+  text-align: center;
+  word-break: break-word;
+  white-space: normal;
 }
 .text-truncate-3-lines {
   display: -webkit-box;

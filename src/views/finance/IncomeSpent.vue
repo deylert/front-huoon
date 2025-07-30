@@ -1,14 +1,6 @@
 <template>
-  <v-snackbar
-    class="mt-12"
-    location="right top"
-    :timeout="sb_timeout"
-    :color="sb_type"
-    elevation="24"
-    :multi-line="true"
-    vertical
-    v-model="snackbar"
-  >
+  <v-snackbar class="mt-12" location="right top" :timeout="sb_timeout" :color="sb_type" elevation="24"
+    :multi-line="true" vertical v-model="snackbar">
     <v-row>
       <v-col md="2">
         <v-avatar :icon="sb_icon" color="sb_type" size="40"></v-avatar>
@@ -26,116 +18,85 @@
       <v-card-text>
     <!-- Encabezado -->
     <v-row justify="space-between" align="center" class="mb-6">
-      <h2 class="text-body-2 font-weight-bold">{{ $t("viewTitles.expenses") }}</h2>
-      <v-btn
-        icon
-        color="deep-purple-accent-4"
-        variant="flat"
-        class="elevation-3"
-        @click="showAdd"
-      >
+      <h2 class="text-body-2 font-weight-bold">{{ $t("finances.header.title") }}</h2>
+      <v-btn icon color="deep-purple-accent-4" variant="flat" class="elevation-3" @click="showAdd">
         <v-icon>mdi-plus</v-icon>
       </v-btn>
     </v-row>
 
-    <template v-if="filteredSpents.length > 0">
-      <v-card
-        v-for="(spent, index) in filteredSpents"
-        :key="index"
-        class="mb-4 rounded-lg pa-2"
-        elevation="2"
-        density="comfortable"
-      >
+    <template v-if="financialRecords.length > 0">
+      <v-card v-for="(income, index) in financialRecords" :key="index" class="mb-4 rounded-lg pa-2" density="comfortable" elevation="2">
         <v-row no-gutters class="ma-0">
           <!-- Columna 1: Fecha -->
-          <v-col cols="1" class="d-flex align-center justify-center">
-            <div class="icono-concavo" :class="`bg-${getTypeColor('Ingreso')}`">
+          <v-col cols="1" md="1" class="d-flex align-center justify-center">
+            <div class="icono-concavo" :class="`bg-${getTypeColor(income.type)}`">
               <div class="date-text">
-                {{ formatIntuitiveDate(spent.date) }}
+                {{ formatIntuitiveDate(income.date) }}
               </div>
             </div>
           </v-col>
 
           <!-- Columna 2: Tipo y Método -->
           <v-col cols="1" class="d-flex align-center pe-4 gap-2">
-           <div class="text-body-2 font-weight-bold">
-              {{ spent.type || $t("finances.notRecorded") }}
+            <div class="text-body-2 font-weight-bold">
+              {{ income.type || $t("finances.notRecorded") }}
             </div>
           </v-col>
-
-          <v-col cols="2" class="d-flex align-center pe-4 gap-2" v-if="spent.categoryName">
-            <div class="text-body-2 text-grey-darken-1">
-                      <span>
-                        {{ spent.categoryName }}
+           <v-col cols="2" class="d-flex align-center pe-4 gap-2">
+            <div v-if="income.income > 0" class="text-body-2 text-grey-darken-1">
+       
+                    </div>
+            <div v-else class="text-body-2 text-grey-darken-1">
+                           <span>
+                        {{ income.categoryName }}
                       </span>
                       <v-tooltip activator="parent" location="bottom">
-                        <span>{{ $t('finances.fields.budget') }}: {{ spent.categoryName }}</span>
+                        <span>{{ $t('finances.fields.budget') }}: {{ income.categoryName }}</span>
                       </v-tooltip>
-                    </div>
+            </div>
           </v-col>
 
           <!-- Columna 3: Ingresos -->
           <v-col cols="2" class="d-flex align-center pe-4 gap-2">
-          <div class="text-body-2 text-red-darken-1">
-             <span>
-                        {{ formatCurrency(spent.spent) }}
-                      </span>
-                      <v-tooltip activator="parent" location="bottom">
-                        <span>{{ $t('finances.fields.currency') }}: {{ formatCurrency(spent.spent) }}</span>
-                      </v-tooltip>
-              </div>
-          </v-col>
+          <div :class="['text-body-2', income.income > 0 ? 'text-green-darken-1' : 'text-red-darken-1']">
+    <span>
+      {{ income.income > 0 ? formatCurrency(income.income) : formatCurrency(income.spent) }}
+    </span>
+    <v-tooltip activator="parent" location="bottom">
+      <span>
+        {{ $t('finances.fields.currency') }}: 
+        {{ income.income > 0 ? formatCurrency(income.income) : formatCurrency(income.spent) }}
+      </span>
+    </v-tooltip>
+  </div>
+        </v-col>
 
           <!-- Columna 4: Descripción -->
           <v-col cols="4" class="d-flex align-center pe-4 gap-2">
             <div class="text-body-2 text-grey-darken-1">
-                      <span>
-                        {{ spent.description }}
-                      </span>
-                      <v-tooltip activator="parent" location="bottom">
-                        <span>{{ $t('finances.fields.description') }}: {{ spent.description }}</span>
-                      </v-tooltip>
-                    </div>
+              <span>
+                {{ income.description }}
+              </span>
+              <v-tooltip activator="parent" location="bottom">
+                <span>{{ $t('finances.fields.description') }}: {{ income.description }}</span>
+              </v-tooltip>
+            </div>
           </v-col>
 
           <!-- Columna 5: Archivo y Acciones -->
           <v-col cols="2" class="d-flex align-center pe-4 gap-2 justify-end align-center">
             <!-- Archivo -->
-            <div
-              v-if="spent.image && spent.image !== 'finances/default.jpg'"
-              class="mr-2"
-            >
-              <v-btn
-                density="comfortable"
-                icon="mdi-eye"
-                color="green"
-                @click="openModal(spent.image)"
-                variant="tonal"
-                size="small"
-                title="Ver archivo adjunto"
-              ></v-btn>
+            <div v-if="income.image && income.image !== 'finances/default.jpg'" class="mr-2">
+              <v-btn density="comfortable" icon="mdi-eye" color="green" @click="openModal(income.image)" variant="tonal"
+                size="small" title="Ver archivo adjunto"></v-btn>
             </div>
 
             <!-- Acciones -->
             <div class="d-flex">
-              <v-btn
-                icon
-                variant="text"
-                color="green-darken-2"
-                size="small"
-                @click="editItem(spent)"
-                class="mx-1"
-              >
+              <v-btn icon variant="text" color="green-darken-2" size="small" @click="editItem(income)" class="mx-1">
                 <v-icon>mdi-pencil</v-icon>
               </v-btn>
-              <v-btn
-                icon
-                variant="text"
-                color="red-darken-2"
-                size="small"
-                @click="deleteItem(spent)"
-                class="mx-1"
-              >
+              <v-btn icon variant="text" color="red-darken-2" size="small" @click="deleteItem(income)" class="mx-1">
                 <v-icon>mdi-delete</v-icon>
               </v-btn>
             </div>
@@ -157,18 +118,18 @@
   </v-container>
 
   <!-- Diálogo para agregar/editar ingresos -->
-  <v-dialog
-    v-model="dialog"
-    fullscreen
-    persistent
-    transition="dialog-bottom-transition"
-    content-class="fullscreen-dialog"
-  >
-    <v-form ref="form" v-model="valid" class="h-100">
+  <v-dialog v-model="dialog" fullscreen persistent transition="dialog-bottom-transition"
+    content-class="fullscreen-dialog">
+     <v-form ref="form" v-model="valid" class="h-100">
       <v-card class="pa-10">
         <v-card-text class="pt-12">
-          <p class="text-grey-lighten-1">
-            {{ $t("finances.formInstructions.expense") }}
+          <h5 class="text-grey-darken-2 font-weight-medium">{{ formTitle }}</h5>
+          <p :class="[isIncome ? 'text-green' : 'text-red', 'text-grey-lighten-1']">
+            {{
+              isIncome
+                ? $t("finances.formInstructions.income")
+                : $t("finances.formInstructions.expense")
+            }}
           </p>
 
           <v-row class="mt-12">
@@ -214,6 +175,28 @@
 
               <!-- Paso 1: Detalles del ingreso -->
               <v-row dense v-if="step === 0">
+                <v-col cols="12" sm="12">
+                  <v-switch
+                    v-model="isIncome"
+                    inset
+                    hide-details
+                    :label="''"
+                    :base-color="isIncome ? 'green' : 'red'"
+                    :color="isIncome ? 'green' : 'red'"
+                    class="mb-4 font-weight-bold"
+                  >
+                    <template #label>
+                      <span :class="isIncome ? 'text-green' : 'text-red'">
+                        {{
+                          isIncome
+                            ? $t("finances.fields.income")
+                            : $t("finances.fields.spent")
+                        }}
+                      </span>
+                    </template>
+                  </v-switch>
+                </v-col>
+
                 <v-col cols="12" sm="6">
                   <v-autocomplete
                     v-model="editedItem.type"
@@ -249,17 +232,20 @@
                   </v-autocomplete>
                 </v-col>
 
-                <!--<v-col cols="12" sm="6">
-                  <v-text-field
-                    v-model="editedItem.method"
-                    :label="$t('finances.fields.paymentMethod')"
-                    variant="underlined"
-                    :rules="methodRules"
-                  />
-                </v-col>-->
-
                 <v-col cols="12" sm="6">
                   <v-text-field
+                    v-if="isIncome"
+                    v-model="editedItem.income"
+                    :label="$t('finances.fields.income')"
+                    variant="underlined"
+                    type="number"
+                    step="0.01"
+                    :rules="incomeRules"
+                    required
+                    :color="'green'"
+                  />
+                  <v-text-field
+                    v-else
                     v-model="editedItem.spent"
                     :label="$t('finances.fields.spent')"
                     variant="underlined"
@@ -267,9 +253,11 @@
                     step="0.01"
                     :rules="incomeRules"
                     required
+                    :color="'red'"
                   />
                 </v-col>
-                <v-col cols="12" sm="12">
+
+                <v-col cols="12" sm="12" v-if="!isIncome">
                   <v-autocomplete
                     v-model="editedItem.budget_id"
                     :items="budgets"
@@ -417,9 +405,8 @@
       <v-toolbar color="#DA7171">
         <span class="text-subtitle-2 ml-4">
           {{
-            $t("deleteDialog.title", { item: $t(`deleteDialog.items.expense`) })
-          }}</span
-        >
+          $t("deleteDialog.title", { item: $t(`deleteDialog.items.income`) })
+          }}</span>
       </v-toolbar>
       <v-card-text class="mt-2 mb-2"> {{ $t("deleteDialog.message") }}</v-card-text>
       <v-divider></v-divider>
@@ -427,22 +414,16 @@
         <v-spacer></v-spacer>
         <v-btn color="grey" variant="flat" @click="closeDelete">{{
           $t("taskForm.buttons.cancel")
-        }}</v-btn>
-        <v-btn
-          color="#03626C"
-          variant="flat"
-          :loading="loading"
-          @click="deleteItemConfirm"
-        >
-          {{ $t("taskForm.buttons.confirmDelete") }}</v-btn
-        >
+          }}</v-btn>
+        <v-btn color="#03626C" variant="flat" :loading="loading" @click="deleteItemConfirm">
+          {{ $t("taskForm.buttons.confirmDelete") }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 
   <!-- Diálogo para ver imagen -->
   <v-dialog v-model="dialogPhoto" persistent max-width="600px">
-    <v-card>
+    <v-card rounded-lg>
       <v-toolbar color="#03626C">
         <span class="text-subtitle-2 ml-4">Detalle</span> <v-spacer></v-spacer>
         <v-btn @click="dialogPhoto = false">
@@ -453,11 +434,8 @@
       <v-card-text>
         <template v-if="loadingImage">
           <div class="d-flex justify-center align-center" style="min-height: 200px">
-            <v-progress-circular
-              indeterminate
-              color="#03626C"
-              style="width: 100px; height: 100px"
-            ></v-progress-circular>
+            <v-progress-circular indeterminate color="#03626C"
+              style="width: 100px; height: 100px"></v-progress-circular>
           </div>
         </template>
         <template v-else>
@@ -467,6 +445,7 @@
     </v-card>
   </v-dialog>
 </template>
+
 
 <script>
 import { ref } from "vue";
@@ -481,6 +460,7 @@ export default {
     selected2: null,
     step: 0,
     time: null,
+    isIncome: true,
     modal2: false,
     timePickerDialog: false,
     steps: [
@@ -511,7 +491,6 @@ export default {
     dialog: false,
     dialogDelete: false,
     financialRecords: [],
-    budgets: [],
     dialogPhoto: false,
     loadingImage: false,
     selectedImageUrl: "",
@@ -520,99 +499,78 @@ export default {
     home_id: "",
     person_id: "",
     editedItem: {
-      id: "",
-      type: "",
-      method: "",
-      income: null,
-      spent: null,
-      description: "",
-      date: null,
-      image: null,
-      budget_id: null,
+       id: "",
+        type: "",
+        method: "",
+        income: null,
+        spent: null,
+        description: "",
+        date: null,
+        image: null,
+        budget_id: "",
     },
     defaultItem: {
-      id: "",
-      type: "",
-      method: "",
-      income: null,
-      spent: null,
-      description: "",
-      date: null,
-      image: null,
-      budget_id: null,
+       id: "",
+        type: "",
+        method: "",
+        income: null,
+        spent: null,
+        description: "",
+        date: null,
+        image: null,
+        budget_id: "",
     },
     originalItem: {
-      id: "",
-      type: "",
-      method: "",
-      income: null,
-      spent: null,
-      description: "",
-      date: null,
-      image: null,
-      budget_id: null,
+       id: "",
+        type: "",
+        method: "",
+        income: null,
+        spent: null,
+        description: "",
+        date: null,
+        image: null,
+        budget_id: "",
     },
     editedIndex: -1,
     search: "",
     types: [],
-    selectRules: [(v) => !!v || "Seleccionar al menos un elemento"],
+    budgets: [],
   }),
 
   computed: {
-    filteredSpents() {
-      return this.financialRecords.filter((record) => record.spent && record.spent > 0);
+     filteredIncomes() {
+      return this.financialRecords.filter(record => record.income && record.income > 0);
     },
     typeRules() {
       return [
-        (v) => !!v || this.$t("finances.validationMessages.type.required"), // Validación de requerido
-        (v) =>
-          !v || v.length <= 50 || this.$t("finances.validationMessages.type.maxLength"), // Validación de longitud máxima
+        v => !!v || this.$t('finances.validationMessages.type.required'), // Validación de requerido
+        v => !v || v.length <= 50 || this.$t('finances.validationMessages.type.maxLength') // Validación de longitud máxima
       ];
-    },
-    methodRules() {
+    }, 
+   methodRules() {
       return [
-        (v) =>
-          !v || v.length <= 50 || this.$t("finances.validationMessages.method.maxLength"),
+        v => !v || v.length <= 50 || this.$t('finances.validationMessages.method.maxLength')
       ];
     },
     incomeRules() {
       return [
-        (v) =>
-          v === null ||
-          v === "" ||
-          !isNaN(v) ||
-          this.$t("finances.validationMessages.income.number"),
-        (v) =>
-          v === null ||
-          v === "" ||
-          /^-?\d+(\.\d{1,2})?$/.test(v) ||
-          this.$t("finances.validationMessages.income.precision"),
+        v => v === null || v === '' || !isNaN(v) || this.$t('finances.validationMessages.income.number'),
+        v => v === null || v === '' || /^-?\d+(\.\d{1,2})?$/.test(v) || this.$t('finances.validationMessages.income.precision')
       ];
     },
     spentRules() {
       return [
-        (v) =>
-          v === null ||
-          v === "" ||
-          !isNaN(v) ||
-          this.$t("finances.validationMessages.spent.number"),
-        (v) =>
-          v === null ||
-          v === "" ||
-          /^-?\d+(\.\d{1,2})?$/.test(v) ||
-          this.$t("finances.validationMessages.spent.precision"),
+        v => v === null || v === '' || !isNaN(v) || this.$t('finances.validationMessages.spent.number'),
+        v => v === null || v === '' || /^-?\d+(\.\d{1,2})?$/.test(v) || this.$t('finances.validationMessages.spent.precision')
       ];
     },
     descriptionRules() {
       return [
-        (v) =>
-          !v ||
-          v.length <= 255 ||
-          this.$t("finances.validationMessages.description.maxLength"),
+        v => !v || v.length <= 255 || this.$t('finances.validationMessages.description.maxLength')
       ];
     },
     dateRules() {
-      return [(v) => !!v || this.$t("finances.validationMessages.date.required")];
+      return [v => !!v || this.$t("finances.validationMessages.date.required")];
     },
     formTitle() {
       return this.editedIndex === -1
@@ -641,7 +599,27 @@ export default {
   },
 
   methods: {
-     formatIntuitiveDate(dateString) {
+    isImage(icon) {
+      // Validar si el valor es una URL válida (puedes personalizar esta lógica)
+      return (
+        typeof icon === "string" &&
+        (icon.startsWith("http") || /\.(png|jpe?g|gif|svg|webp)$/i.test(icon))
+      );
+    },
+    getIconName(icon) {
+      if (!icon) return "mdi-help-circle"; // Ícono por defecto si no hay valor
+      // Si el ícono tiene el prefijo "MdiIcons.", extraer solo el nombre
+      if (icon.startsWith("MdiIcons.")) {
+        return `mdi-${icon.split(".")[1].toLowerCase()}`;
+      }
+      // Si el ícono ya está en formato "mdi-*", devolverlo tal cual
+      if (icon.startsWith("mdi-")) {
+        return icon;
+      }
+      // En otros casos, devolver un ícono por defecto
+      return "mdi-help-circle";
+    },
+    formatIntuitiveDate(dateString) {
       if (!dateString) return "Sin fecha";
 
       // 1. Parsear la fecha de entrada (formato YYYY-MM-DD)
@@ -690,50 +668,30 @@ export default {
       };
       return colorMap[type] || "grey-lighten-1"; // Color por defecto
     },
-    isImage(icon) {
-      // Validar si el valor es una URL válida (puedes personalizar esta lógica)
-      return (
-        typeof icon === "string" &&
-        (icon.startsWith("http") || /\.(png|jpe?g|gif|svg|webp)$/i.test(icon))
-      );
-    },
-    getIconName(icon) {
-      if (!icon) return "mdi-help-circle"; // Ícono por defecto si no hay valor
-      // Si el ícono tiene el prefijo "MdiIcons.", extraer solo el nombre
-      if (icon.startsWith("MdiIcons.")) {
-        return `mdi-${icon.split(".")[1].toLowerCase()}`;
-      }
-      // Si el ícono ya está en formato "mdi-*", devolverlo tal cual
-      if (icon.startsWith("mdi-")) {
-        return icon;
-      }
-      // En otros casos, devolver un ícono por defecto
-      return "mdi-help-circle";
-    },
     updateDate(value) {
-      // value viene como objeto Date desde el date-picker
-      // Convertimos a formato YYYY-MM-DD
-      const year = value.getFullYear();
-      const month = String(value.getMonth() + 1).padStart(2, "0");
-      const day = String(value.getDate()).padStart(2, "0");
-      this.dateInput = `${year}-${month}-${day}`;
-      this.editedItem.date = this.dateInput;
-      this.dateMenu = false;
-    },
-
-    // Método para convertir string a Date (solo cuando sea necesario)
-    parseDateString(dateString) {
-      if (!dateString) return null;
-      const [year, month, day] = dateString.split("-");
-      return new Date(year, month - 1, day);
-    },
+    // value viene como objeto Date desde el date-picker
+    // Convertimos a formato YYYY-MM-DD
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    this.dateInput = `${year}-${month}-${day}`;
+    this.editedItem.date = this.dateInput;
+    this.dateMenu = false;
+  },
+  
+  // Método para convertir string a Date (solo cuando sea necesario)
+  parseDateString(dateString) {
+    if (!dateString) return null;
+    const [year, month, day] = dateString.split('-');
+    return new Date(year, month - 1, day);
+  },
     formatCurrency(value) {
       if (value === null || value === undefined) return "";
-      return new Intl.NumberFormat("es-ES", {
-        style: "currency",
-        currency: "EUR",
+      return new Intl.NumberFormat('es-ES', { 
+        style: 'currency', 
+        currency: 'EUR',
         minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
+        maximumFractionDigits: 2
       }).format(value);
     },
     openModal(imageUrl) {
@@ -773,13 +731,10 @@ export default {
       this.originalItem = Object.assign({}, this.defaultItem);
       this.file = null;
       this.imgMiniatura = "";
-      this.data = {};
-      this.data.home_id = this.home_id;
       try {
         const result = await handleRequest({
-          endpoint: "get-finances-data",
-          method: "POST",
-          data: this.data,
+          endpoint: 'get-finances-data',
+          method: 'POST',
         });
 
         if (result.success) {
@@ -787,14 +742,10 @@ export default {
           this.budgets = result.data?.budgets || [];
         } else {
           this.types = [];
-          this.butgets = [];
+          this.budgets = [];
         }
       } catch (error) {
-        this.showAlert(
-          "error",
-          "Ocurrió un error inesperado al cargar los tipos de consulta.",
-          3000
-        );
+        this.showAlert('error', 'Ocurrió un error inesperado al cargar los tipos de consulta.', 3000);
       } finally {
         this.dialog = true;
       }
@@ -814,14 +765,14 @@ export default {
 
     async initialize() {
       this.data = {};
-      this.data.home_id = this.home_id;
-      this.data.type = "Todas";
+        this.data.home_id = this.home_id;
+        this.data.type = 'Todas';
       try {
         this.loading = true;
         const result = await handleRequest({
           endpoint: "get-type-finance-range",
           method: "POST",
-          data: this.data,
+          data: this.data
         });
 
         if (result.success) {
@@ -831,11 +782,7 @@ export default {
         }
       } catch (error) {
         this.loading = false;
-        this.showAlert(
-          "error",
-          "Ocurrió un error al cargar los registros financieros.",
-          3000
-        );
+        this.showAlert("error", "Ocurrió un error al cargar los registros financieros.", 3000);
       } finally {
         this.loading = false;
       }
@@ -855,24 +802,10 @@ export default {
       this.loading = true;
       if (this.editedIndex === -1) {
         this.valid = false;
-        const fieldsToUpdate = [
-          "home_id",
-          "budget_id",
-          "spent",
-          "income",
-          "image",
-          "date",
-          "description",
-          "type",
-          "method",
-        ];
+        const fieldsToUpdate = ['home_id', 'spent', 'income', 'image', 'date', 'description', 'image', 'type', 'method', 'budget_id'];
 
         let updatedFields = Object.keys(this.editedItem)
-          .filter(
-            (key) =>
-              fieldsToUpdate.includes(key) &&
-              this.editedItem[key] !== this.originalItem[key]
-          )
+          .filter((key) => fieldsToUpdate.includes(key) && this.editedItem[key] !== this.originalItem[key])
           .reduce((obj, key) => {
             obj[key] = this.editedItem[key];
             return obj;
@@ -890,9 +823,9 @@ export default {
 
           try {
             const result = await handleRequest({
-              endpoint: "finance",
-              method: "POST",
-              data: formData,
+              endpoint: 'finance',
+              method: 'POST',
+              data: formData
             });
 
             // Manejo de la respuesta según el resultado
@@ -907,11 +840,7 @@ export default {
           } catch (error) {
             this.loading = false;
             // Este bloque captura errores inesperados fuera del manejo estándar
-            this.showAlert(
-              "error",
-              "Ocurrió un error inesperado al procesar la solicitud.",
-              3000
-            );
+            this.showAlert("error", "Ocurrió un error inesperado al procesar la solicitud.", 3000);
           }
         } else {
           this.loading = false;
@@ -919,24 +848,9 @@ export default {
         }
       } else {
         this.valid = false;
-        const fieldsToUpdate = [
-          "home_id",
-          "budget_id",
-          "spent",
-          "income",
-          "image",
-          "date",
-          "description",
-          "image",
-          "type",
-          "method",
-        ];
+        const fieldsToUpdate = ['home_id', 'spent', 'income', 'image', 'date', 'description', 'image', 'type', 'method', 'budget_id'];
         let updatedFields = Object.keys(this.editedItem)
-          .filter(
-            (key) =>
-              fieldsToUpdate.includes(key) &&
-              this.editedItem[key] !== this.originalItem[key]
-          )
+          .filter((key) => fieldsToUpdate.includes(key) && this.editedItem[key] !== this.originalItem[key])
           .reduce((obj, key) => {
             obj[key] = this.editedItem[key];
             return obj;
@@ -952,9 +866,9 @@ export default {
           }
           try {
             const result = await handleRequest({
-              endpoint: "finance-update",
-              method: "POST",
-              data: formData,
+              endpoint: 'finance-update',
+              method: 'POST',
+              data: formData
             });
 
             // Manejo de la respuesta según el resultado
@@ -969,11 +883,7 @@ export default {
           } catch (error) {
             this.loading = false;
             // Este bloque captura errores inesperados fuera del manejo estándar
-            this.showAlert(
-              "error",
-              "Ocurrió un error inesperado al procesar la solicitud.",
-              3000
-            );
+            this.showAlert("error", "Ocurrió un error inesperado al procesar la solicitud.", 3000);
           }
         } else {
           this.loading = false;
@@ -990,10 +900,10 @@ export default {
       this.originalItem = Object.assign({}, item);
       this.editedItem = Object.assign({}, item);
       this.dateInput = item.date || null;
-      console.log("this.dateInput");
+      console.log('this.dateInput');
       console.log(this.dateInput);
       this.file = null;
-
+      item.income > 0 ? this.isIncome = true : this.isIncome = false;
       const imageExtensions = ["jpg", "jpeg", "png", "gif"];
       const extension = item.image?.split(".").pop().toLowerCase();
 
@@ -1007,13 +917,10 @@ export default {
       } else {
         this.icono = "mdi-file";
       }
-           this.data = {};
-      this.data.home_id = this.home_id;
       try {
         const result = await handleRequest({
-          endpoint: "get-finances-data",
-          method: "POST",
-          data: this.data,
+          endpoint: 'get-finances-data',
+          method: 'POST',
         });
 
         if (result.success) {
@@ -1021,14 +928,10 @@ export default {
           this.budgets = result.data?.budgets || [];
         } else {
           this.types = [];
-          this.butgets = [];
+          this.budgets = [];
         }
       } catch (error) {
-        this.showAlert(
-          "error",
-          "Ocurrió un error inesperado al cargar los tipos de consulta.",
-          3000
-        );
+        this.showAlert('error', 'Ocurrió un error inesperado al cargar los tipos de consulta.', 3000);
       } finally {
         this.dialog = true;
       }
@@ -1052,7 +955,7 @@ export default {
       this.loading = true;
       try {
         const result = await handleRequest({
-          endpoint: "finance-destroy",
+          endpoint: "delete-financial-record",
           method: "POST",
           data: { id: this.editedItem.id },
         });
@@ -1064,11 +967,7 @@ export default {
           this.showAlert("warning", result.message, 3000);
         }
       } catch (error) {
-        this.showAlert(
-          "error",
-          "Ocurrió un error al eliminar el registro financiero.",
-          3000
-        );
+        this.showAlert("error", "Ocurrió un error al eliminar el registro financiero.", 3000);
       } finally {
         this.loading = false;
         this.closeDelete();
@@ -1136,7 +1035,7 @@ export default {
       this.imgMiniatura = "";
       let file = event.target.files[0];
       const maxSize = 500 * 1024; // 500 KB en bytes
-
+      
       if (file && file.size > maxSize) {
         this.valid = false;
         this.showAlert("warning", "El archivo de imagen debe ser de máximo 500 KB", 3000);
@@ -1147,10 +1046,8 @@ export default {
       const extension = file.name.split(".").pop().toLowerCase();
       const imageExtensions = ["jpg", "jpeg", "png", "gif"];
 
-      if (
-        (mimeType.startsWith("image/") || imageExtensions.includes(extension)) &&
-        imageExtensions.includes(extension)
-      ) {
+      if ((mimeType.startsWith("image/") || imageExtensions.includes(extension)) && 
+          imageExtensions.includes(extension)) {
         this.cargarImage(file);
         this.showImage = true;
       } else {

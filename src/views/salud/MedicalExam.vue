@@ -1,14 +1,6 @@
 <template>
-  <v-snackbar
-    class="mt-12"
-    location="right top"
-    :timeout="sb_timeout"
-    :color="sb_type"
-    elevation="24"
-    :multi-line="true"
-    vertical
-    v-model="snackbar"
-  >
+  <v-snackbar class="mt-12" location="right top" :timeout="sb_timeout" :color="sb_type" elevation="24"
+    :multi-line="true" vertical v-model="snackbar">
     <v-row>
       <v-col md="2">
         <v-avatar :icon="sb_icon" color="sb_type" size="40"></v-avatar>
@@ -20,144 +12,103 @@
     </v-row>
   </v-snackbar>
   <v-container class="pa-4">
-    <!-- Encabezado -->
-    <v-row justify="space-between" align="center" class="mb-6">
-      <h2 class="text-h5 font-weight-bold">{{ $t("viewTitles.medicalExams") }}</h2>
-      <v-btn
-        icon
-        color="deep-purple-accent-4"
-        variant="flat"
-        class="elevation-3"
-        @click="showAdd"
-      >
-        <v-icon>mdi-plus</v-icon>
-      </v-btn>
-    </v-row>
-    <template v-if="medicalExams.length > 0">
-  <v-card
-    v-for="(exam, index) in medicalExams"
-    :key="index"
-    class="mb-4 rounded-lg"
-    elevation="2"
-  >
-    <v-row no-gutters class="ma-0">
-      <!-- Columna 1: Fecha -->
-      <v-col cols="2" md="1" class="py-3 d-flex align-center justify-center">
-        <div class="text-body-2 font-weight-bold">
-          {{ formatDate(exam.date) }}
-        </div>
-      </v-col>
-
-      <!-- Columna 2: Tipo y Nombre -->
-      <v-col cols="3" md="2" class="px-2 py-3">
-        <div class="text-subtitle-1 font-weight-bold text-blue-darken-4 mb-1">
-          {{ exam.typeName || exam.type_name || $t("medicalExams.notRecorded") }}
-        </div>
-        <div class="text-body-1 font-weight-medium">
-          {{ exam.examName || exam.exam_name || $t("medicalExams.notRecorded") }}
-        </div>
-      </v-col>
-
-      <!-- Columna 3: Resultados -->
-      <v-col cols="2" md="3" class="px-1 py-3">
-        <div v-if="exam.results" class="h-100">
-          <div class="text-caption font-weight-bold text-grey-darken-2 mb-1">
-            {{ $t("medicalExams.fields.results") }}:
-          </div>
-          <v-tooltip bottom max-width="400px">
-            <template v-slot:activator="{ props }">
-              <div 
-                v-bind="props"
-                class="text-body-2 text-grey-darken-3 text-truncate-3-lines"
-              >
-                {{ exam.results }}
-              </div>
-            </template>
-            <span>{{ exam.results }}</span>
-          </v-tooltip>
-        </div>
-      </v-col>
-
-      <!-- Columna 4: Observaciones -->
-      <v-col cols="2" md="3" class="px-1 py-3">
-        <div v-if="exam.observations" class="h-100">
-          <div class="text-caption font-weight-bold text-grey-darken-2 mb-1">
-            {{ $t("medicalExams.fields.observations") }}:
-          </div>
-          <v-tooltip bottom max-width="400px">
-            <template v-slot:activator="{ props }">
-              <div 
-                v-bind="props"
-                class="text-body-2 text-grey-darken-3 text-truncate-3-lines"
-              >
-                {{ exam.observations }}
-              </div>
-            </template>
-            <span>{{ exam.observations }}</span>
-          </v-tooltip>
-        </div>
-      </v-col>
-
-      <!-- Columna 5: Archivo y Acciones -->
-      <v-col cols="3" md="2" class="px-2 py-6 d-flex flex-column justify-space-between">
-        <!-- Archivo -->
-        <div v-if="exam.archive && exam.archive !== 'medicalexams/default.jpg'">
-          <v-btn 
-            density="comfortable" 
-            icon="mdi-eye" 
-            color="green"
-            @click="openModal(exam.archive)" 
-            variant="tonal" 
-            size="small"
-            class="mr-1"
-            title="Ver archivo adjunto"
-          ></v-btn>
-        </div>
-        </v-col>
-        <v-col cols="3" md="1" class="px-2 py-3 d-flex flex-column justify-space-between">
-        <!-- Acciones -->
-        <div class="d-flex justify-end mt-2">
-          <v-btn
-            icon
-            variant="text"
-            color="green-darken-2"
-            size="small"
-            @click="editItem(exam)"
-            class="mx-1"
-          >
-            <v-icon>mdi-pencil</v-icon>
+    <v-card class="pa-4" elevation="4" rounded="lg">
+      <!-- Encabezado con foto y datos -->
+      <v-card-text>
+        <!-- Encabezado -->
+        <v-row justify="space-between" align="center" class="mb-6">
+          <h2 class="text-body-2 font-weight-bold">{{ $t("viewTitles.medicalExams") }}</h2>
+          <v-btn icon color="deep-purple-accent-4" variant="flat" class="elevation-3" @click="showAdd">
+            <v-icon>mdi-plus</v-icon>
           </v-btn>
-          <v-btn
-            icon
-            variant="text"
-            color="red-darken-2"
-            size="small"
-            @click="deleteItem(exam)"
-            class="mx-1"
-          >
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </div>
-      </v-col>
-    </v-row>
-  </v-card>
-</template>
-    <template v-else>
-      <v-col cols="12" class="text-center py-8 pa-0">
-        <v-icon size="64" color="grey-lighten-1">mdi-clipboard-text-off</v-icon>
-        <div class="text-h6 text-grey mt-4">
-          {{ $t("medicalExams.noRecords") }}
-        </div>
-      </v-col>
-    </template>
+        </v-row>
+        <template v-if="medicalExams.length > 0">
+          <v-card v-for="(exam, index) in medicalExams" :key="index" class="mb-4 rounded-lg pa-2" elevation="2">
+            <v-row>
+              <!-- Columna 1: Fecha -->
+              <v-col cols="1" class="d-flex align-center justify-center">
+                <div class="icono-concavo d-flex flex-column justify-center justify-start"
+                  :class="`bg-${getTypeColor(exam.type)}`">
+                  <div class="date-display">
+                    {{ formatIntuitiveDate(exam.date) }}
+                  </div>
+                </div>
+              </v-col>
+              <v-col cols="3" class="d-flex align-center pe-4">
+              <v-row align="center" class="gap-3">
+              <div>
+              <div class="text-body-2 font-weight-bold">
+                  <span>
+                    {{ exam.exam_name }}
+                  </span>
+                  <v-tooltip activator="parent" location="bottom" max-width="350px">
+                    <span style="white-space: normal; word-break: break-word">{{ $t('medicalExams.fields.exam_name') }}: {{
+                      exam.exam_name }}</span>
+                  </v-tooltip>
+                </div>
+                <div class="text-caption d-flex align-center text-grey-darken-1">
+                  <span>
+                    {{ exam.typeName }}
+                  </span>
+                  <v-tooltip activator="parent" location="bottom">
+                    <span>{{ $t('medicalExams.fields.type') }}: {{ exam.typeName }}</span>
+                  </v-tooltip>
+                </div>
+                </div>
+                </v-row>
+              </v-col>
+              <!-- Columna 3: Resultados -->
+              <v-col cols="3" class="d-flex align-center pe-4 gap-2">
+                <div class="text-body-2">
+                  <span>
+                    {{ exam.results }}
+                  </span>
+                  <v-tooltip activator="parent" location="bottom" max-width="350px">
+                    <span style="white-space: normal; word-break: break-word">{{ $t('medicalExams.fields.results') }}:
+                      {{ exam.results }}</span>
+                  </v-tooltip>
+                </div>
+              </v-col>
+              <v-col cols="3" class="d-flex align-center pe-4 gap-2">
+                <div class="text-body-2">
+                  <span>
+                    {{ exam.observations }}
+                  </span>
+                  <v-tooltip activator="parent" location="bottom" max-width="350px">
+                    <span style="white-space: normal; word-break: break-word">{{ $t('medicalExams.fields.observations')
+                      }}: {{ exam.observations }}</span>
+                  </v-tooltip>
+                </div>
+              </v-col>
+              <v-col cols="2" class="d-flex align-center ml-auto pe-4">
+                <div class="d-flex">
+                  <v-btn v-if="exam.archive && exam.archive !== 'medicalexams/default.jpg'" icon="mdi-eye" color="green" @click="openModal(exam.archive)"
+                    variant="text" size="small" title="Ver archivo adjunto"></v-btn>
+                <!-- Acciones -->
+                <v-btn icon variant="text" color="green-darken-2" size="small" @click="editItem(exam)">
+                  <v-icon>mdi-pencil</v-icon>
+                </v-btn>
+                <v-btn icon variant="text" color="red-darken-2" size="small" @click="deleteItem(exam)">
+                  <v-icon>mdi-delete</v-icon>
+                </v-btn>
+                </div>
+              </v-col>
+            </v-row>
+          </v-card>
+        </template>
+        <template v-else>
+          <v-col cols="12" class="text-center py-8 pa-0">
+            <v-icon size="64" color="grey-lighten-1">mdi-clipboard-text-off</v-icon>
+            <div class="text-h6 text-grey mt-4">
+              {{ $t("medicalExams.noRecords") }}
+            </div>
+          </v-col>
+        </template>
+      </v-card-text>
+    </v-card>
   </v-container>
-  <v-dialog
-    v-model="dialog"
-    fullscreen
-    persistent
-    transition="dialog-bottom-transition"
-    content-class="fullscreen-dialog"
-  >
+  <v-dialog v-model="dialog" fullscreen persistent transition="dialog-bottom-transition"
+    content-class="fullscreen-dialog">
     <v-form ref="form" v-model="valid" class="h-100">
       <v-card class="pa-10">
         <v-card-text class="pt-12">
@@ -170,25 +121,19 @@
             <!-- Side steps -->
             <v-col cols="3">
               <v-timeline align="start" side="end" dense>
-                <v-timeline-item
-                  v-for="(s, index) in steps"
-                  :key="index"
-                  :dot-color="
+                <v-timeline-item v-for="(s, index) in steps" :key="index" :dot-color="
                     step > index
                       ? 'green'
                       : step === index
                       ? 'deep-purple'
                       : 'grey-lighten-1'
-                  "
-                  :icon="
+                  " :icon="
                     step >= index
                       ? step === index
                         ? `mdi-numeric-${index + 1}`
                         : 'mdi-check'
                       : null
-                  "
-                  size="large"
-                >
+                  " size="large">
                   <template #opposite>
                     <div class="text-end">
                       <strong>{{ $t(`medicalExams.steps.${s.title}.title`) }}</strong>
@@ -210,29 +155,19 @@
               <!-- Paso 1: Detalles del examen -->
               <v-row dense v-if="step === 0">
                 <v-col cols="12" sm="6">
-                  <v-autocomplete
-                    v-model="editedItem.type_id"
-                    :items="examTypes"
-                    :label="$t('medicalExams.fields.type')"
-                    item-title="name"
-                    item-value="id"
-                    variant="underlined"
-                    :rules="typeRules"
-                  >
+                  <v-autocomplete v-model="editedItem.type_id" :items="examTypes"
+                    :label="$t('medicalExams.fields.type')" item-title="name" item-value="id" variant="underlined"
+                    :rules="typeRules">
                     <template v-slot:item="{ props, item }">
                       <v-list-item v-bind="props">
                         <v-list-item-subtitle class="d-flex flex-column">
                           <v-tooltip bottom>
                             <template v-slot:activator="{ props: tooltipProps }">
-                              <div
-                                class="truncate"
-                                v-bind="tooltipProps"
-                                style="
+                              <div class="truncate" v-bind="tooltipProps" style="
                                   white-space: nowrap;
                                   overflow: hidden;
                                   text-overflow: ellipsis;
-                                "
-                              >
+                                ">
                                 {{ item.raw.description }}
                               </div>
                             </template>
@@ -245,41 +180,21 @@
                 </v-col>
 
                 <v-col cols="12" sm="6">
-                  <v-text-field
-                    v-model="editedItem.exam_name"
-                    :label="$t('medicalExams.fields.exam_name')"
-                    variant="underlined"
-                    :rules="examNameRules"
-                  />
+                  <v-text-field v-model="editedItem.exam_name" :label="$t('medicalExams.fields.exam_name')"
+                    variant="underlined" :rules="examNameRules" />
                 </v-col>
                 <v-col cols="12" md="6">
-                  <v-file-input
-                    v-model="file"
-                    ref="fileInput"
-                    :label="$t('medicalExams.fields.attach_file')"
-                    variant="underlined"
-                    name="file"
-                    accept=".png, .jpg, .jpeg, .docx, .pdf"
-                    @change="onFileSelected"
-                    :prepend-icon="false"
-                  >
+                  <v-file-input v-model="file" ref="fileInput" :label="$t('medicalExams.fields.attach_file')"
+                    variant="underlined" name="file" accept=".png, .jpg, .jpeg, .docx, .pdf" @change="onFileSelected"
+                    :prepend-icon="false">
                   </v-file-input>
                 </v-col>
                 <v-col cols="12" md="6">
                   <v-card elevation="6" class="mx-auto" max-width="210" max-height="120">
-                    <img
-                      v-if="imagenDisponible() && this.showImage"
-                      :src="imgedit"
-                      height="120"
-                      :label="$t('medicalExams.fields.file')"
-                      width="210"
-                    />
-                    <v-icon
-                      v-else
-                      class="d-flex align-center justify-center"
-                      style="height: 120px; width: 210px; font-size: 120px"
-                      >{{ this.icono }}</v-icon
-                    >
+                    <img v-if="imagenDisponible() && this.showImage" :src="imgedit" height="120"
+                      :label="$t('medicalExams.fields.file')" width="210" />
+                    <v-icon v-else class="d-flex align-center justify-center"
+                      style="height: 120px; width: 210px; font-size: 120px">{{ this.icono }}</v-icon>
                   </v-card>
                 </v-col>
               </v-row>
@@ -287,50 +202,25 @@
               <!-- Step 2: Resultados y observaciones -->
               <v-row dense v-if="step === 1">
                 <v-col cols="12">
-                  <v-textarea
-                    v-model="editedItem.results"
-                    :label="$t('medicalExams.fields.results')"
-                    variant="underlined"
-                    rows="3"
-                    auto-grow
-                  />
+                  <v-textarea v-model="editedItem.results" :label="$t('medicalExams.fields.results')"
+                    variant="underlined" rows="3" auto-grow />
                 </v-col>
 
                 <v-col cols="12">
-                  <v-textarea
-                    v-model="editedItem.observations"
-                    :label="$t('medicalExams.fields.observations')"
-                    variant="underlined"
-                    rows="3"
-                    auto-grow
-                  />
+                  <v-textarea v-model="editedItem.observations" :label="$t('medicalExams.fields.observations')"
+                    variant="underlined" rows="3" auto-grow />
                 </v-col>
 
                 <v-col cols="12">
-                  <v-menu
-                    v-model="dateMenu"
-                    :close-on-content-click="false"
-                    :nudge-right="40"
-                    transition="scale-transition"
-                    offset-y
-                    min-width="290px"
-                  >
+                  <v-menu v-model="dateMenu" :close-on-content-click="false" :nudge-right="40"
+                    transition="scale-transition" offset-y min-width="290px">
                     <template v-slot:activator="{ props }">
-                      <v-text-field
-                        v-bind="props"
-                        :modelValue="dateFormatted"
-                        variant="underlined"
-                        :label="$t('medicalExams.fields.date')"
-                        :rules="dateRules"
-                      ></v-text-field>
+                      <v-text-field v-bind="props" :modelValue="dateFormatted" variant="underlined"
+                        :label="$t('medicalExams.fields.date')" :rules="dateRules"></v-text-field>
                     </template>
                     <v-locale-provider>
-                      <v-date-picker
-                        color="#03626C"
-                        :modelValue="dateInput"
-                        @update:model-value="updateDate"
-                        format="yyyy-MM-dd"
-                      ></v-date-picker>
+                      <v-date-picker color="#03626C" :modelValue="dateInput" @update:model-value="updateDate"
+                        format="yyyy-MM-dd"></v-date-picker>
                     </v-locale-provider>
                   </v-menu>
                 </v-col>
@@ -338,24 +228,15 @@
 
               <!-- Navegación -->
               <div class="d-flex justify-space-between mt-8">
-                <v-btn
-                  variant="text"
-                  class="text-grey-darken-1"
-                  @click="step > 0 ? step-- : this.close()"
-                >
+                <v-btn variant="text" class="text-grey-darken-1" @click="step > 0 ? step-- : this.close()">
                   {{ step === 0 ? $t("buttons.close") : $t("buttons.previous") }}
                 </v-btn>
 
-                <v-btn
-                  variant="text"
-                  class="text-deep-purple-accent-3"
-                  @click="nextStep"
-                  :disabled="!valid"
-                >
+                <v-btn variant="text" class="text-deep-purple-accent-3" @click="nextStep" :disabled="!valid">
                   {{
-                    step === steps.length - 1
-                      ? $t("buttons.saveAndClose")
-                      : $t("buttons.next")
+                  step === steps.length - 1
+                  ? $t("buttons.saveAndClose")
+                  : $t("buttons.next")
                   }}
                 </v-btn>
               </div>
@@ -370,25 +251,18 @@
       <v-toolbar color="#DA7171">
         <span class="text-subtitle-2 ml-4">
           {{
-            $t("deleteDialog.title", { item: $t(`deleteDialog.items.medicalExam`) })
-          }}</span
-        >
+          $t("deleteDialog.title", { item: $t(`deleteDialog.items.medicalExam`) })
+          }}</span>
       </v-toolbar>
       <v-card-text class="mt-2 mb-2"> {{ $t("deleteDialog.message") }}</v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="#DA7171" variant="flat" @click="closeDelete">{{
+        <v-btn color="grey" variant="flat" @click="closeDelete">{{
           $t("taskForm.buttons.cancel")
-        }}</v-btn>
-        <v-btn
-          color="#03626C"
-          variant="flat"
-          :loading="loading"
-          @click="deleteItemConfirm"
-        >
-          {{ $t("taskForm.buttons.confirmDelete") }}</v-btn
-        >
+          }}</v-btn>
+        <v-btn color="#03626C" variant="flat" :loading="loading" @click="deleteItemConfirm">
+          {{ $t("taskForm.buttons.confirmDelete") }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -405,11 +279,8 @@
         <template v-if="loadingImage">
           <!-- Centro el cargador dentro de su contenedor y aumento su tamaño -->
           <div class="d-flex justify-center align-center" style="min-height: 200px">
-            <v-progress-circular
-              indeterminate
-              color="#03626C"
-              style="width: 100px; height: 100px"
-            ></v-progress-circular>
+            <v-progress-circular indeterminate color="#03626C"
+              style="width: 100px; height: 100px"></v-progress-circular>
           </div>
         </template>
         <template v-else>
@@ -540,6 +411,54 @@ export default {
   },
 
   methods: {
+    formatIntuitiveDate(dateString) {
+      if (!dateString) return "Sin fecha";
+
+      // 1. Parsear la fecha de entrada (formato YYYY-MM-DD)
+      const [year, month, day] = dateString.split("-");
+      const inputDate = new Date(year, month - 1, day); // Mes es 0-based
+
+      // 2. Obtener fecha actual (sin horas/minutos/segundos)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // 3. Normalizar ambas fechas a UTC para evitar problemas de zona horaria
+      const inputUTC = Date.UTC(
+        inputDate.getFullYear(),
+        inputDate.getMonth(),
+        inputDate.getDate()
+      );
+      const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+
+      // 4. Calcular diferencia en días
+      const diffDays = Math.floor((inputUTC - todayUTC) / (1000 * 60 * 60 * 24));
+
+      // 5. Determinar el texto a mostrar
+      switch (diffDays) {
+        case 0:
+          return "Hoy";
+        case 1:
+          return "Mañana";
+        case -1:
+          return "Ayer";
+        default:
+          return inputDate
+            .toLocaleDateString("es-ES", {
+              weekday: "short",
+              day: "numeric",
+              month: "short",
+            })
+            .replace(/\./g, "");
+      }
+    },
+    getTypeColor(type) {
+      const colorMap = {
+        Tarea: "warning",
+        Meta: "purple",
+        // Agrega más tipos si es necesario
+      };
+      return colorMap[type] || "grey-lighten-1"; // Color por defecto
+    },
     openModal(imageUrl) {
       this.dialogPhoto = true;
       this.loadingImage = true;
@@ -978,6 +897,38 @@ export default {
 </script>
 
 <style scoped>
+.icono-concavo {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  color: white;
+  /* Mantenemos solo el efecto cóncavo en el ícono 
+  box-shadow: inset;*/
+  position: relative;
+  overflow: hidden;
+}
+
+.icono-concavo::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  border-radius: 8px;
+  background: transparent;
+}
+
+.date-display {
+  font-size: 0.75rem; /* Equivale a text-caption */
+  font-weight: 500;
+  text-align: center;
+  word-break: break-word;
+  white-space: normal;
+}
 .text-truncate-3-lines {
   display: -webkit-box;
   -webkit-line-clamp: 3;

@@ -404,6 +404,20 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+  <v-dialog v-model="dialogChatWarehouse" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-text>
+        <!-- Pasamos los parámetros al componente ChatTask -->
+        <ChatWarehouse :warehouseData="currentWarehouse" @close-dialog="closeDialgChat()"
+          @close-all-dialogs="closeAllDialogs($event)" />
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn text @click="closeDialgChat()">Cerrar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
@@ -416,6 +430,7 @@ import { VTimePicker } from "vuetify/labs/components";
 import ChatTask from "../views/chat/ChatTask.vue";
 import ChatFinance from "./chat/ChatFinance.vue";
 import ChatBudget from "./chat/ChatBudget.vue";
+import ChatWarehouse from "./chat/ChatWarehouse.vue";
 
 /*import { Line as LineChart } from 'vue-chartjs'
 
@@ -427,6 +442,7 @@ export default {
     ChatFinance,
     ChatTask,
     ChatBudget,
+    ChatWarehouse
   },
   //components: { LineChart },
   data() {
@@ -435,9 +451,11 @@ export default {
       dialogChatTask: false,
       dialogChatFinance: false,
       dialogChatBudget: false,
+      dialogChatWarehouse: false,
       currentTask: null,
       currentFinance: null,
       currentBudget: null,
+      currentWarehouse: null,
       selected2: null,
       texto: "", // texto confirmado y editable
       textoTemporal: "", // texto dictado en vivo (solo para mostrar)
@@ -853,21 +871,25 @@ export default {
       this.dialogChatTask = false;
       this.dialogChatFinance = false;
       this.dialogChatBudget = false;
+      this.dialogChatWarehouse = false;
       this.texto = "";
       this.textoTemporal = "";
       this.currentTask = null;
       this.currentFinance = null;
       this.currentBudget = null;
+      this.currentWarehouse = null;
     },
     closeDialgChat() {
       this.dialogChatTask = false;
       this.dialogChatFinance = false;
       this.dialogChatBudget = false;
+      this.dialogChatWarehouse = false;
       this.texto = "";
       this.textoTemporal = "";
       this.currentTask = null;
       this.currentFinance = null;
       this.currentBudget = null;
+      this.currentWarehouse = null;
       this.initialize();
     },
     formatIntuitiveDate(dateString) {
@@ -958,7 +980,7 @@ export default {
           },
         });
         this.isTyping = false;
-        const { intentDetected, intent, task, answer, finances, budget } = response.data;
+        const { intentDetected, intent, task, answer, finances, budget, warehouse } = response.data;
 
         if (intentDetected && intent) {
           // Preparar datos comunes
@@ -1043,6 +1065,20 @@ export default {
 
                 this.currentBudget = _.cloneDeep(budgetData);
                 this.dialogChatBudget = true;
+                this.scrollToBottom();
+              });
+              break;
+
+              case "Warehouse":
+              this.currentWarehouse = null;
+              this.$nextTick(() => {
+                const warehouseData =
+                  typeof warehouse === "string"
+                    ? JSON.parse(warehouse)
+                    : warehouse;
+
+                this.currentWarehouse = _.cloneDeep(warehouseData);
+                this.dialogChatWarehouse = true;
                 this.scrollToBottom();
               });
               break;

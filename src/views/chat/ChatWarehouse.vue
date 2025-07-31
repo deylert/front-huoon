@@ -53,28 +53,11 @@
                 >
                   <!-- Campo editable con componente -->
                   <template v-if="message.isEditable && message.isEditing">
-                    <div v-if="['date'].includes(message.fieldKey)">
-                       <v-menu v-model="message.showDatePicker" :close-on-content-click="false"
-                        transition="scale-transition" offset-y location="bottom"
-                        @update:modelValue="handleMenuClose(message, index)">
-                        <template #activator="{ props }">
-                          <v-text-field v-bind="props" :model-value="financeParameters[message.fieldKey]"
-                            :label="message.fieldLabel" variant="outlined" density="comfortable"
-                            style="width: auto; min-width: 10em" no-resize
-                            @click:appendInner="message.showDatePicker = true" />
-                        </template>
-
-                        <DatePicker :dateValue="financeParameters[message.fieldKey]" :fieldType="message.fieldKey"
-                          @date-updated="
-                        handleDateSelection(message.fieldKey, $event)
-                      " />
-                      </v-menu>
-                    </div>
-                    <div v-if="message.fieldKey === 'budget_id'">
+                    <div v-if="message.fieldKey === 'warehouse_id'">
                       <v-autocomplete
                         v-model="message.editValue"
-                        :items="message.availableBudgets || budgets"
-                        item-title="categoryName"
+                        :items="message.availableWareHouses || warehouses"
+                        item-title="title"
                         item-value="id"
                         :label="message.fieldLabel"
                         variant="outlined"
@@ -82,42 +65,42 @@
                         return-object
                         style="width: auto; min-width: 20em"
                         hide-details
-                        @update:modelValue="onBudgetSelected(index, $event)"
-                        @blur="onBudgetBlur(index)"
-                        @click:clear="onBudgetClear(index)"
+                        @update:modelValue="onWarehouseSelected(index, $event)"
+                        @blur="onWarehouseBlur(index)"
+                        @click:clear="onWarehouseClear(index)"
                       >
-                        <template v-slot:item="{ props, item }">
-                          <v-list-item v-bind="props">
-                            <template v-slot:title>
-                              <div class="d-flex align-center">
-                                <v-icon v-if="item.raw.icon" start>{{
-                                  item.raw.icon
-                                }}</v-icon>
-                                <span>{{ item.raw.categoryName }}</span>
+                         <template v-slot:item="{ props, item }">
+                      <v-list-item v-bind="props">
+                        <v-list-item-subtitle class="d-flex flex-column">
+                          <v-tooltip location="top right">
+                            <template v-slot:activator="{ props }">
+                              <div
+                                class="description-text"
+                                v-bind="props"
+                                :title="item.raw.description"
+                              >
+                                {{ $t("warehouse.fields.description") }}:
+                                {{ item.raw.description }}
                               </div>
                             </template>
-                            <template v-slot:subtitle>
-                              <div class="d-flex flex-column">
-                                <span v-if="item.raw.description">{{
-                                  item.raw.description
-                                }}</span>
-                                <span class="text-caption">
-                                  {{ item.raw.budget_type }} | {{ item.raw.currency }}
-                                  {{ parseFloat(item.raw.amount).toFixed(2) }} |
-                                  {{ parseFloat(item.raw.used_amount).toFixed(2) }} usado
-                                </span>
+                            <span>{{ item.raw.description }}</span>
+                          </v-tooltip>
+                          <v-tooltip location="top right">
+                            <template v-slot:activator="{ props }">
+                              <div
+                                class="description-text"
+                                v-bind="props"
+                                :title="item.raw.location"
+                              >
+                                {{ $t("warehouse.fields.home_location") }}:
+                                {{ item.raw.location }}
                               </div>
                             </template>
-                          </v-list-item>
-                        </template>
-                        <template v-slot:selection="{ item }">
-                          <div class="d-flex align-center">
-                            <v-icon v-if="item.raw.icon" start small>{{
-                              item.raw.icon
-                            }}</v-icon>
-                            <span>{{ item.raw.categoryName }}</span>
-                          </div>
-                        </template>
+                            <span>{{ item.raw.location }}</span>
+                          </v-tooltip>
+                        </v-list-item-subtitle>
+                      </v-list-item>
+                    </template>
                       </v-autocomplete>
                       <!-- Opcional: Puedes ocultar los botones si quieres que todo sea automático -->
                       <!-- Si decides mantenerlos, puedes hacerlos más discretos -->
@@ -129,7 +112,7 @@
                         -->
                     </div>
                     <v-textarea
-                      v-else-if="['title', 'description'].includes(message.fieldKey)"
+                      v-else-if="['title', 'description', 'location'].includes(message.fieldKey)"
                       v-model="message.editValue"
                       :label="message.fieldLabel"
                       variant="outlined"
@@ -206,9 +189,8 @@
                   <component
                     v-if="message.component && !message.isEditing"
                     :is="message.component"
-                    v-bind="message.props"
-                    @type-selected="handleTypeSelection($event)"
-                    @date-updated="updateDate($event)"
+                    v-bind="message.props || {}"
+                    @private-selected="handlePrivateSelection($event)"
                   />
                 </div>
               </div>
@@ -336,12 +318,11 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <v-dialog v-model="dialogChatWarehouse" fullscreen transition="dialog-bottom-transition">
+  <v-dialog v-model="dialogChatFinance" fullscreen transition="dialog-bottom-transition">
     <v-card>
       <v-card-text>
         <!-- Pasamos los parámetros al componente ChatTask -->
-        <ChatWarehouse :warehouseData="currentWarehouse" @close-dialog="closeDialgChat()"
-          @close-all-dialogs="closeAllDialogs($event)" />
+        <ChatFinance :financeData="currentFinance" @close-dialog="closeDialgChat()" @close-all-dialogs="$emit('close-all-dialogs')" />
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
@@ -353,14 +334,11 @@
 </template>
 
 <script>
-import DatePicker from "@/components/chatTask/DatePicker.vue";
-import TypePersonalConfirmation from "@/components/chatTask/TypePersonalConfirmation.vue";
-import TypePersonalOptions from "@/components/chatTask/TypePersonalOptions.vue";
+import PrivateOptions from "@/components/chatTask/PrivateOptions.vue";
 import LocalStorageService from "@/LocalStorageService";
 import { handleRequest } from "@/utils/api";
 import _ from "lodash";
 import { defineAsyncComponent, markRaw } from "vue";
-
 
 export default {
   emits: ["close-dialog", "close-all-dialogs"],
@@ -369,72 +347,65 @@ export default {
       type: String,
       default: "",
     },
-    financeData: {
+    warehouseData: {
       type: Object,
       default: null,
     },
   },
   components: {
-    DatePicker,
-    TypePersonalOptions,
-    TypePersonalConfirmation,
+    PrivateOptions,
     ChatBudget: defineAsyncComponent(() => import("./ChatBudget.vue")),
     ChatTask: defineAsyncComponent(() => import("./ChatTask.vue")),
-    ChatWarehouse: defineAsyncComponent(() => import("./ChatWarehouse.vue")),
+    ChatFinance: defineAsyncComponent(() => import("./ChatFinance.vue")),
   },
   data() {
     return {
       shownChatFields: new Set(),
       dialogChatTask: false,
+      dialogChatFinance: false,
       dialogChatBudget: false,
-      dialogChatwarehouse: false,
       currentTask: null,
       currentBudget: null,
-      currentWarehouse: null,
+      currentFinance: null,
       isInitialCategorySelection: false,
       textoTemporal: "",
-      financeDataCollectionMode: false,
-      currentFinanceIntent: null,
+      warehouseDataCollectionMode: false,
+      currentWarehouseIntent: null,
       editingField: null,
       escuchando: false,
       recognition: null,
       cargando: false,
       compatible: true,
       tools: [],
-      financeParameters: {
-        type: null,
-        spent: null,
-        description: null,
-        income: null,
-        date: null,
-        budget_id: null,
+      warehouseParameters: {
+      title: "",
+      description: "",
+      location: "",
+      status: "",
+      home_id: "",
+      warehouse_id: "",
       },
       originalItem: {
-        type: null,
-        spent: null,
-        description: null,
-        income: null,
-        date: null,
-        budget_id: null,
+         title: "",
+      description: "",
+      location: "",
+      status: "",
+      home_id: "",
+      warehouse_id: "",
       },
       defaultItem: {
-        type: null,
-        spent: null,
-        description: null,
-        income: null,
-        date: null,
-        budget_id: null,
+         title: "",
+      description: "",
+      location: "",
+      status: "",
+      home_id: "",
+      warehouse_id: "",
       },
       textFieldRefs: [],
       currentParameterIndex: 0,
       waitingForConfirmation: false,
       collectingPeople: false,
       currentRoleSelection: null,
-      priorities: [],
-      roles: [],
-      people: [],
-      recurrences: [],
-      status: [],
       isTyping: false,
       imageUrl: "",
       data: {},
@@ -448,8 +419,7 @@ export default {
       sb_title: "",
       sb_icon: "mdi-check-circle",
       answers: [],
-      budgets: [],
-      types: [],
+      warehouses: [],
       currentQuestionIndex: 0,
       questions: [
         "Hola, ¿cómo te encuentras hoy? ¿Te gustaría hablar sobre viajes? ¿A dónde deseas viajar?",
@@ -517,50 +487,50 @@ export default {
       this.escuchando = false;
       this.textoTemporal = "";
     };
-    let financeData = this.financeData;
+    let warehouseData = this.warehouseData;
 
     // Si es string, parsearlo
-    if (typeof financeData === "string") {
+    if (typeof warehouseData === "string") {
       try {
-        financeData = JSON.parse(financeData);
+        warehouseData = JSON.parse(warehouseData);
       } catch (error) {
-        console.error("Error parsing financeData:", error);
+        console.error("Error parsing warehouseData:", error);
         return;
       }
     }
 
-    console.log("Datos recibidos del componente padre (financeData):", financeData);
+    console.log("Datos recibidos del componente padre (warehouseData):", warehouseData);
     this.name = JSON.parse(LocalStorageService.getItem("name"));
     this.user = JSON.parse(LocalStorageService.getItem("user"));
     this.user_id = JSON.parse(LocalStorageService.getItem("user_id"));
     this.home_id = JSON.parse(LocalStorageService.getItem("home_id"));
     this.imageUrl = LocalStorageService.getItem("image").replace(/['"]+/g, "");
-    if (this.financeData) {
+    if (this.warehouseData) {
       try {
         await this.loadRequiredData();
         // Copiar los datos de la tarea
-        this.financeParameters = {
-          ...this.financeParameters,
-          ...financeData,
+        this.warehouseParameters = {
+          ...this.warehouseParameters,
+          ...warehouseData,
         };
-        this.financeDataCollectionMode = true;
-        this.currentTransactionType = this.financeData.spent > 0 ? "gasto" : "ingreso";
-        this.currentFinanceIntent = financeData.spent > 0 ? "Gasto" : "Ingreso";
+        this.warehouseDataCollectionMode = true;
+        this.currentTransactionType = 'Almacén';
+        this.currentWarehouseIntent = 'Almacén';
         // Mostrar en el chat
         this.chatMessages.push({
           from: "ai",
-          text: `Datos del  ${this.currentFinanceIntent} recibidos. Puedes editarlos antes de confirmar.`,
+          text: `Datos del  ${this.currentWarehouseIntent} recibidos. Puedes editarlos antes de confirmar.`,
           timestamp: new Date().toLocaleTimeString(),
         });
 
         // Iniciar flujo de edición
 
-        await this.showInitialFinanceData(financeData);
+        await this.showInitialwarehouseData(warehouseData);
       } catch (error) {
         this.showAlert("error", "Error al cargar datos: " + error.message);
       }
     } else if (this.initialMessage) {
-      // Si no hay financeData, pero hay initialMessage, simular envío
+      // Si no hay warehouseData, pero hay initialMessage, simular envío
       this.newMessage = this.initialMessage;
       this.sendMessage();
     }
@@ -570,23 +540,21 @@ export default {
       this.dialogChatTask = false;
       this.dialogChatFinance = false;
       this.dialogChatBudget = false;
-      this.dialogChatwarehouse = false;
       this.texto = "";
       this.textoTemporal = "";
       this.currentTask = null;
       this.currentFinance = null;
       this.currentBudget = null;
-      this.currentWarehouse = null;
-      this.$emit("close-all-dialogs", "ChatFinance");
+      this.$emit("close-all-dialogs", "ChatWarehouse");
       //this.initialize();
     },
-    async onBudgetSelected(index, selectedBudget) {
-      console.log("Presupuesto seleccionado:", selectedBudget);
+    async onWarehouseSelected(index, selectedWarehouse) {
+      console.log("Almacén seleccionado:", selectedWarehouse);
       // Si se selecciona un objeto (no null/undefined), guardar automáticamente
       if (
-        selectedBudget &&
-        typeof selectedBudget === "object" &&
-        this.isInitialBudgetSelection
+        selectedWarehouse &&
+        typeof selectedWarehouse === "object" &&
+        this.isInitialWarehouseSelection
       ) {
         await this.saveFieldEdit(index);
       }
@@ -594,7 +562,7 @@ export default {
       // pero saveFieldEdit manejará la validación.
     },
 
-    async onBudgetBlur(index) {
+    async onWarehouseBlur(index) {
       console.log("Autocomplete perdió foco");
       // Cuando se pierde el foco, intentar guardar.
       // Si no hay valor válido, saveFieldEdit lo manejará.
@@ -604,7 +572,7 @@ export default {
         if (message && message.isEditing) {
           // Verificar si el valor actual es diferente al original antes de guardar
           if (message.editValue !== message.currentValue) {
-            if (!this.isInitialBudgetSelection) {
+            if (!this.isInitialWarehouseSelection) {
               await this.saveFieldEdit(index);
             }
           } else {
@@ -616,7 +584,7 @@ export default {
       }, 200); // Pequeño retraso para permitir selección del menú
     },
 
-    async onBudgetClear(index) {
+    async onWarehouseClear(index) {
       console.log("Selección de presupuesto limpiada");
       const message = this.chatMessages[index];
       // Establecer editValue a null
@@ -632,21 +600,6 @@ export default {
       } else {
         this.cargando = true;
         this.recognition.start();
-      }
-    },
-    formatDateDisplay(dateString) {
-      if (!dateString) return "Seleccionar fecha";
-      const options = { year: "numeric", month: "2-digit", day: "2-digit" };
-      return new Date(dateString).toLocaleDateString("es-ES", options);
-    },
-
-    async handleMenuClose(message, index) {
-      if (
-        (message.showDatePicker === false || message.showTimePicker === false) &&
-        !this.chatMessages[index].isSaving
-      ) {
-        // Cuando el menú se cierra (click fuera)
-        await this.saveFieldEdit(index);
       }
     },
     setTextFieldRef(el, index) {
@@ -698,7 +651,7 @@ export default {
                 lastAIMessage.fieldName,
                 tempMessage
               );
-              this.financeParameters[lastAIMessage.fieldName] = validatedValue;
+              this.warehouseParameters[lastAIMessage.fieldName] = validatedValue;
               this.chatMessages.push({
                 from: "ai",
                 text: `✅ ${
@@ -726,7 +679,7 @@ export default {
             return;
           }
 
-          if (!this.financeDataCollectionMode) {
+          if (!this.warehouseDataCollectionMode) {
             const response = await handleRequest({
               endpoint: "ask-ai-task",
               method: "POST",
@@ -745,7 +698,6 @@ export default {
               answer,
               finances,
               budget,
-              warehouse,
             } = response.data;
 
             if (intentDetected && intent) {
@@ -774,47 +726,54 @@ export default {
                   });
                   break;
 
-                case "Gasto":
+                case "Warehouse":
                   this.$nextTick(async () => {
-                    this.financeParameters = {
-                      ...this.financeParameters,
+                    this.warehouseParameters = {
+                      ...this.warehouseParameters,
                       ...finances,
                     };
                     this.currentIntent = intent;
-                    this.currentFinanceIntent = intent;
+                    this.currentWarehouseIntent = intent;
                     this.currentTransactionType = intent;
-                    this.financeDataCollectionMode = true;
+                    this.warehouseDataCollectionMode = true;
                     this.chatMessages.push({
                       from: "ai",
                       text: `Datos del  ${this.currentIntent} recibidos. Puedes editarlos antes de confirmar.`,
                       timestamp: new Date().toLocaleTimeString(),
                     });
                     await this.loadRequiredData();
-                    await this.showInitialFinanceData(finances);
+                    await this.showInitialwarehouseData(finances);
                     this.scrollToBottom();
                   });
                   break;
 
-                case "Ingreso":
-                  this.$nextTick(async () => {
-                    this.financeParameters = {
-                      ...this.financeParameters,
-                      ...finances,
-                    };
-                    this.currentIntent = intent;
-                    this.currentFinanceIntent = intent;
-                    this.currentTransactionType = intent;
-                    this.financeDataCollectionMode = true;
-                    this.chatMessages.push({
-                      from: "ai",
-                      text: `Datos del  ${this.currentIntent} recibidos. Puedes editarlos antes de confirmar.`,
-                      timestamp: new Date().toLocaleTimeString(),
-                    });
-                    await this.loadRequiredData();
-                    await this.showInitialFinanceData(finances);
-                    this.scrollToBottom();
-                  });
-                  break;
+                case "Gasto":
+                this.currentFinance = null;
+                this.$nextTick(() => {
+                  const financeData =
+                    typeof finances === "string"
+                      ? JSON.parse(finances)
+                      : finances;
+
+                  this.currentFinance = _.cloneDeep(financeData);
+                  this.dialogChatFinance = true;
+                  this.scrollToBottom();
+                });
+                break;
+
+            case "Ingreso":
+              this.currentFinance = null;
+              this.$nextTick(() => {
+                const financeData =
+                  typeof finances === "string"
+                    ? JSON.parse(finances)
+                    : finances;
+
+                this.currentFinance = _.cloneDeep(financeData);
+                this.dialogChatFinance = true;
+                this.scrollToBottom();
+              });
+              break;
 
                 case "Presupuesto":
                   this.currentBudget = null;
@@ -827,19 +786,7 @@ export default {
                     this.scrollToBottom();
                   });
                   break;
-                  case "Warehouse":
-              this.currentWarehouse = null;
-              this.$nextTick(() => {
-                const warehouseData =
-                  typeof warehouse === "string"
-                    ? JSON.parse(warehouse)
-                    : warehouse;
 
-                this.currentWarehouse = _.cloneDeep(warehouseData);
-                this.dialogChatWarehouse = true;
-                this.scrollToBottom();
-              });
-              break;
                 case "salud":
                   this.currentHealthData = _.cloneDeep(task || {});
                   this.dialogChatHealth = true;
@@ -864,15 +811,15 @@ export default {
               }
               /*this.data = { home_id: this.home_id };
               if (response.data.finances) {
-                this.financeParameters = {
-                  ...this.financeParameters,
+                this.warehouseParameters = {
+                  ...this.warehouseParameters,
                   ...response.data.finances,
                 };
               }
               await this.loadRequiredData();
-              this.currentFinanceIntent = intent;
-              this.financeDataCollectionMode = true;
-              await this.showInitialFinanceData(finances);*/
+              this.currentWarehouseIntent = intent;
+              this.warehouseDataCollectionMode = true;
+              await this.showInitialwarehouseData(finances);*/
             } else {
               this.chatMessages.push({
                 from: "ai",
@@ -897,17 +844,18 @@ export default {
       this.data.home_id = this.home_id;
       try {
         const result = await handleRequest({
-          endpoint: "get-finances-data",
+          endpoint: "person-warehouse-home-select",
           method: "POST",
           data: this.data,
         });
 
         if (result.success) {
-          this.types = result.data?.types || [];
-          this.budgets = result.data?.budgets || [];
+          this.warehouses =
+            result.data?.warehouses || [];
+            console.log('this.warehouses');
+            console.log(this.warehouses);
         } else {
-          this.types = [];
-          this.butgets = [];
+          this.warehouses = [];
         }
       } catch (error) {
         this.showAlert(
@@ -919,45 +867,38 @@ export default {
         this.isLoading = false;
       }
     },
-    async showInitialFinanceData(financeData) {
-      if (!financeData) return;
+    async showInitialwarehouseData(warehouseData) {
+      if (!warehouseData) return;
 
-      // Inicializar estado para budget_id
-      if (financeData.spent > 0) {
-        this.isInitialBudgetSelection =
-          financeData.budget_id === null || financeData.budget_id === undefined;
-      }
+        this.isInitialWarehouseSelection =
+          warehouseData.warehouse_id === null || warehouseData.warehouse_id === undefined;
 
-      this.isInitialDataCollection = !financeData;
-      await this.showFinanceSummary(financeData);
+
+      this.isInitialDataCollection = !warehouseData;
+      await this.showSummary(warehouseData);
       await this.startAutomaticDataCollection();
     },
 
-    async showFinanceSummary(financeData) {
+    async showSummary(warehouseData) {
       // Definir campos a mostrar
       const fieldsToShow = [
+        { key: "title", label: "Nombre" },
         { key: "description", label: "Descripción" },
-        ...(financeData.spent > 0 ? [{ key: "spent", label: "Gasto" }] : []),
-        ...(financeData.income > 0 ? [{ key: "income", label: "Ingreso" }] : []),
-        { key: "date", label: "Fecha" },
-        ...(financeData.spent > 0 && financeData.budget_id
-          ? [{ key: "budget_id", label: "Presupuesto" }]
-          : []),
+        { key: "location", label: "Ubicación en la casa" },
+        { key: "warehouse_id", label: "Almacenes" },
       ];
 
       // Mostrar campos editables
       fieldsToShow.forEach((field) => {
-        const value = financeData[field.key];
+        const value = warehouseData[field.key];
         if (value !== null && value !== undefined && value !== "") {
           let displayValue = value;
           let additionalData = {};
 
-          if (field.key === "spent" || field.key === "income") {
-            displayValue = `$${parseFloat(value).toFixed(2)}`;
-          } else if (field.key === "budget_id") {
-            const budgetInfo = this.budgets.find((b) => b.id === value);
-            displayValue = budgetInfo ? budgetInfo.categoryName : `ID: ${value}`;
-            additionalData.availableBudgets = this.budgets;
+          if (field.key === "warehouse_id") {
+            const warehouseInfo = this.warehouses.find((b) => b.id === value);
+            displayValue = warehouseInfo ? warehouseInfo.title : `ID: ${value}`;
+            additionalData.availableWarehouses = this.warehouses;
           }
 
           this.chatMessages.push({
@@ -977,33 +918,31 @@ export default {
           this.shownChatFields.add(field.key);
         }
       });
-      if (financeData.type) {
+      if (warehouseData.status !== undefined && warehouseData.status !== null) {
         this.chatMessages.push({
           from: "ai",
-          text: "Tipo:",
-          component: "TypePersonalOptions",
+          text: "Estado:",
+          component: "PrivateOptions",
           props: {
-            options: this.types,
-            selectedId: financeData.type,
+            selectedId: warehouseData.status,
           },
           timestamp: new Date().toLocaleTimeString(),
         });
-        this.shownChatFields.add("type");
+        this.shownChatFields.add("status");
       }
     },
 
     async startAutomaticDataCollection() {
       const parametersOrder = [
+        "title",
         "description",
-        "spent",
-        "income",
-        "date",
-        "type",
-        ...(this.financeParameters.spent > 0 ? ["budget_id"] : []),
+        "location",
+        "status",
+        "warehouse_id",
       ];
 
       const nextField = parametersOrder.find((field) => {
-        const value = this.financeParameters[field];
+        const value = this.warehouseParameters[field];
         return !value && value !== 0;
       });
 
@@ -1014,46 +953,46 @@ export default {
       // Marcar como mostrado ANTES de mostrar el mensaje
       this.shownChatFields.add(nextField);
 
-      if (nextField === "type") {
-        await this.showTypeOptions();
-      } else if (nextField === "budget_id" && !this.isInitialBudgetSelection) {
+      if (nextField === "status") {
+        await this.showPrivateOptions();
+      } /*else if (nextField === "budget_id" && !this.isInitialWarehouseSelection) {
         // Si es budget_id pero no es la primera selección, completar creación
-        this.completeFinanceCreation();
-      } else if (nextField) {
+        this.completeCreation();
+      }*/ else if (nextField) {
         this.showFieldInput(nextField);
       } else {
-        this.completeFinanceCreation();
+        this.completeCreation();
       }
     },
 
     async showFieldInput(field) {
       const fieldLabels = {
+        title: "el nombre",
         description: "la descripción",
-        spent: "el monto del gasto",
-        income: "el monto del ingreso",
-        date: "la fecha (YYYY-MM-DD)",
-        type: "el tipo de transacción",
-        budget_id: "Presupuesto",
+        location: "ubicación en la casa",
+        status: "el estado",
+        warehouse_id: "Almacén",
       };
 
       // Configuración especial para budget_id
-      if (field === "budget_id") {
-        this.isInitialBudgetSelection =
-          this.financeParameters[field] === null ||
-          this.financeParameters[field] === undefined;
+      if (field === "warehouse_id") {
+        this.isInitialWarehouseSelection =
+          this.warehouseParameters[field] === null ||
+          this.warehouseParameters[field] === undefined;
 
         this.chatMessages.push({
           from: "ai",
-          text: `Por favor, selecciona ${fieldLabels[field]}:`,
+          text: `¿Deseas asociar a un almacén existente? (opcional)`,
           timestamp: new Date().toLocaleTimeString(),
           isEditable: true,
           fieldKey: field,
           fieldLabel: fieldLabels[field],
-          currentValue: this.financeParameters[field],
-          editValue: this.financeParameters[field],
+          currentValue: this.warehouseParameters[field],
+          editValue: this.warehouseParameters[field],
           isEditing: true,
           availableBudgets: this.budgets,
         });
+        this.completeCreation();
         return;
       }
 
@@ -1067,10 +1006,8 @@ export default {
         fieldLabel: fieldLabels[field] || field,
       });
 
-      if (field === "type") {
-        await this.showTypeOptions();
-      } else if (field === "date") {
-        this.showDatePicker(field);
+      if (field === "status") {
+        await this.showPrivateOptions();
       }
     },
 
@@ -1084,7 +1021,7 @@ export default {
 
         // Caso especial para budget_id
         if (
-          message.fieldKey === "budget_id" &&
+          message.fieldKey === "warehouse_id" &&
           typeof valueToValidate === "object" &&
           valueToValidate !== null
         ) {
@@ -1092,20 +1029,16 @@ export default {
         }
 
         const validatedValue = this.validateField(message.fieldKey, valueToValidate);
-        this.financeParameters[message.fieldKey] = validatedValue;
+        this.warehouseParameters[message.fieldKey] = validatedValue;
 
         // Actualizar el texto mostrado
         let displayValue = validatedValue;
         if (
-          message.fieldKey === "budget_id" &&
+          message.fieldKey === "warehouse_id" &&
           typeof message.editValue === "object" &&
           message.editValue !== null
         ) {
-          displayValue = message.editValue.categoryName;
-        } else if (message.fieldKey === "spent" || message.fieldKey === "income") {
-          displayValue = `$${parseFloat(validatedValue).toFixed(2)}`;
-        } else if (message.fieldKey === "date") {
-          displayValue = validatedValue;
+          displayValue = message.editValue.title;
         }
 
         message.currentValue = validatedValue;
@@ -1113,15 +1046,15 @@ export default {
         message.isEditing = false;
         this.scrollToBottom();
 
-        if (this.financeDataCollectionMode) {
+        if (this.warehouseDataCollectionMode) {
           // Si estamos en recolección inicial
-          if (message.fieldKey === "budget_id") {
-            this.isInitialBudgetSelection = false;
+          if (message.fieldKey === "warehouse_id") {
+            this.isInitialWarehouseSelection = false;
           }
           await this.startAutomaticDataCollection();
         } else {
           // Si estamos editando después del resumen
-          this.updateFinanceSummary();
+          this.updateSummary();
         }
       } catch (error) {
         this.showAlert("error", error.message, 2000);
@@ -1130,7 +1063,7 @@ export default {
       }
     },
 
-    updateFinanceSummary() {
+    updateSummary() {
       // Encontrar y eliminar el resumen y confirmación anteriores
       let index = this.chatMessages.length - 1;
       while (index >= 0) {
@@ -1145,48 +1078,41 @@ export default {
         index--;
       }
 
-      // Volver a llamar a completeFinanceCreation para regenerar el resumen
-      this.completeFinanceCreation();
+      // Volver a llamar a completeCreation para regenerar el resumen
+      this.completeCreation();
     },
 
-    completeFinanceCreation() {
+    completeCreation() {
       this.isTyping = true;
-      this.financeDataCollectionMode = false;
+      this.warehouseDataCollectionMode = false;
 
       // Construir mensaje de resumen
       let summary = `Resumen de la transacción financiera:\n\n`;
 
       // Determinar qué campo de monto mostrar
       let amountToShow = [];
-      if (this.financeParameters.spent > 0) {
-        amountToShow = [{ key: "spent", label: "Gasto" }];
-      } else if (this.financeParameters.income > 0) {
-        amountToShow = [{ key: "income", label: "Ingreso" }];
-      }
-
       // Construir la lista de parámetros a mostrar
       const parametersToShow = [
-        { key: "type", label: "Tipo" },
+        { key: "title", label: "Nombre" },
         { key: "description", label: "Descripción" },
-        ...amountToShow,
-        { key: "date", label: "Fecha" },
-        ...(this.financeParameters.spent > 0 && this.financeParameters.budget_id
-          ? [{ key: "budget_id", label: "Presupuesto" }]
-          : []),
+        { key: "location", label: "Ubicación en la casa" },
+        { key: "status", label: "Estado" },
+        { key: "warehouse_id", label: "Almacén existente" },
       ];
 
       // Agregar cada parámetro al resumen
       parametersToShow.forEach(({ key, label }) => {
-        const value = this.financeParameters[key];
+        const value = this.warehouseParameters[key];
         if (value !== null && value !== undefined && value !== "") {
-          if (key === "type") {
-            const type = this.types.find((t) => t.id === value);
-            summary += `• ${label}: ${type?.name || "No especificado"}\n`;
-          } else if (key === "spent" || key === "income") {
-            summary += `• ${label}: $${parseFloat(value).toFixed(2)}\n`;
-          } else if (key === "budget_id") {
-            const budget = this.budgets.find((b) => b.id === value);
-            summary += `• ${label}: ${budget?.categoryName || `ID: ${value}`}\n`;
+          if (key === "status") {
+            const status = value === 0 
+              ? this.$t("warehouse.status.private") 
+              : this.$t("warehouse.status.public");
+
+            summary += `• ${label}: ${status || "No especificado"}\n`;
+          } else if (key === "warehouse_id") {
+            const warehouse = this.warehouses.find((b) => b.id === value);
+            summary += `• ${label}: ${warehouse?.title || `ID: ${value}`}\n`;
           } else {
             summary += `• ${label}: ${value}\n`;
           }
@@ -1251,15 +1177,17 @@ export default {
             throw new Error("Debe ser un número positivo o cero");
           }
           return num;
-        case "type":
-          const type = this.types.find(
-            (t) => t.name.toLowerCase() === value.toLowerCase() || t.id == value
-          );
-          if (!type) {
-            throw new Error("Tipo no válido");
+          case "status":
+          // Convertir a número por si viene como string
+          const statusValue = Number(value);
+          
+          // Validar que sea 0 o 1
+          if (statusValue !== 0 && statusValue !== 1) {
+            throw new Error("El estado debe ser 0 (Privado) o 1 (Público)");
           }
-          return type.id;
-        case "budget_id":
+          
+          return statusValue;
+        case "warehouse_id":
           const budgetId = parseInt(value);
           if (isNaN(budgetId) || budgetId <= 0) {
             throw new Error("ID de presupuesto debe ser un número positivo");
@@ -1271,14 +1199,13 @@ export default {
     },
 
     // Nuevo método para mostrar opciones de tipo
-    async showTypeOptions() {
+    async showPrivateOptions() {
       this.chatMessages.push({
         from: "ai",
-        text: "Selecciona el tipo de transacción:",
-        component: "TypeFinanceOptions",
+        text: "Selecciona el estado:",
+        component: "PrivateOptions",
         props: {
-          options: this.types,
-          selectedId: this.financeParameters.type,
+          selectedId: this.warehouseParameters.status,
         },
         timestamp: new Date().toLocaleTimeString(),
       });
@@ -1299,23 +1226,24 @@ export default {
         if (container) container.scrollTop = container.scrollHeight;
       });
     },
-    handleTypeSelection(type) {
-      this.financeParameters.type = type.id;
+    handlePrivateSelection(type) {
+      console.log("Tipo seleccionado:", type);
+      this.warehouseParameters.status = type.id;
 
       // Actualizar el mensaje de prioridad existente o crear uno nuevo
       const priorityMessageIndex = this.chatMessages.findIndex(
-        (m) => m.from === "ai" && m.component === "TypePersonalOptions"
+        (m) => m.from === "ai" && m.component === "PrivateOptions"
       );
 
       if (priorityMessageIndex !== -1) {
         this.chatMessages[priorityMessageIndex].props.selectedId = type.id;
       }
 
-      if (this.isInitialBudgetSelection) {
+      if (this.isInitialWarehouseSelection) {
         this.startAutomaticDataCollection();
       } else {
         // Si estamos editando, actualizar el resumen
-        this.updateFinanceSummary();
+        this.updateSummary();
       }
     },
     showAlert(type, message, timeout) {
@@ -1331,61 +1259,39 @@ export default {
       this.waitingForConfirmation = false;
 
       if (userResponse.toLowerCase() === "si" || userResponse.toLowerCase() === "sí") {
-        const fieldsToUpdate = [
-          "home_id",
-          "budget_id",
-          "spent",
-          "income",
-          "image",
-          "date",
-          "description",
-          "image",
-          "type",
-          "method",
-        ];
+        const fieldsToUpdate = ["id", "title", "location", "description", "status", "warehouse_id"];
 
-        let updatedFields = Object.keys(this.financeParameters)
+        let updatedFields = Object.keys(this.warehouseParameters)
           .filter(
             (key) =>
               fieldsToUpdate.includes(key) &&
-              this.financeParameters[key] !== this.originalItem[key]
+              this.warehouseParameters[key] !== this.originalItem[key]
           )
           .reduce((obj, key) => {
-            obj[key] = this.financeParameters[key];
+            obj[key] = this.warehouseParameters[key];
             return obj;
           }, {});
         if (Object.keys(updatedFields).length > 0) {
-          updatedFields.date = this.financeParameters.date
-            ? this.financeParameters.date
-            : new Date();
           updatedFields.home_id = Number(this.home_id);
-          if (this.file) {
-            updatedFields.image = this.financeParameters.image;
-          }
-          const formData = new FormData();
-          for (let key in updatedFields) {
-            formData.append(key, updatedFields[key]);
-          }
-
           try {
             const result = await handleRequest({
-              endpoint: "finance",
+              endpoint: "person-warehouse",
               method: "POST",
-              data: formData,
+              data: updatedFields,
             });
 
             // Manejo de la respuesta según el resultado
             if (result.success) {
               this.chatMessages.push({
                 from: "ai",
-                text: `✅ ${this.currentFinanceIntent} creado exitosamente!`,
+                text: `✅ ${this.currentWarehouseIntent} creado exitosamente!`,
                 timestamp: new Date().toLocaleTimeString(),
               });
             }
           } catch (error) {
             this.chatMessages.push({
               from: "ai",
-              text: `❌ Error al crear la ${this.currentFinanceIntent}: ${error.message}`,
+              text: `❌ Error al crear la ${this.currentWarehouseIntent}: ${error.message}`,
               timestamp: new Date().toLocaleTimeString(),
             });
           } finally {
@@ -1403,16 +1309,15 @@ export default {
       }
 
       // Resetear
-      this.financeDataCollectionMode = false;
-      this.currentFinanceIntent = null;
-      this.financeParameters = {};
+      this.warehouseDataCollectionMode = false;
+      this.currentWarehouseIntent = null;
+      this.warehouseParameters = {};
       this.scrollToBottom();
       this.handleCancellation();
     },
     handleCancellation() {
       this.waitingForConfirmation = false;
-      this.financeParameters.people = [];
-      this.financeParameters = Object.assign({}, this.defaultItem);
+      this.warehouseParameters = Object.assign({}, this.defaultItem);
       this.originalItem = Object.assign({}, this.defaultItem);
       // Mensaje con botones de opción
       this.chatMessages.push({
@@ -1449,16 +1354,16 @@ export default {
       this.chatMessages = [];
 
       // Reiniciar todas las variables de estado relacionadas con tareas
-      this.financeDataCollectionMode = false;
-      this.currentFinanceIntent = null;
-      this.isInitialBudgetSelection = false;
-      this.financeParameters = {
-        type: null,
-        spent: null,
-        description: null,
-        income: null,
-        date: null,
-        budget_id: null,
+      this.warehouseDataCollectionMode = false;
+      this.currentWarehouseIntent = null;
+      this.isInitialWarehouseSelection = false;
+      this.warehouseParameters = {
+        title: "",
+        description: "",
+        location: "",
+        status: "",
+        home_id: "",
+        warehouse_id: "",
       };
       this.waitingForConfirmation = false;
       this.isTyping = false;
@@ -1480,40 +1385,9 @@ export default {
       this.chatMessages = [];
       // Emitir evento para cerrar el diálogo (ajusta según tu implementación)
       this.$emit("close-dialog");
-      this.$emit("close-all-dialogs", "ChatFinance");
+      this.$emit("close-all-dialogs", "ChatWarehouse");
     },
-    //date y time
-    handleDateSelection(field, dateEvent) {
-      const { value } = dateEvent;
-
-      // Validar que la fecha sea correcta
-      if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-        this.showAlert("error", "Formato de fecha inválido (YYYY-MM-DD)", 2000);
-        return;
-      }
-
-      // Actualizar el valor en financeParameters
-      this.financeParameters[field] = value;
-
-      // Actualizar el mensaje en el chat
-      const messageIndex = this.chatMessages.findIndex((m) => m.fieldKey === field);
-      if (messageIndex !== -1) {
-        const message = this.chatMessages[messageIndex];
-        message.currentValue = value;
-        message.editValue = value;
-        message.text = `• ${message.fieldLabel}: ${value}`;
-        message.isEditing = false;
-        message.showDatePicker = false;
-      }
-
-      // Si estamos en modo recolección de datos, continuar el flujo
-      if (this.isInitialBudgetSelection) {
-        this.startAutomaticDataCollection();
-      } else {
-        // Si estamos editando, actualizar el resumen
-        this.updateFinanceSummary();
-      }
-    },
+ 
   },
 };
 </script>
@@ -1580,5 +1454,15 @@ export default {
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
+}
+.description-text {
+  max-width: 200px;
+  /* Establece un límite de ancho */
+  overflow: hidden;
+  /* Oculta el texto que exceda */
+  text-overflow: ellipsis;
+  /* Añade "..." al final del texto largo */
+  white-space: nowrap;
+  /* Evita el salto de línea */
 }
 </style>

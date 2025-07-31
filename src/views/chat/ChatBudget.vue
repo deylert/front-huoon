@@ -256,6 +256,20 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+  <v-dialog v-model="dialogChatWarehouse" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-text>
+        <!-- Pasamos los parámetros al componente ChatTask -->
+        <ChatWarehouse :warehouseData="currentWarehouse" @close-dialog="closeDialgChat()"
+          @close-all-dialogs="closeAllDialogs($event)" />
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn text @click="closeDialgChat()">Cerrar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
@@ -286,14 +300,17 @@ export default {
     PeriodOptions,
     ChatFinance: defineAsyncComponent(() => import('./ChatFinance.vue')),
     ChatTask: defineAsyncComponent(() => import('./ChatTask.vue')),
+    ChatWarehouse: defineAsyncComponent(() => import('./ChatWarehouse.vue')),
   },
   data() {
     return {
       shownChatFields: new Set(),
        dialogChatTask: false,
       dialogChatFinance: false,
+      dialogChatWarehouse: false,
       currentTask: null,
       currentFinance: null,
+      currentWarehouse: null,
       isInitialCategorySelection: false,
       textoTemporal: "",
       budgetDataCollectionMode: false,
@@ -488,11 +505,13 @@ export default {
       this.dialogChatTask = false;
       this.dialogChatFinance = false;
       this.dialogChatBudget = false;
+      this.dialogChatWarehouse = false;
       this.texto = "";
       this.textoTemporal = "";
       this.currentTask = null;
       this.currentFinance = null;
       this.currentBudget = null;
+      this.currentWarehouse = null;
       this.$emit("close-all-dialogs", "ChatBudgets");
       //this.initialize();
     },
@@ -757,7 +776,7 @@ export default {
           },
         });
         this.isTyping = false;
-        const { intentDetected, intent, task, answer, finances, budget } = response.data;
+        const { intentDetected, intent, task, answer, finances, budget, warehouse } = response.data;
 
             if (intentDetected && intent) {
               this.data = { home_id: this.home_id };
@@ -835,6 +854,19 @@ export default {
                   await this.showInitialData(budget);
                   this.scrollToBottom();
                 });
+              break;
+            case "Warehouse":
+              this.currentWarehouse = null;
+              this.$nextTick(() => {
+                const warehouseData =
+                  typeof warehouse === "string"
+                    ? JSON.parse(warehouse)
+                    : warehouse;
+
+                this.currentWarehouse = _.cloneDeep(warehouseData);
+                this.dialogChatWarehouse = true;
+                this.scrollToBottom();
+              });
               break;
 
             case "salud":

@@ -1,6 +1,6 @@
 <template>
   <v-snackbar
-    class="mt-12"
+    class="mt-12 rounded-lg"
     location="right top"
     :timeout="sb_timeout"
     :color="sb_type"
@@ -20,156 +20,109 @@
     </v-row>
   </v-snackbar>
   <v-container class="pa-4">
-  <v-card elevation="6" class="mx-2">
-    <v-toolbar color="#03626C">
-      <v-row align="center">
-        <v-col cols="12" md="8" class="grow ml-4">
-          <span class="text-subtitle-1"
-            ><strong
-              ><h2>{{ $t("warehouse.list.title") }}</h2></strong
-            ></span
-          >
-        </v-col>
-        <v-col cols="12" md="3" class="text-right">
-          <v-btn
-            class="text-subtitle-1 ml-12"
-            color="white"
-            variant="tonal"
-            elevation="2"
-            prepend-icon="mdi-plus-circle"
-            @click="showAddWareHouse"
-          >
-            {{ $t('warehouse.formTitle.create') }}
-          </v-btn>
-        </v-col>
-      </v-row>
-    </v-toolbar>
-
-    <v-card-text>
-      <v-text-field
-        class="mt-1 mb-1"
-        v-model="search"
-        append-icon="mdi-magnify"
-        :label="$t('warehouse.list.search')"
-        single-line
-        hide-details
+  <v-card class="pa-4" elevation="4" rounded="lg">
+      <!-- Encabezado con foto y datos -->
+      <v-card-text>
+    <!-- Encabezado -->
+    <v-row justify="space-between" align="center" class="mb-6">
+      <h2 class="text-body-2 font-weight-bold">{{ $t("warehouse.list.title") }}</h2>
+      <v-btn
+        icon
+        color="deep-purple-accent-4"
+        variant="flat"
+        class="elevation-3"
+        @click="showAddWareHouse"
       >
-      </v-text-field>
-      <v-data-table
-        :headers="translatedHeaders"
-        :search="search"
-        :items="personwarehouses"
-        class="elevation-1"
-        style="max-height: 68vh; overflow-y: auto"
-        :loading="loading"
-        dense
+        <v-icon>mdi-plus</v-icon>
+      </v-btn>
+    </v-row>
+     <v-card
+        v-for="(warehouse, index) in personwarehouses"
+        :key="index"
+        class="mb-3 rounded-lg pa-2"
+        elevation="2"
       >
-        <template v-slot:item.actions="{ item }">
-          <v-btn
-            density="comfortable"
-            icon="mdi-pencil"
-            @click="editItem(item)"
-            color="primary"
-            variant="tonal"
-            elevation="1"
-            title="Editar Almacén"
-          ></v-btn>
-          <v-btn
-            density="comfortable"
-            icon="mdi-delete"
-            @click="deleteItem(item)"
-            color="#DA7171"
-            variant="tonal"
-            elevation="1"
-            title="Eliminar Almacén"
-          ></v-btn>
-        </template>
-        <template v-slot:item.status="{ item }">
-          {{
-            item.status === 0
+      <v-row>
+             <v-col cols="4" class="d-flex align-center pe-4 gap-2">
+              <div>
+                <div class="text-body-2 font-weight-bold">
+                  <span>
+                    {{ warehouse.title }}
+                  </span>
+                  <v-tooltip activator="parent" location="bottom" max-width="350px">
+                    <span style="white-space: normal; word-break: break-word">{{ $t('warehouse.fields.name') }}: {{
+                      warehouse.title }}</span>
+                  </v-tooltip>
+                </div>
+                <div class="text-caption d-flex align-center text-grey-darken-1">
+                  <span>
+                    {{ warehouse.description }}
+                  </span>
+                  <v-tooltip activator="parent" location="bottom" max-width="350px">
+                    <span style="white-space: normal; word-break: break-word">{{ $t('warehouse.fields.description') }}: {{ warehouse.description }}</span>
+                  </v-tooltip>
+                </div>
+              </div>
+              </v-col>
+              <v-col cols="4" class="d-flex align-center pe-4 gap-2">
+                <div class="text-body-2">
+                  <span>
+                    {{ warehouse.location}}
+                  </span>
+                  <v-tooltip activator="parent" location="bottom" max-width="350px">
+                    <span style="white-space: normal; word-break: break-word">{{ $t("warehouse.fields.home_location") }}:
+                      {{ warehouse.location}}</span>
+                  </v-tooltip>
+                </div>
+              </v-col>
+              <v-col cols="2" class="d-flex align-center pe-4 gap-2">
+                <div class="text-body-2">
+                  <span>
+                    {{
+            warehouse.status === 0
               ? $t("warehouse.status.public")
               : $t("warehouse.status.private")
           }}
-        </template>
-      </v-data-table>
+                  </span>
+                  <v-tooltip activator="parent" location="bottom" max-width="350px">
+                    <span style="white-space: normal; word-break: break-word">{{ $t("warehouse.fields.status") }}:
+                     {{
+            warehouse.status === 0
+              ? $t("warehouse.status.public")
+              : $t("warehouse.status.private")
+          }}</span>
+                  </v-tooltip>
+                </div>
+              </v-col>
+
+          <!-- Acciones -->
+         <v-col cols="1" class="d-flex align-center ml-auto pe-4">
+                <div class="d-flex">
+            <v-btn
+              icon
+              variant="text"
+              color="green-darken-2"
+              size="small"
+              @click="editItem(warehouse)"
+            >
+              <v-icon>mdi-pencil</v-icon>
+            </v-btn>
+            <v-btn
+              icon
+              variant="text"
+              color="red-darken-2"
+              size="small"
+              @click="deleteItem(warehouse)"
+            >
+              <v-icon>mdi-delete</v-icon>
+            </v-btn>
+            </div>
+          </v-col>
+        </v-row>
+      </v-card>
     </v-card-text>
   </v-card>
   </v-container>
-
-  <!--<v-dialog v-model="dialog" max-width="600px">
-        <v-form ref="form" v-model="valid">
-            <v-card>
-                <v-toolbar color="#03626C">
-                    <span class="text-subtitle-2 ml-4">{{ formTitle }}</span>
-                </v-toolbar>
-                <v-card-text>
-                    <v-container>
-                        <v-row>
-                            <v-col cols="12" md="6" v-show="editedIndex === -1">
-                                <v-autocomplete v-model="editedItem.warehouse_id" :items="warehouses" label="Almacenes"
-                                    prepend-icon="mdi-store-outline" item-title="title" item-value="id"
-                                    variant="underlined" clearable>
-                                    <template v-slot:item="{ props, item }">
-                                        <v-list-item v-bind="props">
-                                            <v-list-item-subtitle class="d-flex flex-column">
-                                                <v-tooltip location="top right">
-                                                    <template v-slot:activator="{ props }">
-                                                        <div class="description-text" v-bind="props"
-                                                            :title="item.raw.description">
-                                                            Descripción: {{ item.raw.description }}
-                                                        </div>
-                                                    </template>
-                                                    <span>{{ item.raw.description }}</span>
-                                                </v-tooltip>
-                                                <v-tooltip location="top right">
-                                                    <template v-slot:activator="{ props }">
-                                                        <div class="description-text" v-bind="props"
-                                                            :title="item.raw.location">
-                                                            Ubicación: {{ item.raw.location }}
-                                                        </div>
-                                                    </template>
-                                                    <span>{{ item.raw.location }}</span>
-                                                </v-tooltip>
-                                            </v-list-item-subtitle>
-                                        </v-list-item>
-                                    </template>
-                                </v-autocomplete>
-                            </v-col>
-                            <v-col cols="12" md="6">
-                                <v-text-field v-model="editedItem.title" clearable label="Nombre"
-                                    prepend-icon="mdi-tag-outline" variant="underlined"
-                                    :rules="nameRules"></v-text-field>
-                            </v-col>
-                            <v-col cols="12" md="6">
-                                <v-text-field v-model="editedItem.location" clearable label="Ubicación en la casa"
-                                    prepend-icon="mdi-home-map-marker" variant="underlined">
-                                </v-text-field>
-                            </v-col>
-                            <v-col cols="12" md="6">
-                                <v-select v-model="editedItem.status" :items="[
-                                    { id: 0, label: 'Público' },
-                                    { id: 1, label: 'Privado' }
-                                ]" item-title="label" item-value="id" label="Estado" prepend-icon="mdi-lock-outline"
-                                    variant="underlined">
-                                </v-select>
-                            </v-col>
-                            <v-col cols="12" md="12">
-                                <v-textarea v-model="editedItem.description" clearable label="Descripción"
-                                    prepend-icon="mdi-note" variant="underlined"></v-textarea>
-                            </v-col>
-                        </v-row>
-                    </v-container>
-                </v-card-text>
-                <v-divider></v-divider>
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn color="#DA7171" variant="flat" @click="close">Cancelar</v-btn>
-                    <v-btn color="#03626C" variant="flat" :loading="loading" @click="save"
-                        :disabled="!valid">Aceptar</v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-form>
-    </v-dialog>-->
   <v-dialog
     v-model="dialog"
     fullscreen
@@ -260,7 +213,7 @@
                                 v-bind="props"
                                 :title="item.raw.location"
                               >
-                                {{ $t("warehouse.fields.location") }}:
+                                {{ $t("warehouse.fields.home_location") }}:
                                 {{ item.raw.location }}
                               </div>
                             </template>
@@ -359,7 +312,7 @@
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="#DA7171" variant="flat" @click="closeDelete">{{ $t('taskForm.buttons.cancel') }}</v-btn>
+        <v-btn color="grey" variant="flat" @click="closeDelete">{{ $t('taskForm.buttons.cancel') }}</v-btn>
         <v-btn
           color="#03626C"
           variant="flat"

@@ -11,7 +11,7 @@
             </v-col>
         </v-row>
     </v-snackbar>
-    <!--<v-container fluid fill-height>-->
+    <v-container>
         <v-card elevation="6" class="mx-2">
             <v-toolbar color="#03626C">
                 <v-row align="center">
@@ -41,13 +41,13 @@
                             variant="tonal" elevation="1" title="Eliminar Almacén"></v-btn>
                     </template>
                     <template v-slot:item.status="{ item }">
-                        <span v-if="item.status === 0" class="text-success">Público</span>
+                        <span v-if="item.status === 1" class="text-success">Público</span>
                         <span v-else class="text-error">Privado</span>
                     </template>
                 </v-data-table>
             </v-card-text>
         </v-card>
-    <!--</v-container>-->
+    </v-container>
 
     <v-dialog v-model="dialog" max-width="500px">
         <v-form ref="form" v-model="valid">

@@ -25,32 +25,23 @@
         <v-card class="pt-4 mb-8 rounded-lg" elevation="2">
           <!-- Chat Body -->
           <div ref="chatBody" class="px-4 py-2">
-            <div
-              v-for="(message, index) in chatMessages"
-              :key="index"
-              class="mb-8"
-              :class="message.from === 'user' ? 'justify-end' : 'justify-start'"
-            >
-              <div
-                class="d-flex align-end"
-                :class="message.from === 'user' ? 'flex-row-reverse' : ''"
-              >
+            <div v-for="(message, index) in chatMessages" :key="index" class="d-flex mb-8"
+              :class="message.from === 'user' ? 'justify-end' : 'justify-start'">
+              <div class="d-flex align-end" :class="message.from === 'user' ? 'flex-row-reverse' : ''">
                 <v-avatar v-if="message.from === 'ai'" size="28" class="mb-2 mr-3">
                   <v-img src="@/assets/logo-verde.png" alt="Imagen de perfil" />
                 </v-avatar>
 
-                <div
-                  :class="[
-                    'rounded-xl',
-                    message.from === 'user'
-                      ? 'bg-primary text-white'
-                      : 'bg-grey-darken-1-lighten-2 text-black',
-                    message.isEditing
-                      ? 'pa-4' // Estilo cuando está en edición
-                      : 'px-8 py-3', // Estilo normal
-                  ]"
-                  style="min-width: 0; max-width: 100%; width: fit-content"
-                >
+                <div :class="[
+            'rounded-xl',
+            message.from === 'user' 
+              ? 'bg-primary text-white' 
+              : 'bg-grey-lighten-2 text-black',
+            message.isEditing 
+              ? 'pa-4'  // Estilo cuando está en edición
+              : 'px-8 py-3'  // Estilo normal
+          ]"
+          style="min-width: 0; max-width: 100%; width: fit-content" >
                   <!-- Campo editable con componente -->
                   <template v-if="message.isEditable && message.isEditing">
                     <div v-if="['date'].includes(message.fieldKey)">
@@ -387,7 +378,7 @@ export default {
       shownChatFields: new Set(),
       dialogChatTask: false,
       dialogChatBudget: false,
-      dialogChatwarehouse: false,
+      dialogChatWarehouse: false,
       currentTask: null,
       currentBudget: null,
       currentWarehouse: null,
@@ -570,7 +561,7 @@ export default {
       this.dialogChatTask = false;
       this.dialogChatFinance = false;
       this.dialogChatBudget = false;
-      this.dialogChatwarehouse = false;
+      this.dialogChatWarehouse = false;
       this.texto = "";
       this.textoTemporal = "";
       this.currentTask = null;

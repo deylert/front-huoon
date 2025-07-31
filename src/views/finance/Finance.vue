@@ -251,7 +251,7 @@
           icon="mdi-finance"
         >
           <template #detail="{ taskData, onClose }">
-            <ChatTaskFinance :taskData="taskData" @close-dialog="onClose" />
+            <ChatTask :taskData="taskData" @close-dialog="onClose" />
           </template>
         </SuggestionsList>
       </v-card-text>
@@ -1043,7 +1043,7 @@ import Income from "./Income.vue";
 import Spent from "./Spent.vue";
 import _ from "lodash";
 import Budget from "./Budget.vue";
-import ChatTaskFinance from "../chat/ChatTaskFinance.vue";
+import ChatTask from "../chat/ChatTask.vue";
 import SuggestionsList from "../suggestion/SuggestionsList.vue";
 import IncomeSpent from "./IncomeSpent.vue";
 export default {
@@ -1051,7 +1051,7 @@ export default {
     Income,
     Spent,
     Budget,
-    ChatTaskFinance,
+    ChatTask,
     SuggestionsList,
     IncomeSpent
   },

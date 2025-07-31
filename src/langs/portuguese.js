@@ -94,6 +94,10 @@ const portuguese = {
         title: "Sugestões",
         description: "Recomendações e propostas",
       },
+      history: {
+        title: "Histórico Médico",
+        description: "Registros de saúde e evolução médica",
+      },
     },
     viewTitles: {
       physicalExams: "Exames Físicos",
@@ -216,7 +220,7 @@ const portuguese = {
         default: "item",
         budget: "orçamento",
         income: "receita", // Para ingresos/ganancias
-        expense: "despesa" 
+        expense: "despesa",
       },
     },
     personDetails: {
@@ -640,7 +644,7 @@ const portuguese = {
         total: "Total",
         budget: "Orçamento", // Novo campo
         category: "Categoria", // Também recomendado se não existir
-        currency: "Moeda"
+        currency: "Moeda",
       },
       actions: {
         viewFile: "Ver Comprovante",
@@ -862,7 +866,7 @@ const portuguese = {
     },
     product: {
       listing: {
-        title: "Listagem de Produtos por Armazéns",
+        title: "Lista de produtos",
         addButton: "Adicionar Produto",
         description: "Descrição",
         quantity: "Quantidade",

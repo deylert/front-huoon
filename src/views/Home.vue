@@ -94,37 +94,6 @@
         <v-row>
           <template v-for="(card, index) in cards" :key="index">
             <v-col cols="12" sm="6" md="3" v-if="!card.menu">
-              <!-- Tarjetas normales -->
-              <!--<v-card
-                elevation="2"
-                density="comfortable"
-                @click="$router.push(card.to)"
-                class="rounded-lg"
-              >
-                <div class="dynamic-circle" v-if="getDynamicValue(card.to) > 0">
-                  {{ getDynamicValue(card.to) }}
-                </div>
-                <v-card-item class="pa-3">
-                  <template v-slot:prepend>
-                    <div class="icono-concavo">
-                      <v-icon
-                        :icon="card.icon"
-                        :color="card.color"
-                        size="x-large"
-                      ></v-icon>
-                    </div>
-                  </template>
-                  <v-card-title class="text-body-2">{{
-                    $t(`menu.${card.to.replace("/", "")}.title`) || card.title
-                  }}</v-card-title>
-                  <v-card-subtitle class="pt-0">
-                    <span class="text-body-2">{{
-                      $t(`menu.${card.to.replace("/", "")}.description`) ||
-                      card.description
-                    }}</span>
-                  </v-card-subtitle>
-                </v-card-item>
-              </v-card>-->
               <v-card elevation="2" density="comfortable" @click="$router.push(card.to)" class="rounded-lg">
                 <v-card-item class="pa-3">
                   <template v-slot:prepend>
@@ -576,12 +545,20 @@ export default {
           color: "error",
         },
         {
+          title: "Historia Clínica",
+          description: "Registro médico y bienestar",
+          icon: "mdi-heart-pulse",  // Icono de corazón/pulso (típico para salud)
+          to: "/history",            // Ruta sugerida
+          color: "pink",            // Color que asocia con salud
+          // Alternativa de color: "red" para algo más estándar
+        },
+        /*{
           title: "Productos",
           description: "Catálogo de productos",
           icon: "mdi-package-variant",
           to: "/product",
           color: "purple",
-        },
+        },*/
         {
           title: "Archivos",
           description: "Documentos importantes",

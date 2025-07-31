@@ -19,25 +19,68 @@
       </v-col>
     </v-row>
   </v-snackbar>
-    <v-container class="pa-4 bg-grey-lighten-4">
-    <v-card class="bg-transparent" elevation="0" variant="flat">
-        <v-card-text>
-    <v-row justify="space-between" align="center" class="mb-6">
-          <h2 class="text-body-2 font-weight-bold">
-            {{ $t('product.listing.title') }}
-          </h2>
-          <v-btn icon color="deep-purple-accent-4" variant="flat" class="elevation-3" @click="showAddProduct"
-          :loading="loadingProduct">
-            <v-icon>mdi-plus</v-icon>
-          </v-btn>
-        </v-row>
-        <v-row>
-    <!-- Productos del almacén seleccionado -->
-    <v-col cols="12" class="pa-0 pt-4">
+  <v-container class="pa-4">
+  <v-toolbar color="#03626C">
+    <v-row align="start">
+      <v-col cols="12" md="8" class="grow ml-4">
+        <span class="text-subtitle-1">
+          <strong>{{ $t("product.listing.title") }}</strong>
+        </span>
+      </v-col>
+    </v-row>
+  </v-toolbar>
+
+  <!--<v-container justify="center" fluid>-->
+    <!-- Menú de almacenes -->
     <v-row>
+      <v-col cols="12">
+        <v-toolbar flat class="pa-0" style="overflow-x: auto; white-space: nowrap">
+          <v-btn-group>
+            <v-btn
+              v-for="store in stores"
+              :key="store.warehouse_id"
+              :color="
+                store.warehouse_id === editedItem.warehouse_id ? '#03626C' : 'default'
+              "
+              @click="selectStore(store.warehouse_id)"
+              :disabled="loading"
+            >
+              <v-progress-circular
+                v-if="loading && store.warehouse_id === editedItem.warehouse_id"
+                indeterminate
+                color="white"
+                size="24"
+                class="mr-2"
+              ></v-progress-circular>
+              {{ store.title }}
+            </v-btn>
+          </v-btn-group>
+        </v-toolbar>
+      </v-col>
+    </v-row>
+
+    <!-- Botón para agregar productos -->
+    <v-row>
+      <v-col cols="12" class="text-right">
+        <v-btn
+          class="text-subtitle-1"
+          color="#DA7171"
+          variant="flat"
+          elevation="2"
+          prepend-icon="mdi-plus-circle"
+          @click="showAddProduct"
+          :loading="loadingProduct"
+        >
+          {{ $t("product.listing.addButton") }}
+        </v-btn>
+      </v-col>
+    </v-row>
+
+    <!-- Productos del almacén seleccionado -->
+    <v-row v-if="selectedStore">
       <template v-if="paginatedProducts.length > 0">
         <v-col v-for="product in paginatedProducts" :key="product.id" cols="12" md="3">
-          <v-card class="mx-auto rounded-lg" max-width="35vh">
+          <v-card class="mx-auto my-4 rounded-lg" max-width="35vh">
             <v-img
               height="25vh"
               :src="`${$axios.defaults.baseURL}images/${product.image}`"
@@ -98,10 +141,6 @@
         ></v-pagination>
       </v-col>
     </v-row>
-    </v-col>
-    </v-row>
-    </v-card-text>
-    </v-card>
     </v-container>
 
     <!-- Crear/Editar Producto -->
@@ -611,12 +650,6 @@
 import LocalStorageService from "@/LocalStorageService";
 import { handleRequest } from "@/utils/api"; // Ruta al archivo
 export default {
-  props: {
-      warehouseData: {
-      type: Object,
-      default: null,
-    },
-  },
   data: () => ({
     steps: [
       { title: "basic", subtitle: "basic_information" },
@@ -641,6 +674,7 @@ export default {
     products: [],
     categories: [],
     status: [],
+    warehouse_id: "",
     home_id: "",
     // Paginación
     currentPage: 1,
@@ -852,15 +886,15 @@ export default {
       return [(v) => !!v || this.$t("product.validation.required")];
     },
     // Obtener el almacén seleccionado
-    /*selectedStore() {
-      const store = this.warehouseData.find(
+    selectedStore() {
+      const store = this.stores.find(
         (store) => store.warehouse_id === this.editedItem.warehouse_id
       );
       if (store) {
         this.selectStore(store.warehouse_id);
       }
       return store;
-    },*/
+    },
     // Productos paginados
     paginatedProducts() {
       if (!this.products.length) return [];
@@ -909,8 +943,7 @@ export default {
   },
   mounted() {
     this.home_id = LocalStorageService.getItem("home_id");
-    this.editedItem.warehouse_id = this.warehouseData.warehouse_id;
-    this.showPersonProducts();
+    this.initialize();
   },
   methods: {
     calculateTotalPrice() {
@@ -958,12 +991,12 @@ export default {
       return "mdi-help-circle";
     },
     // Cambiar almacén seleccionado
-    /*selectStore(warehouse_id) {
+    selectStore(warehouse_id) {
       this.editedItem.warehouse_id = warehouse_id;
       this.currentPage = 1; // Reiniciar paginación al cambiar almacén
       this.showPersonProducts();
-    },*/
-    /*async initialize() {
+    },
+    async initialize() {
       this.data = {};
       this.data.home_id = this.home_id;
       try {
@@ -998,7 +1031,7 @@ export default {
         this.loading = false;
         this.showPersonProducts();
       }
-    },*/
+    },
     async showPersonProducts() {
       this.products = [];
       this.data = {};

@@ -17,16 +17,13 @@
         <v-card class="pt-4 mb-8 rounded-lg" elevation="2">
           <!-- Chat Body -->
           <div ref="chatBody" class="px-4 py-2">
-            <div v-for="(message, index) in chatMessages" :key="index" class="mb-8"
+            <div v-for="(message, index) in chatMessages" :key="index" class="d-flex mb-8"
               :class="message.from === 'user' ? 'justify-end' : 'justify-start'">
-              <!-- Contenedor principal del mensaje - Añadido w-100 aquí -->
-              <div class="d-flex align-end w-100" :class="message.from === 'user' ? 'flex-row-reverse' : ''">
-                <!-- Avatar solo para mensajes de AI -->
+              <div class="d-flex align-end" :class="message.from === 'user' ? 'flex-row-reverse' : ''">
                 <v-avatar v-if="message.from === 'ai'" size="28" class="mb-2 mr-3">
                   <v-img src="@/assets/logo-verde.png" alt="Imagen de perfil" />
                 </v-avatar>
 
-                <!-- Contenedor del mensaje/burbuja - Modificado para modo edición -->
                 <div :class="[
             'rounded-xl',
             message.from === 'user' 
@@ -35,7 +32,8 @@
             message.isEditing 
               ? 'pa-4'  // Estilo cuando está en edición
               : 'px-8 py-3'  // Estilo normal
-          ]" style="min-width: 0; max-width: 100%; width: fit-content">
+          ]"
+          style="min-width: 0; max-width: 100%; width: fit-content" >
                   <!-- Campo editable (modo edición) -->
                   <template v-if="message.isEditable && message.isEditing">
 

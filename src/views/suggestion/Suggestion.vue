@@ -20,8 +20,8 @@
     </v-row>
   </v-snackbar>
   
-  <v-container class="pa-4">
-  <v-card class="pa-4" elevation="4" rounded="lg" style="max-height: 100vh; min-height: 40vh; overflow-y: auto">
+  <v-container>
+    <v-card class="pa-4" elevation="4" rounded="lg">
       <!-- Encabezado con foto y datos -->
       <v-card-text>
     <!-- Encabezado -->

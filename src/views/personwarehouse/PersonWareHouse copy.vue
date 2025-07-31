@@ -1,6 +1,14 @@
 <template>
-  <v-snackbar class="mt-12 rounded-lg" location="right top" :timeout="sb_timeout" :color="sb_type" elevation="24"
-    :multi-line="true" vertical v-model="snackbar">
+  <v-snackbar
+    class="mt-12 rounded-lg"
+    location="right top"
+    :timeout="sb_timeout"
+    :color="sb_type"
+    elevation="24"
+    :multi-line="true"
+    vertical
+    v-model="snackbar"
+  >
     <v-row>
       <v-col md="2">
         <v-avatar :icon="sb_icon" color="sb_type" size="40"></v-avatar>
@@ -11,87 +19,117 @@
       </v-col>
     </v-row>
   </v-snackbar>
-  <v-container>
-    <v-card class="pa-4" elevation="4" rounded="lg">
+  <v-container class="pa-4">
+  <v-card class="pa-4" elevation="4" rounded="lg">
       <!-- Encabezado con foto y datos -->
       <v-card-text>
-        <!-- Encabezado -->
-        <v-row justify="space-between" align="center" class="mb-6">
-           <h2 class="text-body-2 font-weight-bold">{{ $t("warehouse.list.title") }}</h2>
-          <v-btn icon color="deep-purple-accent-4" variant="flat" class="elevation-3" @click="showAddWareHouse">
-            <v-icon>mdi-plus</v-icon>
-          </v-btn>
-        </v-row>
-        <v-row>
-        <v-col cols="12" class="pa-0 pt-4">
-          <v-row>
-            <template v-for="(warehouse, index) in personwarehouses" :key="index">
-              <v-col cols="12" sm="6" md="3">
-                <v-card elevation="2" density="comfortable" @click="showProducts(warehouse)" class="rounded-lg">
-                  <v-card-item class="pa-3">
-                    <template v-slot:prepend>
-                      <div class="icono-concavo">
-                        <v-icon icon="mdi-store-outline" color="error" size="x-large"></v-icon>
-                      </div>
-                    </template>
-
-                    <div class="title-container">
-                      <v-card-title class="text-body-2 text-truncate">
-                        {{ warehouse.title }}
-                        <v-tooltip activator="parent" location="bottom" max-width="350px">
-                          <span style="white-space: normal; word-break: break-word">
-                            {{ $t("warehouse.fields.name") }}: {{ warehouse.title }}
-                          </span>
-                        </v-tooltip>
-                      </v-card-title>
-                      
-                      <div 
-                        v-if="warehouse.productCount > 0" 
-                        class="dynamic-circle"
-                        :class="{
-                          'bg-primary': warehouse.color === 'primary',
-                          'bg-error': !warehouse.color || warehouse.color === 'error'
-                        }"
-                      >
-                        {{ warehouse.productCount }}
-                      </div>
-                    </div>
-
-                    <v-card-subtitle class="pt-0 text-truncate">
-                      <span class="text-body-2">
-                        {{ warehouse.description }}
-                      </span>
-                      <v-tooltip activator="parent" location="bottom" max-width="350px">
-                        <span style="white-space: normal; word-break: break-word">
-                          {{ $t("warehouse.fields.description") }}: {{ warehouse.description }}
-                        </span>
-                      </v-tooltip>
-                    </v-card-subtitle>
-                  </v-card-item>
-                </v-card>
+    <!-- Encabezado -->
+    <v-row justify="space-between" align="center" class="mb-6">
+      <h2 class="text-body-2 font-weight-bold">{{ $t("warehouse.list.title") }}</h2>
+      <v-btn
+        icon
+        color="deep-purple-accent-4"
+        variant="flat"
+        class="elevation-3"
+        @click="showAddWareHouse"
+      >
+        <v-icon>mdi-plus</v-icon>
+      </v-btn>
+    </v-row>
+     <v-card
+        v-for="(warehouse, index) in personwarehouses"
+        :key="index"
+        class="mb-3 rounded-lg pa-2"
+        elevation="2"
+      >
+      <v-row>
+             <v-col cols="4" class="d-flex align-center pe-4 gap-2">
+              <div>
+                <div class="text-body-2 font-weight-bold">
+                  <span>
+                    {{ warehouse.title }}
+                  </span>
+                  <v-tooltip activator="parent" location="bottom" max-width="350px">
+                    <span style="white-space: normal; word-break: break-word">{{ $t('warehouse.fields.name') }}: {{
+                      warehouse.title }}</span>
+                  </v-tooltip>
+                </div>
+                <div class="text-caption d-flex align-center text-grey-darken-1">
+                  <span>
+                    {{ warehouse.description }}
+                  </span>
+                  <v-tooltip activator="parent" location="bottom" max-width="350px">
+                    <span style="white-space: normal; word-break: break-word">{{ $t('warehouse.fields.description') }}: {{ warehouse.description }}</span>
+                  </v-tooltip>
+                </div>
+              </div>
               </v-col>
-            </template>
-          </v-row>
-        </v-col>
-        </v-row>
-        <v-row>
-        <v-divider class="my-4" />
+              <v-col cols="4" class="d-flex align-center pe-4 gap-2">
+                <div class="text-body-2">
+                  <span>
+                    {{ warehouse.location}}
+                  </span>
+                  <v-tooltip activator="parent" location="bottom" max-width="350px">
+                    <span style="white-space: normal; word-break: break-word">{{ $t("warehouse.fields.home_location") }}:
+                      {{ warehouse.location}}</span>
+                  </v-tooltip>
+                </div>
+              </v-col>
+              <v-col cols="2" class="d-flex align-center pe-4 gap-2">
+                <div class="text-body-2">
+                  <span>
+                    {{
+            warehouse.status === 0
+              ? $t("warehouse.status.public")
+              : $t("warehouse.status.private")
+          }}
+                  </span>
+                  <v-tooltip activator="parent" location="bottom" max-width="350px">
+                    <span style="white-space: normal; word-break: break-word">{{ $t("warehouse.fields.status") }}:
+                     {{
+            warehouse.status === 0
+              ? $t("warehouse.status.public")
+              : $t("warehouse.status.private")
+          }}</span>
+                  </v-tooltip>
+                </div>
+              </v-col>
 
-        <SuggestionsList
-          :items="suggestions"
-          :title="$t('finances.sections.suggestions')"
-          icon="mdi-finance"
-        >
-          <template #detail="{ taskData, onClose }">
-            <ChatTask :taskData="taskData" @close-dialog="onClose" />
-          </template>
-        </SuggestionsList>
+          <!-- Acciones -->
+         <v-col cols="1" class="d-flex align-center ml-auto pe-4">
+                <div class="d-flex">
+            <v-btn
+              icon
+              variant="text"
+              color="green-darken-2"
+              size="small"
+              @click="editItem(warehouse)"
+            >
+              <v-icon>mdi-pencil</v-icon>
+            </v-btn>
+            <v-btn
+              icon
+              variant="text"
+              color="red-darken-2"
+              size="small"
+              @click="deleteItem(warehouse)"
+            >
+              <v-icon>mdi-delete</v-icon>
+            </v-btn>
+            </div>
+          </v-col>
         </v-row>
-      </v-card-text>
-    </v-card>
+      </v-card>
+    </v-card-text>
+  </v-card>
   </v-container>
-  <v-dialog v-model="dialog" fullscreen persistent transition="dialog-bottom-transition"
-    content-class="fullscreen-dialog">
+  <v-dialog
+    v-model="dialog"
+    fullscreen
+    persistent
+    transition="dialog-bottom-transition"
+    content-class="fullscreen-dialog"
+  >
     <v-form ref="form" v-model="valid" class="h-100">
       <v-card class="pa-10">
         <v-card-text class="pt-12">
@@ -104,19 +142,25 @@
             <!-- Side steps -->
             <v-col cols="3">
               <v-timeline align="start" side="end" dense>
-                <v-timeline-item v-for="(s, index) in steps" :key="index" :dot-color="
+                <v-timeline-item
+                  v-for="(s, index) in steps"
+                  :key="index"
+                  :dot-color="
                     step > index
                       ? 'green'
                       : step === index
                       ? 'deep-purple'
                       : 'grey-lighten-1'
-                  " :icon="
+                  "
+                  :icon="
                     step >= index
                       ? step === index
                         ? `mdi-numeric-${index + 1}`
                         : 'mdi-check'
                       : null
-                  " size="large">
+                  "
+                  size="large"
+                >
                   <template #opposite>
                     <div class="text-end">
                       <strong>{{ $t(`warehouse.steps.${s.title}.title`) }}</strong>
@@ -138,14 +182,24 @@
               <!-- Paso 1: Información básica -->
               <v-row dense v-if="step === 0">
                 <v-col cols="12" md="12" v-show="editedIndex === -1">
-                  <v-autocomplete v-model="editedItem.warehouse_id" :items="warehouses"
-                    :label="$t('warehouse.fields.warehouse')" item-title="title" item-value="id" variant="underlined">
+                  <v-autocomplete
+                    v-model="editedItem.warehouse_id"
+                    :items="warehouses"
+                    :label="$t('warehouse.fields.warehouse')"
+                    item-title="title"
+                    item-value="id"
+                    variant="underlined"
+                  >
                     <template v-slot:item="{ props, item }">
                       <v-list-item v-bind="props">
                         <v-list-item-subtitle class="d-flex flex-column">
                           <v-tooltip location="top right">
                             <template v-slot:activator="{ props }">
-                              <div class="description-text" v-bind="props" :title="item.raw.description">
+                              <div
+                                class="description-text"
+                                v-bind="props"
+                                :title="item.raw.description"
+                              >
                                 {{ $t("warehouse.fields.description") }}:
                                 {{ item.raw.description }}
                               </div>
@@ -154,7 +208,11 @@
                           </v-tooltip>
                           <v-tooltip location="top right">
                             <template v-slot:activator="{ props }">
-                              <div class="description-text" v-bind="props" :title="item.raw.location">
+                              <div
+                                class="description-text"
+                                v-bind="props"
+                                :title="item.raw.location"
+                              >
                                 {{ $t("warehouse.fields.home_location") }}:
                                 {{ item.raw.location }}
                               </div>
@@ -168,42 +226,73 @@
                 </v-col>
 
                 <v-col cols="12" md="12">
-                  <v-text-field v-model="editedItem.title" clearable :label="$t('warehouse.fields.name')"
-                    variant="underlined" :rules="nameRules"></v-text-field>
+                  <v-text-field
+                    v-model="editedItem.title"
+                    clearable
+                    :label="$t('warehouse.fields.name')"
+                    variant="underlined"
+                    :rules="nameRules"
+                  ></v-text-field>
                 </v-col>
 
                 <v-col cols="12" md="12">
-                  <v-text-field v-model="editedItem.location" clearable :label="$t('warehouse.fields.home_location')"
-                    variant="underlined" :rules="locationRules"></v-text-field>
+                  <v-text-field
+                    v-model="editedItem.location"
+                    clearable
+                    :label="$t('warehouse.fields.home_location')"
+                    variant="underlined"
+                    :rules="locationRules"
+                  ></v-text-field>
                 </v-col>
               </v-row>
 
               <!-- Paso 2: Configuración adicional -->
               <v-row dense v-if="step === 1">
                 <v-col cols="12" md="6">
-                  <v-select v-model="editedItem.status" :items="[
+                  <v-select
+                    v-model="editedItem.status"
+                    :items="[
                       { id: 0, label: $t('warehouse.status.public') },
                       { id: 1, label: $t('warehouse.status.private') },
-                    ]" item-title="label" item-value="id" :label="$t('warehouse.fields.status')" variant="underlined"
-                    :rules="statusRules"></v-select>
+                    ]"
+                    item-title="label"
+                    item-value="id"
+                    :label="$t('warehouse.fields.status')"
+                    variant="underlined"
+                    :rules="statusRules"
+                  ></v-select>
                 </v-col>
 
                 <v-col cols="12" md="12">
-                  <v-textarea v-model="editedItem.description" clearable :label="$t('warehouse.fields.description')"
-                    variant="underlined" :rules="descriptionRules"></v-textarea>
+                  <v-textarea
+                    v-model="editedItem.description"
+                    clearable
+                    :label="$t('warehouse.fields.description')"
+                    variant="underlined"
+                    :rules="descriptionRules"
+                  ></v-textarea>
                 </v-col>
               </v-row>
 
               <div class="d-flex justify-space-between mt-8">
-                <v-btn variant="text" class="text-grey-darken-1" @click="step > 0 ? step-- : this.close()">
+                <v-btn
+                  variant="text"
+                  class="text-grey-darken-1"
+                  @click="step > 0 ? step-- : this.close()"
+                >
                   {{ step === 0 ? $t("buttons.close") : $t("buttons.previous") }}
                 </v-btn>
 
-                <v-btn variant="text" class="text-deep-purple-accent-3" @click="nextStep" :disabled="!valid">
+                <v-btn
+                  variant="text"
+                  class="text-deep-purple-accent-3"
+                  @click="nextStep"
+                  :disabled="!valid"
+                >
                   {{
-                  step === steps.length - 1
-                  ? $t("buttons.saveAndClose")
-                  : $t("buttons.next")
+                    step === steps.length - 1
+                      ? $t("buttons.saveAndClose")
+                      : $t("buttons.next")
                   }}
                 </v-btn>
               </div>
@@ -217,29 +306,20 @@
   <v-dialog v-model="dialogDelete" max-width="500px">
     <v-card>
       <v-toolbar color="#DA7171">
-        <span class="text-subtitle-2 ml-4"> <span class="text-subtitle-2 ml-4"> {{ $t('deleteDialog.title', { item:
-            $t(`deleteDialog.items.warehouse`) }) }}</span></span>
+        <span class="text-subtitle-2 ml-4"> <span class="text-subtitle-2 ml-4"> {{ $t('deleteDialog.title', { item: $t(`deleteDialog.items.warehouse`) }) }}</span></span>
       </v-toolbar>
-      <v-card-text class="mt-2 mb-2"> {{ $t('deleteDialog.message') }}</v-card-text>
+      <v-card-text class="mt-2 mb-2">  {{ $t('deleteDialog.message') }}</v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn color="grey" variant="flat" @click="closeDelete">{{ $t('taskForm.buttons.cancel') }}</v-btn>
-        <v-btn color="#03626C" variant="flat" :loading="loading" @click="deleteItemConfirm">{{
-          $t('taskForm.buttons.confirmDelete') }}</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-  <v-dialog v-model="dialogProduct" fullscreen transition="dialog-bottom-transition">
-    <v-card class="bg-grey-lighten-4">
-      <v-card-text class="bg-grey-lighten-4">
-        <!-- Aquí pasamos el 'selectedWorker' al componente dentro del diálogo -->
-        <Product :warehouseData="warehouseData" />
-      </v-card-text>
-      <v-divider></v-divider>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn @click="closeDialogProduct">Cerrar</v-btn>
+        <v-btn
+          color="#03626C"
+          variant="flat"
+          :loading="loading"
+          @click="deleteItemConfirm"
+          >{{ $t('taskForm.buttons.confirmDelete') }}</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -248,19 +328,9 @@
 <script>
 import LocalStorageService from "@/LocalStorageService";
 import { handleRequest } from "@/utils/api"; // Ruta al archivo
-import Product from "../product/Product.vue";
-import SuggestionsList from "../suggestion/SuggestionsList.vue";
-import ChatTask from "../chat/ChatTask.vue";
 export default {
-    components: {
-    Product,
-    SuggestionsList,
-    ChatTask
-  },
   data: () => ({
     snackbar: false,
-    dialogProduct: false,
-    warehouseData: {},
     step: 0,
     steps: [
       {
@@ -284,8 +354,6 @@ export default {
     warehouses: [],
     home_id: "",
     personwarehouses: [],
-    suggestions: [],
-    statusuggestions: [],
     data: {},
     headers: [
       { title: "warehouse.list.columns.name", value: "title", width: "25%" },
@@ -415,14 +483,6 @@ export default {
     this.initialize();
   },
   methods: {
-    showProducts(warehouse) {
-      this.warehouseData = warehouse;
-      this.dialogProduct = true;
-    },
-    closeDialogProduct() {
-      this.dialogProduct = false; // Cerramos el diálogo
-      this.initialize();
-    },
     nextStep() {
       if (this.step < this.steps.length - 1) {
         this.step++;
@@ -495,13 +555,9 @@ export default {
         if (result.success) {
           // Si la solicitud es exitosa, asignamos las sucursales
           this.personwarehouses = result.data?.store || [];
-          this.suggestions = result.data?.suggestions || [];
-          this.statusuggestions = result.data?.statusuggestions || [];
         } else {
           // Si no hay datos, asignamos un array vacío
           this.personwarehouses = [];
-          this.suggestions = [];
-          this.statusuggestions = [];
           //this.showAlert('success', result.message || 'No hay almacénes disponibles.', 3000);
         }
       } catch (error) {
@@ -666,56 +722,6 @@ export default {
 };
 </script>
 <style scoped>
-.title-container {
-  display: flex;
-  align-items: center;
-  min-width: 0; /* Fundamental para el truncado */
-  width: 100%;
-}
-
-.v-card-title {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex: 1 1 auto;
-  min-width: 0; /* Necesario para el truncado */
-}
-
-.dynamic-circle {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-weight: bold;
-  color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  flex-shrink: 0; /* Evita que se reduzca */
-  margin-left: 8px;
-}
-
-/* Clases de color para el círculo */
-.dynamic-circle.primary {
-  background-color: #03626c;
-}
-.dynamic-circle.error {
-  background-color: #f44336;
-}
-
-.icono-concavo {
-  width: 50px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-  margin-right: 8px;
-  color: white;
-  position: relative;
-  overflow: hidden;
-}
 .avatar-border {
   border: 2px solid #000;
   /* Aquí se define el borde */

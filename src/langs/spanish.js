@@ -96,6 +96,10 @@ const spanish = {
         title: "Sugerencias",
         description: "Recomendaciones y propuestas",
       },
+      history: {
+        title: "Historia Clínica",
+        description: "Registros médicos y evolución de salud",
+      },
     },
     viewTitles: {
       physicalExams: "Exámenes Físicos",
@@ -218,7 +222,7 @@ const spanish = {
         default: "elemento",
         budget: "presupuesto",
         income: "ingreso",
-        expense: "gasto"
+        expense: "gasto",
       },
     },
     personDetails: {
@@ -644,7 +648,7 @@ const spanish = {
         total: "Total",
         budget: "Presupuesto",
         category: "Categoría",
-        currency: "Moneda"
+        currency: "Moneda",
       },
       actions: {
         viewFile: "Ver Comprobante",
@@ -867,7 +871,7 @@ const spanish = {
     },
     product: {
       listing: {
-        title: "Listado de Productos por Almacenes",
+        title: "Listado de productos",
         addButton: "Agregar Producto",
         description: "Descripción",
         quantity: "Cantidad",

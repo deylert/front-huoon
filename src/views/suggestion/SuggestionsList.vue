@@ -15,13 +15,12 @@
         >
           <v-row >
             <!-- Fecha -->
-            <v-col cols="1" class="pa-4 d-flex flex-column align-center">
+            <v-col cols="1" class="d-flex justify-start">
             <div
-                  class="icono-concavo d-flex flex-column justify-center align-center mr-2"
+                  class="icono-concavo d-flex flex-column justify-center justify-start"
                   :class="`bg-${getTypeColor(item.type)}`"
-                  style="min-height: 48px; min-width: 48px"
                 >
-              <div class="text-body-2 font-weight-medium">
+              <div class="date-display">
                     {{ formatIntuitiveDate(item.start_date) }}
                   </div>
               </div>
@@ -29,7 +28,7 @@
 
             <!-- Contenido principal -->
             <v-col cols="8" class="d-flex align-center pe-4 gap-2">
-              <v-row align="center" no-gutters>
+              <v-row align="center">
                 <v-icon
                   class="me-2"
                   :color="item.source === 'ia' ? 'deep-purple' : 'blue'"
@@ -278,18 +277,37 @@ export default {
 <style scoped>
 
 .icono-concavo {
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 10px;
-  margin-right: 5px;
   color: white;
   /* Mantenemos solo el efecto cóncavo en el ícono 
   box-shadow: inset;*/
   position: relative;
   overflow: hidden;
+}
+
+.icono-concavo::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  border-radius: 8px;
+  background: transparent;
+}
+
+.date-display {
+  font-size: 0.75rem; /* Equivale a text-caption */
+  line-height: 1.1;
+  font-weight: 500;
+  text-align: center;
+  word-break: break-word;
+  white-space: normal;
 }
 .smooth-hover {
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;

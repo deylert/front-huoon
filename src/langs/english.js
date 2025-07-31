@@ -95,6 +95,10 @@ const english = {
         title: "Suggestions",
         description: "Recommendations and proposals",
       },
+      history: {
+        title: "Medical History",
+        description: "Health records and medical evolution",
+      },
     },
     viewTitles: {
       physicalExams: "Physical Exams",
@@ -217,7 +221,7 @@ const english = {
         default: "item",
         budget: "budget",
         income: "income",
-        expense: "expense"
+        expense: "expense",
       },
     },
     personDetails: {
@@ -640,7 +644,7 @@ const english = {
         attach_file: "Attach Receipt",
         budget: "Budget", // New field
         category: "Category", // Also recommended if missing
-        currency: "Currency"
+        currency: "Currency",
       },
       actions: {
         viewFile: "View Receipt",
@@ -864,7 +868,7 @@ const english = {
     },
     product: {
       listing: {
-        title: "Products by Warehouses List",
+        title: "Products list",
         addButton: "Add Product",
         description: "Description",
         quantity: "Quantity",

@@ -749,7 +749,7 @@ export default {
       { title: "Estados", icon: "mdi-check-circle-outline", to: "/status" },
       { title: "Tipos de Hogar", icon: "mdi-home-group", to: "/hometype" },
       { title: "Tipos de Salud", icon: "mdi-heart-pulse", to: "/type" },
-      { title: "Historias Clínicas", icon: "mdi-clipboard-text-outline", to: "/history" },
+      //{ title: "Historias Clínicas", icon: "mdi-clipboard-text-outline", to: "/history" },
       /*{ title: "Consultas Médicas", icon: "mdi-stethoscope", to: "/consultation" },
       { title: "Exámenes Médicos", icon: "mdi-microscope", to: "/exam" },
       {

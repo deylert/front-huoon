@@ -57,7 +57,7 @@
                     </div>
 
                     <!-- Selector de categoría -->
-                    <div v-if="message.fieldKey === 'category_id'">
+                    <div v-else-if="message.fieldKey === 'category_id'">
                       <v-autocomplete v-model="message.editValue" :items="message.availableCategories || categories"
                         :label="message.fieldLabel" item-title="nameCategory" item-value="id" variant="outlined"
                         density="comfortable" style="width: auto; min-width: 20em" return-object hide-details
@@ -109,13 +109,12 @@
                     <v-textarea v-else-if="['title', 'description'].includes(message.fieldKey)"
                       v-model="message.editValue" :label="message.fieldLabel" variant="outlined" density="comfortable"
                       style="width: auto; min-width: 50em" :ref="(el) => setTextFieldRef(el, index)" autofocus auto-grow
-                      rows="2" no-resize @keyup.enter="saveFieldEdit(index)" @blur="saveFieldEdit(index)"></v-textarea>
+                      rows="2" no-resize @keyup.enter="saveFieldEdit(index)"></v-textarea>
 
                     <!-- Textfield estándar -->
                     <v-text-field v-else v-model="message.editValue" :label="message.fieldLabel" variant="outlined"
                       density="comfortable" style="width: auto; min-width: 10em"
-                      :ref="(el) => setTextFieldRef(el, index)" autofocus no-resize @keyup.enter="saveFieldEdit(index)"
-                      @blur="saveFieldEdit(index)"></v-text-field>
+                      :ref="(el) => setTextFieldRef(el, index)" autofocus no-resize @keyup.enter="saveFieldEdit(index)"></v-text-field>
 
                     <!-- Botones de acción -->
                     <!--<div class="d-flex justify-end" style="gap: 8px">
@@ -158,7 +157,7 @@
                       </div>
                       <div class="d-flex flex-wrap gap-2">
                         <v-btn v-for="(button, btnIndex) in message.buttons" :key="btnIndex" :color="button.color"
-                          :variant="button.variant" @click="button.action" class="text-none" size="small"
+                          :variant="button.variant" @click="button.action" class="text-none" size="small" :disabled="button.disabled"
                           v-bind="button.props || {}">
                           {{ button.text }}
                         </v-btn>
@@ -326,6 +325,8 @@ export default {
       currentFinance: null,
       currentWarehouse: null,
       currentProduct: null,
+      editingFieldKey: null,
+       editingFieldIndex: null,
       currentIntentFinance: null,
       isInitialCategorySelection: false,
       textoTemporal: "",
@@ -635,16 +636,16 @@ export default {
       this.textFieldRefs[index] = el;
     },
     startFieldEdit(index) {
-      this.chatMessages[index].isEditing = true;
-      this.chatMessages[index].editValue = this.chatMessages[index].currentValue;
+      const message = this.chatMessages[index];
+       this.editingFieldIndex = index; // ✅ Guardamos el índice
+        this.editingFieldKey = message.fieldKey; // ✅ Opcional: guardamos también la clave
 
-      if (["start_date", "end_date"].includes(this.chatMessages[index].fieldKey)) {
+      message.isEditing = true;
+      message.editValue = message.currentValue;
+
+      if (["start_date", "end_date"].includes(message.fieldKey)) {
         this.$nextTick(() => {
-          this.chatMessages[index].showDatePicker = true;
-        });
-      } else if (["start_time", "end_time"].includes(this.chatMessages[index].fieldKey)) {
-        this.$nextTick(() => {
-          this.chatMessages[index].showTimePicker = true;
+          message.showDatePicker = true;
         });
       } else {
         this.$nextTick(() => {
@@ -666,60 +667,66 @@ export default {
       }
     },
     async saveFieldEdit(index) {
-      console.log("saveFieldEdit", index);
-      const message = this.chatMessages[index];
-      console.log("Mensaje a guardar:", message);
-      
-      try {
-        let valueToValidate = message.editValue;
+  console.log("saveFieldEdit", index);
+  const message = this.chatMessages[index];
+  console.log("Mensaje a guardar:", message);
 
-        // Caso especial para category_id
-        if (message.fieldKey === "category_id" && typeof valueToValidate === "object" && valueToValidate !== null) {
-          valueToValidate = valueToValidate.id;
-        }
+  try {
+    let valueToValidate = message.editValue;
 
-        const validatedValue = this.validateField(message.fieldKey, valueToValidate);
-        this.budgetParameters[message.fieldKey] = validatedValue;
+    // Caso especial: category_id (si es objeto, extraer id)
+    if (message.fieldKey === "category_id" && typeof valueToValidate === "object" && valueToValidate !== null) {
+      valueToValidate = valueToValidate.id;
+    }
 
-        // Actualizar el texto mostrado
-        let displayValue = validatedValue;
-        if (message.fieldKey === "category_id" && typeof message.editValue === "object" && message.editValue !== null) {
-          displayValue = message.editValue.nameCategory;
-        }
+    // Validar el valor
+    const validatedValue = this.validateField(message.fieldKey, valueToValidate);
+    this.budgetParameters[message.fieldKey] = validatedValue;
 
-        if (message.fieldKey === "type_id" && typeof message.editValue === "object" && message.editValue !== null) {
-          displayValue = message.editValue.nameTranslated	;
-        }
+    // Calcular valor a mostrar
+    let displayValue = validatedValue;
 
-        message.currentValue = validatedValue;
-        message.text = `• ${message.fieldLabel}: ${displayValue}`;
-        message.isEditing = false;
-        this.scrollToBottom();
+    if (message.fieldKey === "category_id" && typeof message.editValue === "object" && message.editValue !== null) {
+      displayValue = message.editValue.nameCategory;
+    } else if (message.fieldKey === "type_id" && typeof message.editValue === "object" && message.editValue !== null) {
+      displayValue = message.editValue.nameTranslated;
+    }
 
-        // Continuar el flujo solo si:
-        // 1. Es la primera selección de categoría (category_id era null/undefined)
-        // 2. O es cualquier otro campo durante la recolección inicial de datos
-        const shouldContinueFlow = 
-          (message.fieldKey === "category_id" && this.isInitialCategorySelection) ||
-          (message.fieldKey !== "category_id" && this.isInitialDataCollection);
-        
-        if (shouldContinueFlow) {
-          if (message.fieldKey === "category_id") {
-            this.isInitialCategorySelection = false; // Marcar que ya no es la primera selección
-          }
-          await this.startAutomaticDataCollection();
-        } else if (!this.budgetDataCollectionMode) {
-          // Si estamos en modo edición (después de completeCreation)
-          // Actualizar el mensaje de resumen si existe
-          this.updateSummaryMessage();
-        }
-        
-      } catch (error) {
-        this.showAlert("error", error.message, 2000);
-        message.editValue = message.currentValue;
-        message.isEditing = false;
+    // Actualizar mensaje
+    message.currentValue = validatedValue;
+    message.text = `• ${message.fieldLabel}: ${displayValue}`;
+    message.isEditing = false;
+
+    this.scrollToBottom();
+
+    // Determinar si continuar el flujo de recolección
+    const shouldContinueFlow =
+      (message.fieldKey === "category_id" && this.isInitialCategorySelection) ||
+      (message.fieldKey !== "category_id" && this.isInitialDataCollection);
+
+    if (shouldContinueFlow) {
+      if (message.fieldKey === "category_id") {
+        this.isInitialCategorySelection = false;
       }
-    },
+      await this.startAutomaticDataCollection();
+    } else if (!this.budgetDataCollectionMode) {
+      // Modo edición: actualizar resumen
+      this.updateSummaryMessage();
+    }
+
+    // ✅ Limpiar estado de edición
+    this.editingFieldIndex = null;
+    this.editingFieldKey = null;
+
+  } catch (error) {
+    console.error("Error al guardar edición:", error);
+    this.showAlert("error", error.message, 2000);
+    message.editValue = message.currentValue;
+    message.isEditing = false;
+    this.editingFieldIndex = null;
+    this.editingFieldKey = null;
+  }
+},
 
     // Añade este nuevo método
     updateSummaryMessage() {
@@ -763,9 +770,26 @@ export default {
       this.scrollToBottom();
     },
     async sendMessage() {
-      if (this.newMessage.trim()) {
+     const tempMessage = this.newMessage.trim();
+  if (!tempMessage) return;
+
+  // ✅ 1. ¿Estamos editando un campo?
+  if (this.editingFieldIndex !== null) {
+    const index = this.editingFieldIndex;
+    const message = this.chatMessages[index];
+
+    // Simular que el usuario escribió en el campo
+    message.editValue = tempMessage;
+
+    // Guardar
+    await this.saveFieldEdit(index);
+
+    // Limpiar estado
+    this.editingFieldIndex = null;
+    this.newMessage = "";
+    return;
+  } //{
         this.isLoading = true;
-        const tempMessage = this.newMessage;
         this.newMessage = "";
         this.chatMessages.push({
           from: "user",
@@ -1010,7 +1034,7 @@ export default {
           this.isLoading = false;
           this.scrollToBottom();
         }
-      }
+     // }
     },
     async loadRequiredData() {
       this.isLoading = true;
@@ -1506,6 +1530,7 @@ export default {
             text: "Cancelar",
             color: "grey",
             variant: "outlined",
+            disabled: false,
             action: () => this.handleCancellation("no"),
             props: { class: "mr-2", size: "default" }
           },
@@ -1513,6 +1538,7 @@ export default {
             text: "Confirmar y crear",
             color: "primary",
             variant: "flat",
+            disabled: false,
             action: () => this.handleConfirmation("si"),
             props: { size: "default" }
           }
@@ -1528,6 +1554,13 @@ export default {
       this.waitingForConfirmation = false;
 
       if (userResponse.toLowerCase() === "si" || userResponse.toLowerCase() === "sí") {
+        const confirmationMsg = this.chatMessages.find(msg => msg.isConfirmation);
+        if (confirmationMsg) {
+          const confirmButton = confirmationMsg.buttons.find(b => b.text === "Confirmar y crear");
+          if (confirmButton) {
+            confirmButton.disabled = true; // ✅ Deshabilita visualmente
+          }
+        }
         const fieldsToUpdate = [
           "category_id",
           "amount",
@@ -1598,10 +1631,25 @@ export default {
       this.handleCancellation();
     },
     handleCancellation() {
+      const confirmationMsg = this.chatMessages.find(msg => msg.isConfirmation);
+        if (confirmationMsg) {
+          const confirmButton = confirmationMsg.buttons.find(b => b.text === "Confirmar y crear");
+          if (confirmButton) {
+            confirmButton.disabled = true; // ✅ Deshabilita visualmente
+          }
+        }
       this.waitingForConfirmation = false;
       this.budgetParameters.people = [];
       this.budgetParameters = Object.assign({}, this.defaultItem);
       this.originalItem = Object.assign({}, this.defaultItem);
+      const existingOptionMessage = this.chatMessages.find(
+    (msg) =>
+      msg.from === "ai" &&
+      msg.text === "¿Qué deseas hacer ahora?" &&
+      msg.buttons
+  );
+
+  if (!existingOptionMessage) {
       // Mensaje con botones de opción
       this.chatMessages.push({
         from: "ai",
@@ -1629,6 +1677,7 @@ export default {
           },
         ],
       });
+    }
     },
 
     // Método para nueva conversación

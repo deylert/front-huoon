@@ -56,13 +56,14 @@
           color="error"
           variant="outlined"
           @click="cancelSelection"
+          :disabled="buttonsDisabled"
         >
           Cancelar
         </v-btn>
         <v-btn
           color="primary"
           @click="confirmSelection"
-          :disabled="localSelections.length === 0"
+          :disabled="localSelections.length === 0 || buttonsDisabled"
         >
           Confirmar
         </v-btn>
@@ -96,7 +97,8 @@ export default {
     return {
       selectedItems: {},
       localSelections: [...this.initialSelections],
-      assignedPeople: [] // Track personas ya asignadas
+      assignedPeople: [], // Track personas ya asignadas
+      buttonsDisabled: false
     }
   },
   computed: {
@@ -151,6 +153,7 @@ export default {
     },
     
     updateSelection(role, selectedIds) {
+      if (this.buttonsDisabled) return;
       // 1. Eliminar personas que fueron deseleccionadas de este rol
       this.localSelections = this.localSelections.filter(
         p => p.roleId !== role.id || selectedIds.includes(p.id)
@@ -180,11 +183,14 @@ export default {
       });
       
       // Notificar al padre
+      this.buttonsDisabled = true;
       this.$emit('selection-update', this.localSelections);
       this.$forceUpdate(); // Forzar actualización de la UI
     },
     
     cancelSelection() {
+      if (this.buttonsDisabled) return;
+      this.buttonsDisabled = true;
       this.$emit('cancel');
     },
     

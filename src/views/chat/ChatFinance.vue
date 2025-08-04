@@ -133,7 +133,7 @@
                       rows="2"
                       no-resize
                       @keyup.enter="saveFieldEdit(index)"
-                      @blur="saveFieldEdit(index)"
+                      
                     ></v-textarea>
 
                     <!-- Textfield para otros campos -->
@@ -148,7 +148,7 @@
                       autofocus
                       no-resize
                       @keyup.enter="saveFieldEdit(index)"
-                      @blur="saveFieldEdit(index)"
+                      
                     ></v-text-field>
                   </template>
 
@@ -187,6 +187,7 @@
                           class="text-none"
                           size="small"
                           v-bind="button.props || {}"
+                          :disabled="button.disabled"
                         >
                           {{ button.text }}
                         </v-btn>
@@ -404,6 +405,8 @@ export default {
       currentWarehouse: null,
       currentProduct: null,
        transactionType: null,
+       editingFieldKey: null,
+       editingFieldIndex: null,
       isInitialCategorySelection: false,
       textoTemporal: "",
       financeDataCollectionMode: false,
@@ -611,6 +614,7 @@ export default {
 }
   },
   methods: {
+
     closeDialgChat() {
       this.dialogChatTask = false;
       this.dialogChatFinance = false;
@@ -700,10 +704,14 @@ export default {
       this.textFieldRefs[index] = el;
     },
     startFieldEdit(index) {
-      this.chatMessages[index].isEditing = true;
-      this.chatMessages[index].editValue = this.chatMessages[index].currentValue;
+       const message = this.chatMessages[index];
+       this.editingFieldIndex = index; // ✅ Guardamos el índice
+        this.editingFieldKey = message.fieldKey; // ✅ Opcional: guardamos también la clave
 
-      if (["date"].includes(this.chatMessages[index].fieldKey)) {
+      message.isEditing = true;
+      message.editValue = message.currentValue;
+
+      if (["date"].includes(message.fieldKey)) {
         this.$nextTick(() => {
           this.chatMessages[index].showDatePicker = true;
         });
@@ -723,9 +731,27 @@ export default {
       this.scrollToBottom();
     },
     async sendMessage() {
-      if (this.newMessage.trim()) {
-        this.isLoading = true;
-        const tempMessage = this.newMessage;
+
+        const tempMessage = this.newMessage.trim();
+  if (!tempMessage) return;
+
+  // ✅ 1. ¿Estamos editando un campo?
+  if (this.editingFieldIndex !== null) {
+    const index = this.editingFieldIndex;
+    const message = this.chatMessages[index];
+
+    // Simular que el usuario escribió en el campo
+    message.editValue = tempMessage;
+
+    // Guardar
+    await this.saveFieldEdit(index);
+
+    // Limpiar estado
+    this.editingFieldIndex = null;
+    this.newMessage = "";
+    return;
+  }
+  this.isLoading = true;
         this.newMessage = "";
         this.chatMessages.push({
           from: "user",
@@ -991,7 +1017,7 @@ export default {
           this.isLoading = false;
           this.scrollToBottom();
         }
-      }
+     // }
     },
     async loadRequiredData() {
       this.isLoading = true;
@@ -1062,7 +1088,7 @@ export default {
           selectedId: financeData.type,
         },
         timestamp: new Date().toLocaleTimeString(),
-        isEditable: true,
+        isEditable: false,
         fieldKey: "type",
         fieldLabel: "Tipo",
         currentValue: financeData.type,
@@ -1197,68 +1223,109 @@ export default {
     },
 
    async saveFieldEdit(index) {
-      console.log("saveFieldEdit", index);
-      const message = this.chatMessages[index];
-      console.log("Mensaje a guardar:", message);
-      
-      try {
-        // 1. Obtener y validar el valor
-        let valueToValidate = message.editValue;
+  console.log("saveFieldEdit", index);
+  const message = this.chatMessages[index];
+  console.log("Mensaje a guardar:", message);
+  
+  try {
+    // 1. Obtener y validar el valor
+    let valueToValidate = message.editValue;
 
-        // Manejar casos especiales donde el valor es un objeto (selects)
-        if (["budget_id", "type"].includes(message.fieldKey)) {
-          if (typeof valueToValidate === "object" && valueToValidate !== null) {
-            valueToValidate = valueToValidate.id;
-          }
-        }
-
-        const validatedValue = this.validateField(message.fieldKey, valueToValidate);
-        this.financeParameters[message.fieldKey] = validatedValue;
-
-        // 2. Actualizar la visualización del mensaje
-        let displayValue = validatedValue;
-        if (message.fieldKey === "budget_id" && typeof message.editValue === "object") {
-          displayValue = message.editValue.categoryName;
-        } else if (message.fieldKey === "type" && typeof message.editValue === "object") {
-          displayValue = message.editValue.name;
-        } else if (["spent", "income"].includes(message.fieldKey)) {
-          displayValue = `$${parseFloat(validatedValue).toFixed(2)}`;
-        }
-
-        message.currentValue = validatedValue;
-        message.text = `• ${message.fieldLabel}: ${displayValue}`;
-        message.isEditing = false;
-
-        this.scrollToBottom();
-
-        // 3. Determinar qué acción tomar después de guardar
-        const isInitialSelection = (
-          (message.fieldKey === "budget_id" && this.isInitialBudgetSelection) ||
-          (message.fieldKey === "type" && this.isInitialTypeSelection)
-        );
-
-        if (isInitialSelection) {
-          // Caso 1: Es una selección inicial (primer ingreso de datos)
-          if (message.fieldKey === "budget_id") this.isInitialBudgetSelection = false;
-          if (message.fieldKey === "type") this.isInitialTypeSelection = false;
-          
-          await this.startAutomaticDataCollection();
-        } else if (this.financeDataCollectionMode) {
-          // Caso 2: Estamos en modo recolección de datos (no es selección inicial)
-          await this.startAutomaticDataCollection();
-        } else {
-          // Caso 3: Estamos en modo edición (después de completeCreation)
-          this.updateFinanceSummary();
-        }
-
-      } catch (error) {
-        console.error("Error al guardar edición:", error);
-        this.showAlert("error", error.message, 2000);
-        message.editValue = message.currentValue;
-        message.isEditing = false;
+    // Manejar casos especiales donde el valor es un objeto (selects)
+    if (["budget_id", "type"].includes(message.fieldKey)) {
+      if (typeof valueToValidate === "object" && valueToValidate !== null) {
+        valueToValidate = valueToValidate.id;
       }
-    },
+    }
 
+    // Permitir campos opcionales vacíos (si los hay)
+    const optionalFields = []; // Agregar aquí los campos opcionales si existen
+    if (optionalFields.includes(message.fieldKey) && (valueToValidate === null || valueToValidate === "")) {
+      valueToValidate = undefined;
+    }
+
+    const validatedValue = this.validateField(message.fieldKey, valueToValidate);
+    this.financeParameters[message.fieldKey] = validatedValue;
+
+    // 2. Actualizar la visualización del mensaje
+    let displayValue = validatedValue;
+    if (message.fieldKey === "budget_id" && typeof message.editValue === "object") {
+      displayValue = message.editValue.categoryName;
+    } else if (message.fieldKey === "type" && typeof message.editValue === "object") {
+      displayValue = message.editValue.name;
+    } else if (["spent", "income"].includes(message.fieldKey)) {
+      displayValue = `$${parseFloat(validatedValue).toFixed(2)}`;
+    } else if (optionalFields.includes(message.fieldKey) && !validatedValue) {
+      displayValue = "(Seleccionar)";
+    }
+
+    message.currentValue = validatedValue;
+    message.text = `• ${message.fieldLabel}: ${displayValue}`;
+    message.isEditing = false;
+
+    // 3. Recalcular valores dependientes si es necesario
+    // (Agregar lógica similar si hay campos que dependen de otros)
+    
+    this.scrollToBottom();
+
+    // 4. Determinar qué acción tomar después de guardar
+    const isInitialSelection = (
+      (message.fieldKey === "budget_id" && this.isInitialBudgetSelection) ||
+      (message.fieldKey === "type" && this.isInitialTypeSelection)
+    );
+
+    if (isInitialSelection) {
+      // Es la primera vez que se ingresa un dato clave
+      if (message.fieldKey === "budget_id") this.isInitialBudgetSelection = false;
+      if (message.fieldKey === "type") this.isInitialTypeSelection = false;
+
+      await this.startAutomaticDataCollection();
+    }
+    else if (this.financeDataCollectionMode) {
+      // Modo automático: seguir recolectando
+      await this.startAutomaticDataCollection();
+    }
+    else {
+      // Modo edición (después de haber completado)
+      if (this.isFormComplete()) {
+        this.updateFinanceSummary();
+      } else {
+        console.log("Aún faltan campos obligatorios. No se actualiza el resumen completo.");
+        // Opcional: mostrar mensaje al usuario
+        // this.showAlert("error", "Faltan campos obligatorios por completar", 2000);
+      }
+    }
+    
+    this.editingFieldIndex = null;
+  } catch (error) {
+    console.error("Error al guardar edición:", error);
+    this.showAlert("error", error.message, 2000);
+    message.editValue = message.currentValue;
+    message.isEditing = false;
+    this.editingFieldIndex = null;
+  }
+},
+    isFormComplete() {
+      const requiredFields = [
+        "description",
+        "date",
+        "type",
+        // Añade más si "warehouse_id" es obligatorio cuando hay categoría
+      ];
+
+      if(this.transactionType == "Gasto"){
+       requiredFields.push("spent"); 
+       requiredFields.push("bueget_id"); 
+      }
+      if(this.transactionType == "Income"){
+       requiredFields.push("income"); 
+      }
+
+      return requiredFields.every(field => {
+        const value = this.financeParameters[field];
+        return value !== null && value !== undefined && value !== "";
+      });
+    },
     updateFinanceSummary() {
       // Encontrar y eliminar el resumen y confirmación anteriores
       let index = this.chatMessages.length - 1;
@@ -1340,11 +1407,13 @@ export default {
             text:
               "¿Deseas crear esta transacción financiera con los datos proporcionados?",
             timestamp: new Date().toLocaleTimeString(),
+            isConfirmation: true,
             buttons: [
               {
                 text: "Cancelar",
                 color: "grey-darken-1",
                 variant: "outlined",
+                disabled: false,
                 action: () => this.handleCancellation("no"),
                 props: { class: "mr-2", size: "default" },
               },
@@ -1352,6 +1421,7 @@ export default {
                 text: "Confirmar y crear",
                 color: "primary",
                 variant: "flat",
+                disabled: false,
                 action: () => this.handleConfirmation("si"),
                 props: { size: "default" },
               },
@@ -1460,6 +1530,13 @@ export default {
       this.waitingForConfirmation = false;
 
       if (userResponse.toLowerCase() === "si" || userResponse.toLowerCase() === "sí") {
+        const confirmationMsg = this.chatMessages.find(msg => msg.isConfirmation);
+        if (confirmationMsg) {
+          const confirmButton = confirmationMsg.buttons.find(b => b.text === "Confirmar y crear");
+          if (confirmButton) {
+            confirmButton.disabled = true; // ✅ Deshabilita visualmente
+          }
+        }
         const fieldsToUpdate = [
           "home_id",
           "budget_id",
@@ -1539,9 +1616,25 @@ export default {
       this.handleCancellation();
     },
     handleCancellation() {
+      const confirmationMsg = this.chatMessages.find(msg => msg.isConfirmation);
+        if (confirmationMsg) {
+          const confirmButton = confirmationMsg.buttons.find(b => b.text === "Confirmar y crear");
+          if (confirmButton) {
+            confirmButton.disabled = true; // ✅ Deshabilita visualmente
+          }
+        }
       this.waitingForConfirmation = false;
       this.financeParameters = Object.assign({}, this.defaultItem);
       this.originalItem = Object.assign({}, this.defaultItem);
+
+      const existingOptionMessage = this.chatMessages.find(
+    (msg) =>
+      msg.from === "ai" &&
+      msg.text === "¿Qué deseas hacer ahora?" &&
+      msg.buttons
+  );
+
+  if (!existingOptionMessage) {
       // Mensaje con botones de opción
       this.chatMessages.push({
         from: "ai",
@@ -1552,6 +1645,7 @@ export default {
             text: "Salir",
             color: "grey-darken-1",
             variant: "outlined", // Botón con borde
+            disabled: false, // No se puede hacer clic en el botón
             action: () => this.closeDialog(),
             props: {
               class: "mr-2",
@@ -1562,6 +1656,7 @@ export default {
             text: "Nueva conversación",
             color: "primary",
             variant: "flat", // Botón sólido
+            disabled: false, // No se puede hacer clic en el botón
             action: () => this.startNewConversation(),
             props: {
               size: "default",
@@ -1569,6 +1664,7 @@ export default {
           },
         ],
       });
+    }
     },
 
     // Método para nueva conversación

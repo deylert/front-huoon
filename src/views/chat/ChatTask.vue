@@ -79,13 +79,12 @@
                     <v-textarea v-else-if="['title', 'description'].includes(message.fieldKey)"
                       v-model="message.editValue" :label="message.fieldLabel" variant="outlined" density="comfortable"
                       style="width: auto; min-width: 50em" :ref="(el) => setTextFieldRef(el, index)" autofocus auto-grow
-                      rows="2" no-resize @keyup.enter="saveFieldEdit(index)" @blur="saveFieldEdit(index)"></v-textarea>
+                      rows="2" no-resize @keyup.enter="saveFieldEdit(index)"></v-textarea>
 
                     <!-- Textfield para otros campos -->
                     <v-text-field v-else v-model="message.editValue" :label="message.fieldLabel" variant="outlined"
                       density="comfortable" style="width: auto; min-width: 15em" :ref="(el) => setTextFieldRef(el, index)"
-                      autofocus no-resize @keyup.enter="saveFieldEdit(index)"
-                      @blur="saveFieldEdit(index)"></v-text-field>
+                      autofocus no-resize @keyup.enter="saveFieldEdit(index)"></v-text-field>
                   </template>
 
                   <!-- Texto normal -->
@@ -106,7 +105,7 @@
                       </div>
                       <div class="d-flex flex-wrap gap-2">
                         <v-btn v-for="(button, btnIndex) in message.buttons" :key="btnIndex" :color="button.color"
-                          :variant="button.variant" @click="button.action" class="text-none" size="small"
+                          :variant="button.variant" @click="button.action" class="text-none" size="small" :disabled="button.disabled"
                           v-bind="button.props || {}">
                           {{ button.text }}
                         </v-btn>
@@ -271,7 +270,10 @@ export default {
       currentBudget: null,
       currentFinance: null,
       currentWarehouse: null,
+      editingFieldKey: null,
+       editingFieldIndex: null,
       currentIntentFinance: null,
+      saveData: false,
       textoTemporal: "",
       taskDataCollectionMode: false,
       currentTaskIntent: null,
@@ -509,16 +511,20 @@ export default {
       this.textFieldRefs[index] = el;
     },
     startFieldEdit(index) {
-      this.chatMessages[index].isEditing = true;
-      this.chatMessages[index].editValue = this.chatMessages[index].currentValue;
+      const message = this.chatMessages[index];
+       this.editingFieldIndex = index; // ✅ Guardamos el índice
+        this.editingFieldKey = message.fieldKey; // ✅ Opcional: guardamos también la clave
 
-      if (["start_date", "end_date"].includes(this.chatMessages[index].fieldKey)) {
+      message.isEditing = true;
+      message.editValue = message.currentValue;
+
+      if (["start_date", "end_date"].includes(message.fieldKey)) {
         this.$nextTick(() => {
-          this.chatMessages[index].showDatePicker = true;
+          message.showDatePicker = true;
         });
-      } else if (["start_time", "end_time"].includes(this.chatMessages[index].fieldKey)) {
+      } else if (["start_time", "end_time"].includes(message.fieldKey)) {
         this.$nextTick(() => {
-          this.chatMessages[index].showTimePicker = true;
+          message.showTimePicker = true;
         });
       } else {
         this.$nextTick(() => {
@@ -529,7 +535,7 @@ export default {
         });
       }
     },
-    saveFieldEdit(index) {
+    async saveFieldEdit(index) {
       const message = this.chatMessages[index];
       try {
         const validatedValue = this.validateField(message.fieldKey, message.editValue);
@@ -539,16 +545,39 @@ export default {
         message.isEditing = false;
          this.updateExistingTaskSummary();
         this.scrollToBottom();
+        this.editingFieldIndex = null;
+        this.editingFieldKey = null;
       } catch (error) {
         this.showAlert("error", error.message, 2000);
         message.editValue = message.currentValue;
         message.isEditing = false;
+        this.editingFieldIndex = null;
+        this.editingFieldKey = null;
       }
     },
     async sendMessage() {
-      if (this.newMessage.trim()) {
+      const tempMessage = this.newMessage.trim();
+      if (!tempMessage) return;
+
+      // ✅ ¿Estamos editando un campo?
+      if (this.editingFieldIndex !== null) {
+        const index = this.editingFieldIndex;
+        const message = this.chatMessages[index];
+
+        // Simular que el usuario escribió en el campo
+        message.editValue = tempMessage;
+
+        // Guardar
+        await this.saveFieldEdit(index);
+
+        // Limpiar
+        this.editingFieldIndex = null;
+        this.editingFieldKey = null;
+        this.newMessage = "";
+        return;
+      } //{
         this.isLoading = true;
-        const tempMessage = this.newMessage;
+        //const tempMessage = this.newMessage;
         this.newMessage = "";
         this.chatMessages.push({
           from: "user",
@@ -618,39 +647,67 @@ export default {
                 switch (intent) {
             case "Tarea":
               this.$nextTick(async () => {
-                  this.taskParameters = {
-                    ...this.taskParameters,
-                    ...task,
-                  };
-                 this.currentTaskIntent = intent;
-                  this.taskDataCollectionMode = true;
-                  this.chatMessages.push({
-                    from: "ai",
-                    text: `Datos de la  ${this.currentTaskIntent} recibidos. Puedes editarlos antes de confirmar.`,
-                    timestamp: new Date().toLocaleTimeString(),
-                  });
-                  await this.loadRequiredData();
-                  await this.showInitialTaskData(response.data.task);
-                  this.scrollToBottom();
+                            try {
+                    // 1. Primero: Cargar datos necesarios (ej: personas, departamentos, etc.)
+                    await this.loadRequiredData();
+
+                    // 2. Ahora sí: Actualizar parámetros con los datos de la tarea
+                    this.taskParameters = {
+                      ...this.taskParameters,
+                      ...task,
+                    };
+
+                    this.currentTaskIntent = intent;
+                    this.taskDataCollectionMode = true;
+
+                    // 3. Mostrar mensaje en el chat
+                    this.chatMessages.push({
+                      from: "ai",
+                      text: `Datos de la ${this.currentTaskIntent} recibidos. Puedes editarlos antes de confirmar.`,
+                      timestamp: new Date().toLocaleTimeString(),
+                    });
+
+                    // 4. Mostrar datos iniciales (ahora con datos cargados)
+                    await this.showInitialTaskData(task); // ← usa 'task', no 'response.data.task'
+
+                    // 5. Scroll al final
+                    this.scrollToBottom();
+                  } catch (error) {
+                    this.showAlert("error", "Error al procesar la tarea: " + error.message);
+                  }
                 });
               break;
 
             case "Meta":
-              this.$nextTick(async () => {
-                  this.taskParameters = {
-                    ...this.taskParameters,
-                    ...task,
-                  };
-                 this.currentTaskIntent = intent;
-                  this.taskDataCollectionMode = true;
-                  this.chatMessages.push({
-                    from: "ai",
-                    text: `Datos de la  ${this.currentIntent} recibidos. Puedes editarlos antes de confirmar.`,
-                    timestamp: new Date().toLocaleTimeString(),
-                  });
-                  await this.loadRequiredData();
-                  await this.showInitialTaskData(task);
-                  this.scrollToBottom();
+               this.$nextTick(async () => {
+                  try {
+                    // 1. Primero: Cargar datos necesarios (ej: personas, departamentos, etc.)
+                    await this.loadRequiredData();
+
+                    // 2. Ahora sí: Actualizar parámetros con los datos de la tarea
+                    this.taskParameters = {
+                      ...this.taskParameters,
+                      ...task,
+                    };
+
+                    this.currentTaskIntent = intent;
+                    this.taskDataCollectionMode = true;
+
+                    // 3. Mostrar mensaje en el chat
+                    this.chatMessages.push({
+                      from: "ai",
+                      text: `Datos de la ${this.currentTaskIntent} recibidos. Puedes editarlos antes de confirmar.`,
+                      timestamp: new Date().toLocaleTimeString(),
+                    });
+
+                    // 4. Mostrar datos iniciales (ahora con datos cargados)
+                    await this.showInitialTaskData(task); // ← usa 'task', no 'response.data.task'
+
+                    // 5. Scroll al final
+                    this.scrollToBottom();
+                  } catch (error) {
+                    this.showAlert("error", "Error al procesar la tarea: " + error.message);
+                  }
                 });
               break;
               case "Gasto":
@@ -792,7 +849,7 @@ export default {
           this.isLoading = false;
           this.scrollToBottom();
         }
-      }
+      //}
     },
     async loadRequiredData() {
       try {
@@ -844,28 +901,28 @@ export default {
         this.shownChatFields.add("type");
       }
       const fieldsToShow = [
-  { key: "title", label: "Título" },
-  { key: "description", label: "Descripción" },
-  { key: "start_date", label: "Fecha de inicio" },
-  { key: "start_time", label: "Hora de inicio" },
-  { key: "end_date", label: "Fecha de finalización" },
-  { key: "end_time", label: "Hora de finalización" },
-  { key: "estimated_time", label: "Duración estimada (minutos)" },
-];
+        { key: "title", label: "Título" },
+        { key: "description", label: "Descripción" },
+        { key: "start_date", label: "Fecha de inicio" },
+        { key: "start_time", label: "Hora de inicio" },
+        { key: "end_date", label: "Fecha de finalización" },
+        { key: "end_time", label: "Hora de finalización" },
+        { key: "estimated_time", label: "Duración estimada (minutos)" },
+      ];
 
-// Determinar si es Meta (solo en ese caso se muestran end_date y end_time)
-const isMeta = taskData.type === "Meta";
-console.log("isMeta:", isMeta);
+      // Determinar si es Meta (solo en ese caso se muestran end_date y end_time)
+      const isMeta = taskData.type === "Meta";
+      console.log("isMeta:", isMeta);
 
-// Filtrar los campos: solo se excluyen end_date y end_time si NO es Meta
-const filteredFields = fieldsToShow.filter(field => {
-  // Si NO es Meta, excluimos estos dos campos
-  if (!isMeta) {
-    return !["end_date", "end_time"].includes(field.key);
-  }
-  // Si es Meta, mostramos todos los campos
-  return true;
-});
+      // Filtrar los campos: solo se excluyen end_date y end_time si NO es Meta
+      const filteredFields = fieldsToShow.filter(field => {
+        // Si NO es Meta, excluimos estos dos campos
+        if (!isMeta) {
+          return !["end_date", "end_time"].includes(field.key);
+        }
+        // Si es Meta, mostramos todos los campos
+        return true;
+      });
       // Mostrar campos normales como texto
       filteredFields.forEach((field) => {
         const value = taskData[field.key];
@@ -1172,50 +1229,50 @@ const filteredFields = fieldsToShow.filter(field => {
       this.startAutomaticDataCollection();
     },
    async handleTtypeSelected(type) {
-  const newType = type.id === "none" ? null : type.id;
-  const oldType = this.taskParameters.type;
-    
-       await this.updateEndDateVisibilityInChat(newType);
-  // Si no cambia el tipo, salir
-  if (newType === oldType) {
-    await this.startAutomaticDataCollection();
-    return;
-  }
+      const newType = type.id === "none" ? null : type.id;
+      const oldType = this.taskParameters.type;
+        
+          await this.updateEndDateVisibilityInChat(newType);
+      // Si no cambia el tipo, salir
+      if (newType === oldType) {
+        await this.startAutomaticDataCollection();
+        return;
+      }
 
-  // Cambiar el tipo
-  this.taskParameters.type = newType;
+      // Cambiar el tipo
+      this.taskParameters.type = newType;
 
-  // Actualizar el componente visual
-  const typeMessageIndex = this.chatMessages.findIndex(
-    (m) => m.from === "ai" && m.component === "TaskTypeOptions"
-  );
-  if (typeMessageIndex !== -1) {
-    this.chatMessages[typeMessageIndex].props.selectedId = newType;
-  }
+      // Actualizar el componente visual
+      const typeMessageIndex = this.chatMessages.findIndex(
+        (m) => m.from === "ai" && m.component === "TaskTypeOptions"
+      );
+      if (typeMessageIndex !== -1) {
+        this.chatMessages[typeMessageIndex].props.selectedId = newType;
+      }
 
-  // 🔥 Eliminar mensajes de end_date y end_time del chat si pasamos de Meta → Tarea
-  if (oldType === "Meta" && newType !== "Meta") {
-    // Eliminar mensajes del chat (editables o no)
-    this.chatMessages = this.chatMessages.filter((msg) => {
-      return !["end_date", "end_time"].includes(msg.fieldKey);
-    });
+      // 🔥 Eliminar mensajes de end_date y end_time del chat si pasamos de Meta → Tarea
+      if (oldType === "Meta" && newType !== "Meta") {
+        // Eliminar mensajes del chat (editables o no)
+        this.chatMessages = this.chatMessages.filter((msg) => {
+          return !["end_date", "end_time"].includes(msg.fieldKey);
+        });
 
-    // Eliminar del resumen si existe
-    const summaryIndex = this.chatMessages.findIndex(msg => msg.isSummary);
-    if (summaryIndex !== -1) {
-      // Actualizar el texto del resumen sin end_date/end_time
-      this.chatMessages[summaryIndex].text = this.generateTaskSummary();
-    }
-  }
+        // Eliminar del resumen si existe
+        const summaryIndex = this.chatMessages.findIndex(msg => msg.isSummary);
+        if (summaryIndex !== -1) {
+          // Actualizar el texto del resumen sin end_date/end_time
+          this.chatMessages[summaryIndex].text = this.generateTaskSummary();
+        }
+      }
 
-  // 🔥 Eliminar resumen y confirmación para que se regenere
-  this.chatMessages = this.chatMessages.filter(
-    msg => !msg.isSummary && !msg.isConfirmation
-  );
+      // 🔥 Eliminar resumen y confirmación para que se regenere
+      this.chatMessages = this.chatMessages.filter(
+        msg => !msg.isSummary && !msg.isConfirmation
+      );
 
-  // 🔁 Reiniciar flujo
-  this.startAutomaticDataCollection();
-},
+      // 🔁 Reiniciar flujo
+      this.startAutomaticDataCollection();
+    },
     //personas
     confirmPeopleSelection(selections) {
       this.taskParameters.people = selections;
@@ -1281,115 +1338,6 @@ const filteredFields = fieldsToShow.filter(field => {
       //}
     },
 
-    /*completeTaskCreation() {
-      this.isTyping = true;
-      this.taskDataCollectionMode = false;
-
-      // Construir mensaje de resumen
-      let summary = `Resumen de la ${this.currentTaskIntent}:\n\n`;
-
-      // Lista de todos los posibles parámetros con sus etiquetas
-      const parameterLabels = {
-        title: "Título",
-        description: "Descripción",
-        priority_id: "Prioridad",
-        start_date: "Fecha inicio",
-        start_time: "Hora inicio",
-        estimated_time: "Duración estimada",
-        recurrence: "Recurrencia",
-        end_date: "Fecha fin",
-        end_time: "Hora fin",
-        geo_location: "Ubicación",
-      };
-
-      // Agregar cada parámetro que tenga valor
-      Object.keys(parameterLabels).forEach((key) => {
-        const value = this.taskParameters[key];
-        if (value !== null && value !== undefined && value !== "") {
-          // Manejo especial para algunos campos
-          if (key === "priority_id") {
-            const priority = this.priorities.find((p) => p.id === value);
-            summary += `• ${parameterLabels[key]}: ${
-              priority?.namePriority || "No especificada"
-            }\n`;
-          } else if (key === "recurrence") {
-            const recurrence = this.recurrences.find((r) => r.id === value);
-            summary += `• ${parameterLabels[key]}: ${
-              recurrence?.recurrenceName || "No recurrente"
-            }\n`;
-          } else if (key === "start_date" || key === "end_date") {
-            // Combinar fecha y hora si existen ambos
-            const timeKey = key.replace("_date", "_time");
-            const timeValue = this.taskParameters[timeKey];
-            const fullValue = timeValue ? `${value} ${timeValue}` : value;
-            summary += `• ${parameterLabels[key]}: ${fullValue}\n`;
-          } else if (!key.endsWith("_time")) {
-            // Evitar duplicar hora (ya se maneja con fecha)
-            summary += `• ${parameterLabels[key]}: ${value}\n`;
-          }
-        }
-      });
-
-      // Personas asignadas (manejo especial por estructura de datos)
-      if (this.taskParameters.people.length > 0) {
-        summary += `• Personas asignadas:\n`;
-        this.roles.forEach((role) => {
-          const peopleInRole = this.taskParameters.people.filter(
-            (p) => p.roleId === role.id
-          );
-          if (peopleInRole.length > 0) {
-            summary += `  - ${role.nameRol}: `;
-            summary += peopleInRole
-              .map((pId) => {
-                const person = this.people.find((p) => p.id === pId.id);
-                return person?.namePerson;
-              })
-              .join(", ");
-            summary += "\n";
-          }
-        });
-      }
-
-      // Mostrar resumen
-      this.chatMessages.push({
-        from: "ai",
-        text: summary,
-        timestamp: new Date().toLocaleTimeString(),
-      });
-
-      // Pedir confirmación
-      this.chatMessages.push({
-    from: "ai",
-    text: `¿Deseas crear esta ${this.currentTaskIntent} con los datos proporcionados?`,
-    timestamp: new Date().toLocaleTimeString(),
-    buttons: [
-     {
-    text: "Cancelar",
-    color: "error",
-    variant: "outlined",  // Corregido: usar dos puntos en lugar de signo igual
-    action: () => this.handleCancellation('no'),
-    props: {              // Propiedades adicionales para v-btn
-      class: "mr-2",      // Margen derecho
-      size: "default"     // Tamaño estándar
-    }
-  },
-  {
-    text: "Confirmar y crear",
-    color: "primary",
-    variant: "flat",      // Equivalente al estilo por defecto de v-btn
-    action: () => this.handleTaskConfirmation('si'),
-    props: {
-      disabled: this.taskParameters.title === null, // Ejemplo de condición
-      size: "default"     // Tamaño estándar
-    }
-  }
-    ]
-  });
-
-      this.waitingForConfirmation = true;
-      this.isTyping = false;
-      this.scrollToBottom();
-    },*/
     completeTaskCreation() {
       this.isTyping = true;
       this.taskDataCollectionMode = false;
@@ -1411,6 +1359,7 @@ const filteredFields = fieldsToShow.filter(field => {
             text: "Cancelar",
             color: "grey",
             variant: "outlined",
+            disabled: false,
             action: () => this.handleCancellation("no"),
             props: { class: "mr-2", size: "default" }
           },
@@ -1418,6 +1367,7 @@ const filteredFields = fieldsToShow.filter(field => {
             text: "Confirmar y crear",
             color: "primary",
             variant: "flat",
+            disabled: false,
             action: () => this.handleTaskConfirmation("si"),
             props: { size: "default" }
           }
@@ -1429,65 +1379,65 @@ const filteredFields = fieldsToShow.filter(field => {
       this.scrollToBottom();
     },
    generateTaskSummary() {
-  let summary = `Resumen de la ${this.currentTaskIntent}:\n\n`;
+      let summary = `Resumen de la ${this.currentTaskIntent}:\n\n`;
 
-  const parameterLabels = {
-    type: "Tipo",
-    title: "Título",
-    description: "Descripción",
-    priority_id: "Prioridad",
-    start_date: "Fecha inicio",
-    estimated_time: "Duración estimada",
-    recurrence: "Recurrencia",
-    end_date: "Fecha fin",
-    geo_location: "Ubicación",
-  };
+      const parameterLabels = {
+        type: "Tipo",
+        title: "Título",
+        description: "Descripción",
+        priority_id: "Prioridad",
+        start_date: "Fecha inicio",
+        estimated_time: "Duración estimada",
+        recurrence: "Recurrencia",
+        end_date: "Fecha fin",
+        geo_location: "Ubicación",
+      };
 
-  Object.keys(parameterLabels).forEach((key) => {
-    const value = this.taskParameters[key];
-    if (value !== null && value !== undefined && value !== "") {
-      // Saltar end_date si no es Meta
-      if ((key === "end_date" || key === "end_time") && this.taskParameters.type !== "Meta") {
-        return;
+      Object.keys(parameterLabels).forEach((key) => {
+        const value = this.taskParameters[key];
+        if (value !== null && value !== undefined && value !== "") {
+          // Saltar end_date si no es Meta
+          if ((key === "end_date" || key === "end_time") && this.taskParameters.type !== "Meta") {
+            return;
+          }
+
+          if (key === "priority_id") {
+            const priority = this.priorities.find((p) => p.id === value);
+            summary += `• ${parameterLabels[key]}: ${priority?.namePriority || "No especificada"}\n`;
+          } else if (key === "recurrence") {
+            const recurrence = this.recurrences.find((r) => r.id === value);
+            summary += `• ${parameterLabels[key]}: ${recurrence?.recurrenceName || "No recurrente"}\n`;
+          } else if (key === "start_date" || key === "end_date") {
+            const timeKey = key.replace("_date", "_time");
+            const timeValue = this.taskParameters[timeKey];
+            const fullValue = timeValue ? `${value} ${timeValue}` : value;
+            summary += `• ${parameterLabels[key]}: ${fullValue}\n`;
+          } else if (!key.endsWith("_time")) {
+            summary += `• ${parameterLabels[key]}: ${value}\n`;
+          }
+        }
+      });
+
+      // Personas asignadas
+      if (this.taskParameters.people.length > 0) {
+        summary += `• Personas asignadas:\n`;
+        this.roles.forEach((role) => {
+          const peopleInRole = this.taskParameters.people.filter((p) => p.roleId === role.id);
+          if (peopleInRole.length > 0) {
+            summary += `  - ${role.nameRol}: `;
+            summary += peopleInRole
+              .map((personObj) => {
+                const person = this.people.find((p) => p.id === personObj.id);
+                return person?.namePerson || "Desconocido";
+              })
+              .join(", ");
+            summary += "\n";
+          }
+        });
       }
 
-      if (key === "priority_id") {
-        const priority = this.priorities.find((p) => p.id === value);
-        summary += `• ${parameterLabels[key]}: ${priority?.namePriority || "No especificada"}\n`;
-      } else if (key === "recurrence") {
-        const recurrence = this.recurrences.find((r) => r.id === value);
-        summary += `• ${parameterLabels[key]}: ${recurrence?.recurrenceName || "No recurrente"}\n`;
-      } else if (key === "start_date" || key === "end_date") {
-        const timeKey = key.replace("_date", "_time");
-        const timeValue = this.taskParameters[timeKey];
-        const fullValue = timeValue ? `${value} ${timeValue}` : value;
-        summary += `• ${parameterLabels[key]}: ${fullValue}\n`;
-      } else if (!key.endsWith("_time")) {
-        summary += `• ${parameterLabels[key]}: ${value}\n`;
-      }
-    }
-  });
-
-  // Personas asignadas
-  if (this.taskParameters.people.length > 0) {
-    summary += `• Personas asignadas:\n`;
-    this.roles.forEach((role) => {
-      const peopleInRole = this.taskParameters.people.filter((p) => p.roleId === role.id);
-      if (peopleInRole.length > 0) {
-        summary += `  - ${role.nameRol}: `;
-        summary += peopleInRole
-          .map((personObj) => {
-            const person = this.people.find((p) => p.id === personObj.id);
-            return person?.namePerson || "Desconocido";
-          })
-          .join(", ");
-        summary += "\n";
-      }
-    });
-  }
-
-  return summary;
-},
+      return summary;
+    },
     updateTaskSummaryMessage() {
       const summaryIndex = this.chatMessages.findIndex(msg => msg.isSummary);
       if (summaryIndex !== -1) {
@@ -1557,6 +1507,13 @@ const filteredFields = fieldsToShow.filter(field => {
       this.waitingForConfirmation = false;
 
       if (userResponse.toLowerCase() === "si" || userResponse.toLowerCase() === "sí") {
+         const confirmationMsg = this.chatMessages.find(msg => msg.isConfirmation);
+  if (confirmationMsg) {
+    const confirmButton = confirmationMsg.buttons.find(b => b.text === "Confirmar y crear");
+    if (confirmButton) {
+      confirmButton.disabled = true; // ✅ Deshabilita visualmente
+    }
+  }
         const fieldsToUpdate = [
           "title",
           "description",
@@ -1685,10 +1642,25 @@ const filteredFields = fieldsToShow.filter(field => {
       this.scrollToBottom();
     },
     handleCancellation() {
+       const confirmationMsg = this.chatMessages.find(msg => msg.isConfirmation);
+  if (confirmationMsg) {
+    const confirmButton = confirmationMsg.buttons.find(b => b.text === "Confirmar y crear");
+    if (confirmButton) {
+      confirmButton.disabled = true; // ✅ Deshabilita visualmente
+    }
+  }
       this.waitingForConfirmation = false;
       this.taskParameters.people = [];
           this.taskParameters = Object.assign({}, this.defaultItem);
           this.originalItem = Object.assign({}, this.defaultItem);
+
+          const existingOptionMessage = this.chatMessages.find(
+    (msg) =>
+      msg.from === "ai" &&
+      msg.text === "¿Qué deseas hacer ahora?"
+  );
+
+  if (!existingOptionMessage) {
       // Mensaje con botones de opción
       this.chatMessages.push({
         from: "ai",
@@ -1699,6 +1671,7 @@ const filteredFields = fieldsToShow.filter(field => {
             text: "Salir",
             color: "grey",
             variant: "outlined",  // Botón con borde
+            disabled: false,  // Botón deshabilitado
             action: () => this.closeDialog(),
             props: {
               class: "mr-2",
@@ -1709,6 +1682,7 @@ const filteredFields = fieldsToShow.filter(field => {
         text: "Nueva conversación",
         color: "primary",
         variant: "flat",  // Botón sólido
+        disabled: false,  // Botón deshabilitado
         action: () => this.startNewConversation(),
         props: {
           size: "default",
@@ -1716,13 +1690,14 @@ const filteredFields = fieldsToShow.filter(field => {
       }
         ]
       });
+    }
     },
 
     // Método para nueva conversación
     startNewConversation() {
           // Limpiar el chat
       this.chatMessages = [];
-      
+      this.saveData.false;
       // Reiniciar todas las variables de estado relacionadas con tareas
       this.taskDataCollectionMode = false;
       this.currentTaskIntent = null;

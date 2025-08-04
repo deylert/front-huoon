@@ -155,13 +155,12 @@
                     <v-textarea v-else-if="['title', 'additional_notes', 'purchase_place'].includes(message.fieldKey)"
                       v-model="message.editValue" :label="message.fieldLabel" variant="outlined" density="comfortable"
                       style="width: auto; min-width: 50em" :ref="(el) => setTextFieldRef(el, index)" autofocus auto-grow
-                      rows="2" no-resize @keyup.enter="saveFieldEdit(index)" @blur="onFliedBlur(index)"></v-textarea>
+                      rows="2" no-resize @keyup.enter="saveFieldEdit(index)"></v-textarea>
 
                     <!-- Textfield para otros campos -->
                     <v-text-field v-else v-model="message.editValue" :label="message.fieldLabel" variant="outlined"
                       density="comfortable" style="width: auto; min-width: 15em"
-                      :ref="(el) => setTextFieldRef(el, index)" autofocus no-resize @keyup.enter="saveFieldEdit(index)"
-                      @blur="onFliedBlur(index)"></v-text-field>
+                      :ref="(el) => setTextFieldRef(el, index)" autofocus no-resize @keyup.enter="saveFieldEdit(index)"></v-text-field>
                   </template>
 
                   <!-- Texto normal -->
@@ -182,7 +181,7 @@
                       </div>
                       <div class="d-flex flex-wrap gap-2">
                         <v-btn v-for="(button, btnIndex) in message.buttons" :key="btnIndex" :color="button.color"
-                          :variant="button.variant" @click="button.action" class="text-none" size="small"
+                          :variant="button.variant" @click="button.action" class="text-none" size="small" :disabled="button.disabled"
                           v-bind="button.props || {}">
                           {{ button.text }}
                         </v-btn>
@@ -350,6 +349,7 @@ export default {
         dialogChatWarehouse: false,
         dialogChatTask: false,
         editingFieldKey: null,
+        editingFieldIndex: null,
       currentBudget: null,
       currentFinance: null,
       currentWarehouse: null,
@@ -554,18 +554,6 @@ export default {
     }
   },
   methods: {
-    onFieldBlur(index) {
-  // Si el campo pierde foco pero el chat está esperando edición, no cerramos
-  if (this.editingFieldKey === index && this.newMessage.trim()) {
-    return; // Deja que sendMessage lo maneje
-  }
-
-  // Si no, cerramos edición solo si no hay input en el chat
-  if (!this.newMessage.trim()) {
-    this.chatMessages[index].isEditing = false;
-    this.editingFieldKey = null;
-  }
-},
     closeDialgChat() {
       this.dialogChatTask = false;
       this.dialogChatFinance = false;
@@ -728,7 +716,7 @@ export default {
     startFieldEdit(index) {
      const message = this.chatMessages[index];
       this.editingFieldKey = message.fieldKey; // ← Marcamos que este campo está en edición
-
+      this.editingFieldIndex = index;
       message.isEditing = true;
       message.editValue = message.currentValue;
 
@@ -842,12 +830,13 @@ export default {
         // this.showAlert("error", "Faltan campos obligatorios por completar", 2000);
       }
     }
-    this.editingFieldKey = null;
+    this.editingFieldIndex = null;
       } catch (error) {
         console.error("Error al guardar edición:", error);
         this.showAlert("error", error.message, 2000);
         message.editValue = message.currentValue;
         message.isEditing = false;
+        this.editingFieldIndex = null;
       }
     },
     isFormComplete() {
@@ -874,30 +863,27 @@ export default {
     },
 //okkk
     async sendMessage() {
-        if (this.editingFieldKey) {
-    const fieldKey = this.editingFieldKey;
-    const tempMessage = this.newMessage.trim();
+        const tempMessage = this.newMessage.trim();
+  if (!tempMessage) return;
 
-    if (tempMessage) {
-      // Encontrar el mensaje del campo que se está editando
-      const messageIndex = this.chatMessages.findIndex(m => m.fieldKey === fieldKey && m.isEditable);
-      if (messageIndex !== -1) {
-        const message = this.chatMessages[messageIndex];
+  // ✅ 1. ¿Estamos editando un campo?
+  if (this.editingFieldIndex !== null) {
+    const index = this.editingFieldIndex;
+    const message = this.chatMessages[index];
 
-        // Simular edición: asignar valor temporal
-        message.editValue = tempMessage;
-        await this.saveFieldEdit(messageIndex); // Guardar
-      }
-    }
+    // Simular que el usuario escribió en el campo
+    message.editValue = tempMessage;
 
-    // ✅ Resetear estado
-    this.editingFieldKey = null;
+    // Guardar
+    await this.saveFieldEdit(index);
+
+    // Limpiar estado
+    this.editingFieldIndex = null;
     this.newMessage = "";
     return;
   }
-      if (this.newMessage.trim()) {
+      //if (this.newMessage.trim()) {
         this.isLoading = true;
-        const tempMessage = this.newMessage;
         this.newMessage = "";
         this.chatMessages.push({
           from: "user",
@@ -1147,7 +1133,7 @@ export default {
           this.isLoading = false;
           this.scrollToBottom();
         }
-      }
+      //}
     },
     async loadRequiredData() {
       this.isLoading = true;
@@ -1446,7 +1432,7 @@ export default {
                 purchase_date: "Fcha de compra (YYYY-MM-DD)",
                 expiration_date: "Fecha de vencimiento (YYYY-MM-DD)",
                 additional_notes: "Notas adicionales",
-                warehouse_id: "Almacén seleccionado",
+                warehouse_id: "Almacén",
                 category_id: "Categoría del producto",
                 status_id: "Estado del producto"
       };
@@ -1652,6 +1638,7 @@ export default {
             text: "Cancelar",
             color: "grey",
             variant: "outlined",
+            disabled: false,
             action: () => this.handleCancellation("no"),
             props: { class: "mr-2", size: "default" }
           },
@@ -1659,6 +1646,7 @@ export default {
             text: "Confirmar y crear",
             color: "primary",
             variant: "flat",
+            disabled: false,
             action: () => this.handleConfirmation("si"),
             props: { size: "default" }
           }
@@ -1776,6 +1764,13 @@ export default {
       this.waitingForConfirmation = false;
 
       if (userResponse.toLowerCase() === "si" || userResponse.toLowerCase() === "sí") {
+        const confirmationMsg = this.chatMessages.find(msg => msg.isConfirmation);
+        if (confirmationMsg) {
+          const confirmButton = confirmationMsg.buttons.find(b => b.text === "Confirmar y crear");
+          if (confirmButton) {
+            confirmButton.disabled = true; // ✅ Deshabilita visualmente
+          }
+        }
         const fieldsToUpdate = [
           "id",
           "home_id",
@@ -1859,9 +1854,25 @@ export default {
       this.scrollToBottom();
     },
     handleCancellation() {
+      const confirmationMsg = this.chatMessages.find(msg => msg.isConfirmation);
+        if (confirmationMsg) {
+          const confirmButton = confirmationMsg.buttons.find(b => b.text === "Confirmar y crear");
+          if (confirmButton) {
+            confirmButton.disabled = true; // ✅ Deshabilita visualmente
+          }
+        }
       this.waitingForConfirmation = false;
           this.productParameters = Object.assign({}, this.defaultItem);
           this.originalItem = Object.assign({}, this.defaultItem);
+
+          const existingOptionMessage = this.chatMessages.find(
+    (msg) =>
+      msg.from === "ai" &&
+      msg.text === "¿Qué deseas hacer ahora?" &&
+      msg.buttons
+  );
+
+  if (!existingOptionMessage) {
       // Mensaje con botones de opción
       this.chatMessages.push({
         from: "ai",
@@ -1872,6 +1883,7 @@ export default {
             text: "Salir",
             color: "grey",
             variant: "outlined",  // Botón con borde
+            disabled: false,  // Botón deshabilitado
             action: () => this.closeDialog(),
             props: {
               class: "mr-2",
@@ -1882,6 +1894,7 @@ export default {
         text: "Nueva conversación",
         color: "primary",
         variant: "flat",  // Botón sólido
+            disabled: false,  // Botón deshabilitado
         action: () => this.startNewConversation(),
         props: {
           size: "default",
@@ -1889,6 +1902,7 @@ export default {
       }
         ]
       });
+    }
     },
 
     // Método para nueva conversación

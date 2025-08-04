@@ -93,14 +93,14 @@
       <v-btn
         color="primary"
         @click="confirmSelection"
-        :disabled="selectedTasksCount === 0"
+        :disabled="selectedTasksCount === 0 || buttonsDisabled"
       >
         Agregar seleccionadas
         <v-chip color="white" text-color="primary" small class="ml-2">
           {{ selectedTasksCount }}
         </v-chip>
       </v-btn>
-      <v-btn color="secondary" @click="skipSelection" class="ml-2"> Saltar </v-btn>
+      <v-btn color="secondary" @click="skipSelection" class="ml-2" :disabled="buttonsDisabled"> Saltar </v-btn>
     </v-card-actions>
   </div>
 </template>
@@ -135,7 +135,8 @@ export default {
   data() {
     return {
       localTasks: [], // Copia local para manejar el estado
-      tempIdCounter: 0
+      tempIdCounter: 0,
+      buttonsDisabled: false
     };
   },
   computed: {
@@ -230,7 +231,9 @@ export default {
     }
   },
     confirmSelection() {
+      if (this.buttonsDisabled) return;
       const selectedTasks = this.localTasks.filter((t) => t.selected);
+      this.buttonsDisabled = true; // ✅ Deshabilita los botones
       this.$emit("confirm-suggested", selectedTasks);
     },
     formatDate(date) {
@@ -256,6 +259,8 @@ export default {
       this.$emit('confirm', selectedTasks);
     },*/
     skipSelection() {
+      if (this.buttonsDisabled) return;
+      this.buttonsDisabled = true; // ✅ Deshabilita los botones
       this.$emit("cancel");
     },
   },

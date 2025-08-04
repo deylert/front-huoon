@@ -115,7 +115,6 @@
                       rows="2"
                       no-resize
                       @keyup.enter="saveFieldEdit(index)"
-                      @blur="saveFieldEdit(index)"
                     ></v-textarea>
 
                     <!-- Textfield para otros campos -->
@@ -130,7 +129,6 @@
                       autofocus
                       no-resize
                       @keyup.enter="saveFieldEdit(index)"
-                      @blur="saveFieldEdit(index)"
                     ></v-text-field>
                   </template>
 
@@ -169,6 +167,7 @@
                           class="text-none"
                           size="small"
                           v-bind="button.props || {}"
+                          :disabled="button.disabled"
                         >
                           {{ button.text }}
                         </v-btn>
@@ -376,6 +375,8 @@ export default {
       currentFinance: null,
       currentProduct: null,
       currentIntentFinance: null,
+      editingFieldKey: null,
+       editingFieldIndex: null,
       isInitialCategorySelection: false,
       textoTemporal: "",
       warehouseDataCollectionMode: false,
@@ -617,12 +618,16 @@ export default {
       this.textFieldRefs[index] = el;
     },
     startFieldEdit(index) {
-      this.chatMessages[index].isEditing = true;
-      this.chatMessages[index].editValue = this.chatMessages[index].currentValue;
+       const message = this.chatMessages[index];
+       this.editingFieldIndex = index; // ✅ Guardamos el índice
+        this.editingFieldKey = message.fieldKey; // ✅ Opcional: guardamos también la clave
 
-      if (["date"].includes(this.chatMessages[index].fieldKey)) {
+      message.isEditing = true;
+      message.editValue = message.currentValue;
+
+      if (["date"].includes(message.fieldKey)) {
         this.$nextTick(() => {
-          this.chatMessages[index].showDatePicker = true;
+          message.showDatePicker = true;
         });
       } else {
         this.$nextTick(() => {
@@ -640,9 +645,27 @@ export default {
       this.scrollToBottom();
     },
     async sendMessage() {
-      if (this.newMessage.trim()) {
+       const tempMessage = this.newMessage.trim();
+  if (!tempMessage) return;
+
+  // ✅ ¿Estamos editando un campo?
+  if (this.editingFieldIndex !== null) {
+    const index = this.editingFieldIndex;
+    const message = this.chatMessages[index];
+
+    // Simular que el usuario escribió en el campo
+    message.editValue = tempMessage;
+
+    // Guardar
+    await this.saveFieldEdit(index);
+
+    // Limpiar
+    this.editingFieldIndex = null;
+    this.editingFieldKey = null;
+    this.newMessage = "";
+    return;
+  }//{
         this.isLoading = true;
-        const tempMessage = this.newMessage;
         this.newMessage = "";
         this.chatMessages.push({
           from: "user",
@@ -663,13 +686,13 @@ export default {
                 tempMessage
               );
               this.warehouseParameters[lastAIMessage.fieldName] = validatedValue;
-              this.chatMessages.push({
+              /*this.chatMessages.push({
                 from: "ai",
                 text: `✅ ${
                   lastAIMessage.fieldLabel || lastAIMessage.fieldName
                 } guardado: ${validatedValue}`,
                 timestamp: new Date().toLocaleTimeString(),
-              });
+              });*/
               this.startAutomaticDataCollection();
               return;
             } catch (error) {
@@ -906,7 +929,7 @@ export default {
           this.isLoading = false;
           this.scrollToBottom();
         }
-      }
+      //}
     },
     async loadRequiredData() {
       this.isLoading = true;
@@ -1059,7 +1082,7 @@ export default {
           fieldLabel: fieldLabels[field],
           currentValue: this.warehouseParameters[field],
           editValue: this.warehouseParameters[field],
-          isEditing: true,
+          isEditing: false,
           availableBudgets: this.budgets,
         });
         this.completeCreation();
@@ -1082,57 +1105,89 @@ export default {
     },
 
     async saveFieldEdit(index) {
-      console.log("saveFieldEdit", index);
-      const message = this.chatMessages[index];
-      console.log("Mensaje a guardar:", message);
+  console.log("saveFieldEdit", index);
+  const message = this.chatMessages[index];
+  console.log("Mensaje a guardar:", message);
 
-      try {
-        let valueToValidate = message.editValue;
+  try {
+    let valueToValidate = message.editValue;
 
-        // Caso especial para budget_id
-        if (
-          message.fieldKey === "warehouse_id" &&
-          typeof valueToValidate === "object" &&
-          valueToValidate !== null
-        ) {
-          valueToValidate = valueToValidate.id;
-        }
+    // ✅ Caso especial: warehouse_id (si es objeto, extraer id)
+    if (message.fieldKey === "warehouse_id" && typeof valueToValidate === "object" && valueToValidate !== null) {
+      valueToValidate = valueToValidate.warehouse_id; // Asegúrate de que sea `warehouse_id`, no `id`
+    }
 
-        const validatedValue = this.validateField(message.fieldKey, valueToValidate);
-        this.warehouseParameters[message.fieldKey] = validatedValue;
+    // ✅ Validar el valor
+    const validatedValue = this.validateField(message.fieldKey, valueToValidate);
+    this.warehouseParameters[message.fieldKey] = validatedValue;
 
-        // Actualizar el texto mostrado
-        let displayValue = validatedValue;
-        if (
-          message.fieldKey === "warehouse_id" &&
-          typeof message.editValue === "object" &&
-          message.editValue !== null
-        ) {
-          displayValue = message.editValue.title;
-        }
+    // ✅ Calcular valor a mostrar
+    let displayValue = validatedValue;
+    if (
+      message.fieldKey === "warehouse_id" &&
+      typeof message.editValue === "object" &&
+      message.editValue !== null
+    ) {
+      displayValue = message.editValue.title;
+    }
 
-        message.currentValue = validatedValue;
-        message.text = `• ${message.fieldLabel}: ${displayValue}`;
-        message.isEditing = false;
-        this.scrollToBottom();
+    // ✅ Actualizar mensaje en el chat
+    message.currentValue = validatedValue;
+    message.text = `• ${message.fieldLabel}: ${displayValue}`;
+    message.isEditing = false;
 
-        if (this.warehouseDataCollectionMode) {
-          // Si estamos en recolección inicial
-          if (message.fieldKey === "warehouse_id") {
-            this.isInitialWarehouseSelection = false;
-          }
-          await this.startAutomaticDataCollection();
-        } else {
-          // Si estamos editando después del resumen
-          this.updateSummary();
-        }
-      } catch (error) {
-        this.showAlert("error", error.message, 2000);
-        message.editValue = message.currentValue;
-        message.isEditing = false;
+    this.scrollToBottom();
+
+    // ✅ Determinar flujo: recolección inicial o edición
+    const isInitialSelection = (
+      message.fieldKey === "warehouse_id" && this.isInitialWarehouseSelection
+    );
+
+    if (isInitialSelection) {
+      // Marcar que ya no es la primera selección
+      if (message.fieldKey === "warehouse_id") {
+        this.isInitialWarehouseSelection = false;
       }
-    },
+      await this.startAutomaticDataCollection();
+    } else if (this.warehouseDataCollectionMode) {
+      // Modo recolección: continuar
+      await this.startAutomaticDataCollection();
+    } else {
+      // Modo edición: actualizar resumen
+      if (this.isFormComplete()) {
+        this.updateSummary();
+      } else {
+        console.log("Aún faltan campos obligatorios. No se actualiza el resumen.");
+      }
+    }
 
+    // ✅ Limpiar estado de edición (si se usa)
+    this.editingFieldIndex = null;
+    this.editingFieldKey = null;
+
+  } catch (error) {
+    console.error("Error al guardar edición:", error);
+    this.showAlert("error", error.message, 2000);
+    message.editValue = message.currentValue;
+    message.isEditing = false;
+    // Limpiar estado incluso en error
+    this.editingFieldIndex = null;
+    this.editingFieldKey = null;
+  }
+},
+
+    isFormComplete() {
+      const requiredFields = [
+        "title",
+        "description",
+        "status"
+      ];
+
+      return requiredFields.every(field => {
+        const value = this.warehouseParameters[field];
+        return value !== null && value !== undefined && value !== "";
+      });
+    },
     updateSummary() {
       // Encontrar y eliminar el resumen y confirmación anteriores
       let index = this.chatMessages.length - 1;
@@ -1207,11 +1262,13 @@ export default {
             text:
               "¿Deseas crear esta transacción financiera con los datos proporcionados?",
             timestamp: new Date().toLocaleTimeString(),
+            isConfirmation: true,
             buttons: [
               {
                 text: "Cancelar",
                 color: "grey-darken-1",
                 variant: "outlined",
+                disabled: false,
                 action: () => this.handleCancellation("no"),
                 props: { class: "mr-2", size: "default" },
               },
@@ -1219,6 +1276,7 @@ export default {
                 text: "Confirmar y crear",
                 color: "primary",
                 variant: "flat",
+                disabled: false,
                 action: () => this.handleConfirmation("si"),
                 props: { size: "default" },
               },
@@ -1329,6 +1387,13 @@ export default {
       this.waitingForConfirmation = false;
 
       if (userResponse.toLowerCase() === "si" || userResponse.toLowerCase() === "sí") {
+         const confirmationMsg = this.chatMessages.find(msg => msg.isConfirmation);
+        if (confirmationMsg) {
+          const confirmButton = confirmationMsg.buttons.find(b => b.text === "Confirmar y crear");
+          if (confirmButton) {
+            confirmButton.disabled = true; // ✅ Deshabilita visualmente
+          }
+        }
         const fieldsToUpdate = ["id", "title", "location", "description", "status", "warehouse_id"];
 
         let updatedFields = Object.keys(this.warehouseParameters)
@@ -1370,7 +1435,7 @@ export default {
         } else {
           this.chatMessages.push({
             from: "ai",
-            text: "No se realizaron cambios en el gasto o ingreso.",
+            text: "No se realizaron cambios.",
             timestamp: new Date().toLocaleTimeString(),
           });
         }
@@ -1386,9 +1451,27 @@ export default {
       this.handleCancellation();
     },
     handleCancellation() {
+       const confirmationMsg = this.chatMessages.find(msg => msg.isConfirmation);
+      console.log("confirmationMsg", confirmationMsg);
+        if (confirmationMsg) {
+          const confirmButton = confirmationMsg.buttons.find(b => b.text === "Confirmar y crear");
+          if (confirmButton) {
+            confirmButton.disabled = true; // ✅ Deshabilita visualmente
+            
+          }
+        }
       this.waitingForConfirmation = false;
       this.warehouseParameters = Object.assign({}, this.defaultItem);
       this.originalItem = Object.assign({}, this.defaultItem);
+
+      const existingOptionMessage = this.chatMessages.find(
+    (msg) =>
+      msg.from === "ai" &&
+      msg.text === "¿Qué deseas hacer ahora?" &&
+      msg.buttons
+  );
+
+  if (!existingOptionMessage) {
       // Mensaje con botones de opción
       this.chatMessages.push({
         from: "ai",
@@ -1416,6 +1499,7 @@ export default {
           },
         ],
       });
+    }
     },
 
     // Método para nueva conversación

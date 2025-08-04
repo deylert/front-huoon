@@ -409,7 +409,6 @@ import { handleRequest } from "@/utils/api"; // Ruta al archivo
 import router from "@/router/index";
 import { shallowRef } from "vue";
 import _ from "lodash";
-import { VTimePicker } from "vuetify/labs/components";
 import ChatTask from "../views/chat/ChatTask.vue";
 import ChatFinance from "./chat/ChatFinance.vue";
 import ChatBudget from "./chat/ChatBudget.vue";
@@ -1124,16 +1123,14 @@ export default {
                   typeof product === "string"
                     ? JSON.parse(product)
                     : product;
-                if(productData.quantity <= 0)
-                {
-                this.messages.push({
-                from: "ai",
-                text:
-                  /*answer ||*/
-                  "Detecte que desea registrar un producto pero no especificaste la cantidad, podrías ser mas especifico",
-                timestamp: new Date().toLocaleTimeString(),
-              });
-            }else{
+                 if (isNaN(productData.quantity) || isNaN(productData.unit_price) || productData.quantity <= 0 || productData.unit_price <= 0) {
+                    this.messages.push({
+                      from: "ai",
+                      text: "⚠️ Parece que aún no has especificado bien la **cantidad** o el **precio unitario** del producto. Ambos deben ser valores numéricos mayores a cero. ¿Podrías revisarlo y corregirlo, por favor?",
+                      timestamp: new Date().toLocaleTimeString(),
+                    });
+                    return; // Detener el flujo hasta que se corrijan
+                  }else{
                 this.currentProduct = _.cloneDeep(productData);
                 this.dialogChatProduct = true;
                 this.scrollToBottom();

@@ -322,6 +322,20 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+  <v-dialog v-model="dialogChatProduct" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-text>
+        <!-- Pasamos los parámetros al componente ChatTask -->
+        <ChatProduct :productData="currentProduct" @close-dialog="closeDialgChat()"
+          @close-all-dialogs="closeAllDialogs($event)" />
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn text @click="closeDialgChat()">Cerrar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
@@ -348,6 +362,7 @@ export default {
     ChatBudget: defineAsyncComponent(() => import("./ChatBudget.vue")),
     ChatTask: defineAsyncComponent(() => import("./ChatTask.vue")),
     ChatFinance: defineAsyncComponent(() => import("./ChatFinance.vue")),
+     ChatProduct: defineAsyncComponent(() => import("./ChatProduct.vue")), 
   },
   data() {
     return {
@@ -355,9 +370,11 @@ export default {
       dialogChatTask: false,
       dialogChatFinance: false,
       dialogChatBudget: false,
+      dialogChatProduct: false,
       currentTask: null,
       currentBudget: null,
       currentFinance: null,
+      currentProduct: null,
       currentIntentFinance: null,
       isInitialCategorySelection: false,
       textoTemporal: "",
@@ -532,11 +549,13 @@ export default {
       this.dialogChatTask = false;
       this.dialogChatFinance = false;
       this.dialogChatBudget = false;
+      this.dialogChatProduct = false;
       this.texto = "";
       this.textoTemporal = "";
       this.currentTask = null;
       this.currentFinance = null;
       this.currentBudget = null;
+      this.currentProduct = null;
       this.$emit("close-all-dialogs", "ChatWarehouse");
       //this.initialize();
     },
@@ -690,6 +709,7 @@ export default {
               answer,
               finances,
               budget,
+              product
             } = response.data;
 
             if (intentDetected && intent) {
@@ -797,9 +817,9 @@ export default {
               this.currentBudget = null;
               this.$nextTick(() => {
                 const budgetData =
-                  typeof response.data.budget === "string"
-                    ? JSON.parse(response.data.budget)
-                    : response.data.budget;
+                  typeof budget === "string"
+                    ? JSON.parse(budget)
+                    : budget;
                 if(budgetData.amount <= 0)
                 {
                 this.chatMessages.push({
@@ -816,7 +836,27 @@ export default {
               }
               });
               break;
-
+              case "Producto":
+              this.currentProduct = null;
+              this.$nextTick(() => {
+                const productData =
+                  typeof product === "string"
+                    ? JSON.parse(product)
+                    : product;
+                if (isNaN(productData.quantity) || isNaN(productData.unit_price) || productData.quantity <= 0 || productData.unit_price <= 0) {
+                    this.chatMessages.push({
+                      from: "ai",
+                      text: "⚠️ Parece que aún no has especificado bien la **cantidad** o el **precio unitario** del producto. Ambos deben ser valores numéricos mayores a cero. ¿Podrías revisarlo y corregirlo, por favor?",
+                      timestamp: new Date().toLocaleTimeString(),
+                    });
+                    return; // Detener el flujo hasta que se corrijan
+                  }else{
+                this.currentProduct = _.cloneDeep(productData);
+                this.dialogChatProduct = true;
+                this.scrollToBottom();
+              }
+              });
+                  break;
                 case "salud":
                   this.currentHealthData = _.cloneDeep(task || {});
                   this.dialogChatHealth = true;

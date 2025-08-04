@@ -477,7 +477,7 @@ export default {
       this.currentFinance = null;
       this.currentBudget = null;
       this.currentWarehouse = null;
-      this.$emit("close-all-dialogs", "ChatBudgets");
+      this.$emit("close-all-dialogs", "ChatTask");
       //this.initialize();
     },
      toggleDictado() {

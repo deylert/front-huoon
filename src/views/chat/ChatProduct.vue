@@ -32,35 +32,13 @@
             message.isEditing 
               ? 'pa-4'  // Estilo cuando está en edición
               : 'px-8 py-3'  // Estilo normal
-          ]"
-          style="min-width: 0; max-width: 100%; width: fit-content" >
-                  <!-- Campo editable (modo edición) -->
+          ]" style="min-width: 0; max-width: 100%; width: fit-content">
+                  <!-- Campo editable con componente -->
                   <template v-if="message.isEditable && message.isEditing">
-
-                    <!-- Campos de fecha -->
-                    <div v-if="['purchase_date', 'expiration_date'].includes(message.fieldKey)">
-                      <v-menu v-model="message.showDatePicker" :close-on-content-click="false"
-                        transition="scale-transition" offset-y location="bottom"
-                        @update:modelValue="handleMenuClose(message, index)">
-                        <template #activator="{ props }">
-                          <v-text-field v-bind="props" :model-value="productParameters[message.fieldKey]"
-                            :label="message.fieldLabel" variant="outlined" density="comfortable"
-                            style="width: auto; min-width: 10em" no-resize
-                            @click:appendInner="message.showDatePicker = true" />
-                        </template>
-
-                        <DatePicker :dateValue="productParameters[message.fieldKey]" :fieldType="message.fieldKey"
-                          @date-updated="
-                        handleDateSelection(message.fieldKey, $event)
-                      " />
-                      </v-menu>
-                    </div>
-
-                    <!-- Selector de categoría -->
                     <div v-if="message.fieldKey === 'category_id'">
                       <v-autocomplete v-model="message.editValue" :items="message.availableCategories || categories"
-                        :label="message.fieldLabel" item-title="nameCategory" item-value="id" variant="outlined"
-                        density="comfortable" style="width: auto; min-width: 20em" return-object hide-details
+                        :label="message.fieldLabel" item-title="nameCategory" variant="outlined" item-value="id" density="comfortable"
+                        style="width: auto; min-width: 20em" return-object hide-details
                         @update:modelValue="onCategorySelected(index, $event)" @blur="onCategoryBlur(index)"
                         @click:clear="onCategoryClear(index)">
                         <!-- Templates de item y selection (mantener igual) -->
@@ -104,56 +82,102 @@
                         </template>
                       </v-autocomplete>
                     </div>
-                    <div v-if="message.fieldKey === 'status_id'">
-                    <v-autocomplete
-                      v-model="message.editValue" :items="message.availableStatus || status"
+                    <div v-else-if="message.fieldKey === 'status_id'">
+                      <v-autocomplete v-model="message.editValue" :items="message.availableStatus || status"
                         :label="message.fieldLabel" item-title="nameStatus" item-value="id" variant="outlined"
                         density="comfortable" style="width: auto; min-width: 20em" return-object hide-details
                         @update:modelValue="onStatusSelected(index, $event)" @blur="onStatusBlur(index)"
-                        @click:clear="onStatusClear(index)"
-                    >
-                      <template v-slot:item="{ props, item }">
-                        <v-list-item v-bind="props">
-                          <template v-slot:prepend>
-                            <v-avatar size="24">
-                              <v-icon>{{ item.raw.iconStatus }}</v-icon>
-                            </v-avatar>
-                          </template>
-                        </v-list-item>
-                      </template>
-                    </v-autocomplete>
+                        @click:clear="onStatusClear(index)">
+                        <template v-slot:item="{ props, item }">
+                          <v-list-item v-bind="props">
+                            <template v-slot:prepend>
+                              <v-avatar size="24">
+                                <v-icon>{{ item.raw.iconStatus }}</v-icon>
+                              </v-avatar>
+                            </template>
+                          </v-list-item>
+                        </template>
+                      </v-autocomplete>
                     </div>
-                    <!-- Textarea para campos largos -->
+                    <div v-else-if="message.fieldKey === 'warehouse_id'">
+                      <v-autocomplete v-model="message.editValue" :items="message.availableWarehouses || warehouses"
+                        :label="$t('warehouse.fields.warehouse')" item-title="title" item-value="warehouse_id"
+                        variant="outlined" density="comfortable" style="width: auto; min-width: 20em" return-object
+                        hide-details @update:modelValue="onWarehouseSelected(index, $event)"
+                        @blur="onWarehouseBlur(index)" @click:clear="onWarehouseClear(index)">
+                        <template v-slot:item="{ props, item }">
+                          <v-list-item v-bind="props">
+                            <v-list-item-subtitle class="d-flex flex-column">
+                              <v-tooltip location="top right">
+                                <template v-slot:activator="{ props }">
+                                  <div class="description-text" v-bind="props" :title="item.raw.description">
+                                    {{ $t("warehouse.fields.description") }}:
+                                    {{ item.raw.description }}
+                                  </div>
+                                </template>
+                                <span>{{ item.raw.description }}</span>
+                              </v-tooltip>
+                              <v-tooltip location="top right">
+                                <template v-slot:activator="{ props }">
+                                  <div class="description-text" v-bind="props" :title="item.raw.location">
+                                    {{ $t("warehouse.fields.home_location") }}:
+                                    {{ item.raw.location }}
+                                  </div>
+                                </template>
+                                <span>{{ item.raw.location }}</span>
+                              </v-tooltip>
+                            </v-list-item-subtitle>
+                          </v-list-item>
+                        </template>
+                      </v-autocomplete>
+                    </div>
+                    <div v-else-if="['purchase_date', 'expiration_date'].includes(message.fieldKey)">
+                      <v-locale-provider>
+                        <v-menu v-model="message.showDatePicker" :close-on-content-click="false"
+                          transition="scale-transition" offset-y location="bottom"
+                          @update:modelValue="handleMenuClose(message, index)">
+                          <template #activator="{ props }">
+                            <v-text-field v-bind="props" :model-value="productParameters[message.fieldKey]"
+                              :label="message.fieldLabel" variant="outlined" density="comfortable"
+                              style="width: auto; min-width: 10em" no-resize
+                              @click:appendInner="message.showDatePicker = true" />
+                          </template>
+
+                          <DatePicker :dateValue="productParameters[message.fieldKey]" :fieldType="message.fieldKey"
+                            @date-updated="
+                        handleDateSelection(message.fieldKey, $event)
+                      " />
+                        </v-menu>
+                      </v-locale-provider>
+                    </div>
+                    <!-- Para campos de hora -->
+
                     <v-textarea v-else-if="['title', 'additional_notes', 'purchase_place'].includes(message.fieldKey)"
                       v-model="message.editValue" :label="message.fieldLabel" variant="outlined" density="comfortable"
                       style="width: auto; min-width: 50em" :ref="(el) => setTextFieldRef(el, index)" autofocus auto-grow
-                      rows="2" no-resize @keyup.enter="saveFieldEdit(index)" @blur="saveFieldEdit(index)"></v-textarea>
+                      rows="2" no-resize @keyup.enter="saveFieldEdit(index)" @blur="onFliedBlur(index)"></v-textarea>
 
-                    <!-- Textfield estándar -->
+                    <!-- Textfield para otros campos -->
                     <v-text-field v-else v-model="message.editValue" :label="message.fieldLabel" variant="outlined"
-                      density="comfortable" style="width: auto; min-width: 10em"
+                      density="comfortable" style="width: auto; min-width: 15em"
                       :ref="(el) => setTextFieldRef(el, index)" autofocus no-resize @keyup.enter="saveFieldEdit(index)"
-                      @blur="saveFieldEdit(index)"></v-text-field>
+                      @blur="onFliedBlur(index)"></v-text-field>
                   </template>
 
-                  <!-- Resto del código permanece igual -->
+                  <!-- Texto normal -->
                   <template v-else>
                     <div v-if="!message.buttons" @click="message.isEditable ? startFieldEdit(index) : null"
                       :class="{ 'editable-message': message.isEditable }"
-                      style="white-space: pre-wrap; word-break: break-word" class="d-flex align-center">
+                      style="white-space: pre-wrap; word-break: break-word">
                       {{ message.text }}
                       <v-icon v-if="message.isEditable" x-small class="ml-2">
                         mdi-pencil
                       </v-icon>
                     </div>
 
-                    <!-- Mensaje con botones -->
+                    <!-- Mensaje con botones de confirmación -->
                     <div v-else>
-                      <div style="
-                  white-space: pre-wrap;
-                  word-break: break-word;
-                  margin-bottom: 12px;
-                ">
+                      <div style="white-space: pre-wrap; word-break: break-word; margin-bottom: 12px;">
                         {{ message.text }}
                       </div>
                       <div class="d-flex flex-wrap gap-2">
@@ -173,17 +197,16 @@
               </div>
             </div>
 
-            <!-- El resto de tu código permanece igual -->
-           <div v-if="isTyping" class="d-flex justify-start align-center mb-8 mb-2 ml-3">
-            <div class="d-flex align-end">
-              <v-avatar size="28" class="mb-2 mr-3">
-                <v-img src="@/assets/logo-verde.png" alt="Avatar" />
-              </v-avatar>
-              <div class="chat-bubble px-8 py-3 rounded-xl bg-grey-lighten-2 text-black">
-                <span class="typing-indicator">•••</span>
+            <div v-if="isTyping" class="d-flex justify-start align-center mb-8 mb-2 ml-3">
+              <div class="d-flex align-end">
+                <v-avatar size="28" class="mb-2 mr-3">
+                  <v-img src="@/assets/logo-verde.png" alt="Avatar" />
+                </v-avatar>
+                <div class="chat-bubble px-8 py-3 rounded-xl bg-grey-lighten-2 text-black">
+                  <span class="typing-indicator">•••</span>
+                </div>
               </div>
             </div>
-          </div>
           </div>
 
           <!-- Herramientas -->
@@ -195,43 +218,48 @@
             </v-btn>
           </v-card-actions>
 
-          <!-- Input de mensaje -->
+          <!-- Input -->
           <v-card-actions class="pa-4 bg-white rounded-b-2xl d-flex align-center" style="gap: 12px">
+            <!-- Input + texto temporal en un solo bloque -->
             <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden">
               <v-textarea v-model="newMessage" :placeholder="$t('chat.inputPlaceholder')" variant="outlined"
                 hide-details density="compact" rounded rows="1" no-resize @keyup.enter="sendMessage"
                 style="overflow-y: auto; max-height: 120px; resize: none" class="custom-textarea"
                 :disabled="isLoading" />
               <div v-if="escuchando && textoTemporal" style="
-          margin-top: 10px;
-          font-size: 12px;
-          color: gray;
-          font-style: italic;
-          white-space: pre-wrap;
-          word-break: break-word;
-          max-height: 60px;
-          overflow-y: auto;
-        ">
+              margin-top: 10px;
+              font-size: 12px;
+              color: gray;
+              font-style: italic;
+              white-space: pre-wrap;
+              word-break: break-word;
+              max-height: 60px;
+              overflow-y: auto;
+            ">
                 {{ textoTemporal }}
               </div>
             </div>
 
+            <!-- Botón de dictado -->
             <v-btn color="primary" @click="toggleDictado" :disabled="!compatible" :loading="cargando"
               :icon="escuchando ? 'mdi-microphone-off' : 'mdi-microphone'" :title="
-        !compatible ? 'Reconocimiento de voz no compatible con tu navegador' : ''
-      "></v-btn>
+            !compatible ? 'Reconocimiento de voz no compatible con tu navegador' : ''
+          "></v-btn>
 
+            <!-- Botón de enviar -->
             <v-btn icon="mdi-send" color="primary" @click="sendMessage" />
           </v-card-actions>
         </v-card>
       </v-col>
     </v-row>
+
   </v-container>
-    <v-dialog v-model="dialogChatTask" fullscreen transition="dialog-bottom-transition">
+  <v-dialog v-model="dialogChatFinance" fullscreen transition="dialog-bottom-transition">
     <v-card>
       <v-card-text>
         <!-- Pasamos los parámetros al componente ChatTask -->
-        <ChatTask :taskData="currentTask" @close-dialog="closeDialgChat()"   @close-all-dialogs="handleCloseAll($event)" />
+        <ChatFinance :financeData="currentFinance" :transactionIntent="currentIntentFinance"
+          @close-dialog="closeDialgChat()" @close-all-dialogs="$emit('close-all-dialogs')" />
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
@@ -240,11 +268,12 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <v-dialog v-model="dialogChatFinance" fullscreen transition="dialog-bottom-transition">
+  <v-dialog v-model="dialogChatBudget" fullscreen transition="dialog-bottom-transition">
     <v-card>
       <v-card-text>
         <!-- Pasamos los parámetros al componente ChatTask -->
-        <ChatFinance :financeData="currentFinance" :transactionIntent="currentIntentFinance" @close-dialog="closeDialgChat()" @close-all-dialogs="$emit('close-all-dialogs')" />
+        <ChatBudget :budgetData="currentBudget" @close-dialog="closeDialgChat()"
+          @close-all-dialogs="$emit('close-all-dialogs')" />
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
@@ -267,17 +296,31 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+  <v-dialog v-model="dialogChatTask" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-text>
+        <!-- Pasamos los parámetros al componente ChatTask -->
+        <ChatTask
+          :taskData="currentTask"
+          @close-dialog="closeDialgChat()"
+          @close-all-dialogs="handleCloseAll($event)"
+        />
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn text @click="closeDialgChat()">Cerrar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
+import DatePicker from "@/components/chatTask/DatePicker.vue";
 import LocalStorageService from "@/LocalStorageService";
 import { handleRequest } from "@/utils/api";
 import _ from "lodash";
 import { defineAsyncComponent, markRaw } from "vue";
-import DatePicker from "@/components/chatTask/DatePicker.vue";
-import TypePersonalOptions from "@/components/chatTask/TypePersonalOptions.vue";
-import PeriodOptions from "@/components/chatTask/PeriodOptions.vue";
-
 
 export default {
  emits: ["close-dialog", "close-all-dialogs"],
@@ -293,28 +336,31 @@ export default {
   },
   components: {
     DatePicker,
-    TypePersonalOptions,
-    PeriodOptions,
+    
+    ChatBudget: defineAsyncComponent(() => import('./ChatBudget.vue')),
     ChatFinance: defineAsyncComponent(() => import('./ChatFinance.vue')),
-    ChatTask: defineAsyncComponent(() => import('./ChatTask.vue')),
     ChatWarehouse: defineAsyncComponent(() => import('./ChatWarehouse.vue')),
+    ChatTask: defineAsyncComponent(() => import('./ChatTask.vue')),
   },
   data() {
     return {
-      shownChatFields: new Set(),
-       dialogChatTask: false,
-      dialogChatFinance: false,
-      dialogChatWarehouse: false,
-      currentTask: null,
+      shownChatFields: new Set(), // ← Aquí llevamos control
+       dialogChatFinance: false,
+        dialogChatBudget: false,
+        dialogChatWarehouse: false,
+        dialogChatTask: false,
+        editingFieldKey: null,
+      currentBudget: null,
       currentFinance: null,
       currentWarehouse: null,
+      currentTask: null,
       currentIntentFinance: null,
       isInitialCategorySelection: false,
       isInitialStatusSelection: false,
       isInitialWarehouseSelection: false,
       textoTemporal: "",
       productDataCollectionMode: false,
-      currentIntent: null,
+      currentProductIntent: null,
       editingField: null,
       escuchando: false,
       recognition: null,
@@ -363,8 +409,10 @@ export default {
       textFieldRefs: [],
       currentParameterIndex: 0,
       waitingForConfirmation: false,
-      warehouses: [],
+      collectingPeople: false,
+      currentRoleSelection: null,
       categories: [],
+      warehouses: [],
       status: [],
       isTyping: false,
       imageUrl: "",
@@ -390,7 +438,7 @@ export default {
     };
   },
   computed: {
-    textoEditable() {
+     textoEditable() {
       // Muestra texto confirmado + texto dictado en vivo
       return this.newMessage + this.textoTemporal;
     },
@@ -447,18 +495,18 @@ export default {
       this.textoTemporal = "";
     };
     let productData = this.productData;
-
-    // Si es string, parsearlo
-    if (typeof productData === "string") {
-      try {
-        productData = JSON.parse(productData);
-      } catch (error) {
-        console.error("Error parsing productData:", error);
-        return;
-      }
+  
+  // Si es string, parsearlo
+  if (typeof productData === 'string') {
+    try {
+      productData = JSON.parse(productData);
+    } catch (error) {
+      console.error("Error parsing productData:", error);
+      return;
     }
-
-    console.log("Datos recibidos del componente padre (productData):", productData);
+  }
+  
+  console.log("Datos recibidos del componente padre (productData):", productData);
     this.name = JSON.parse(LocalStorageService.getItem("name"));
     this.user = JSON.parse(LocalStorageService.getItem("user"));
     this.user_id = JSON.parse(LocalStorageService.getItem("user_id"));
@@ -466,59 +514,36 @@ export default {
     this.imageUrl = LocalStorageService.getItem("image").replace(/['"]+/g, "");
     if (this.productData) {
       try {
-        // Copiar los datos de la tarea
-        this.productParameters = {
-          ...this.productParameters,
-          ...productData,
-        };
-        this.productDataCollectionMode = true;
-        //this.currentTransactionType = this.productData.spent > 0 ? 'gasto' : 'ingreso';
-        this.currentIntent = "Producto";
-        // Mostrar en el chat
-        // ✅ Validar que el campo 'amount' sea válido (> 0)
-    const amountValue = this.productData.quantity;
-
-    if (amountValue === null || amountValue === undefined || amountValue <= 0) {
-      // ❌ Monto no válido → advertir y reiniciar flujo
-      this.chatMessages.push({
-        from: "ai",
-        text: `Detecté que deseas registrar un ${this.currentIntent}, pero no se ha proporcionado una cantidad válida. Por favor, podrías especificar mejor lo que deseas hacer.`,
-        timestamp: new Date().toLocaleTimeString(),
-      });
-
-      // Reiniciar estado para evitar datos parciales
-       this.productDataCollectionMode = false;
-      this.currentIntent = null;
-      this.productParameters = {
-        name: null,
-        quantity: null,
-        unit_price: null,
-        total_price: null,
-        purchase_place: null,
-        purchase_date: null,
-        expiration_date: null,
-        additional_notes: null,
-        warehouse_id: null,
-        category_id: null,
-        status_id: null
-      };
-      this.waitingForConfirmation = false;
-      this.isTyping = false;
-
-      // Aquí puedes llamar a un método que inicie el flujo de presupuesto desde cero
-      // await this.startBudgetCollection(); // opcional
-    } else {
         await this.loadRequiredData();
-      // ✅ Monto válido → mostrar confirmación y resumen
-      this.chatMessages.push({
-        from: "ai",
-        text: `Datos del ${this.currentIntent} recibidos. Puedes editarlos antes de confirmar.`,
-        timestamp: new Date().toLocaleTimeString(),
-      });
+        // Copiar los datos de la tarea
+          this.productParameters = {
+                          ...this.productParameters,
+                          ...productData,
+                        };
+          this.productDataCollectionMode = true;
+          this.currentProductIntent = "Producto";
+        if (isNaN(productData.quantity) || isNaN(productData.unit_price) || productData.quantity <= 0 || productData.unit_price <= 0) {
+                    this.chatMessages.push({
+                      from: "ai",
+                      text: "⚠️ Parece que aún no has especificado bien la **cantidad** o el **precio unitario** del producto. Ambos deben ser valores numéricos mayores a cero. ¿Podrías revisarlo y corregirlo, por favor?",
+                      timestamp: new Date().toLocaleTimeString(),
+                    });
+                    return; // Detener el flujo hasta que se corrijan
+                  }
+                  else{
+                    
+        // Mostrar en el chat
+        this.chatMessages.push({
+          from: "ai",
+          text: `Datos del  ${this.currentProductIntent} recibidos. Puedes editarlos antes de confirmar.`,
+          timestamp: new Date().toLocaleTimeString(),
+        });
 
-      // Iniciar flujo de edición/resumen
-      await this.showInitialData(this.productData);
-    }
+        // Iniciar flujo de edición
+        
+  
+      await this.showInitialData(productData);
+                  }
       } catch (error) {
         this.showAlert("error", "Error al cargar datos: " + error.message);
       }
@@ -529,16 +554,24 @@ export default {
     }
   },
   methods: {
-     handleCloseAll(sourceComponent) {
-      console.log(`Evento de cierre iniciado por: ${sourceComponent}`);
-      // Puedes hacer lógica específica según el origen si lo necesitas
-      this.$emit("close-all-dialogs", sourceComponent);
-    },
+    onFieldBlur(index) {
+  // Si el campo pierde foco pero el chat está esperando edición, no cerramos
+  if (this.editingFieldKey === index && this.newMessage.trim()) {
+    return; // Deja que sendMessage lo maneje
+  }
+
+  // Si no, cerramos edición solo si no hay input en el chat
+  if (!this.newMessage.trim()) {
+    this.chatMessages[index].isEditing = false;
+    this.editingFieldKey = null;
+  }
+},
     closeDialgChat() {
       this.dialogChatTask = false;
       this.dialogChatFinance = false;
       this.dialogChatBudget = false;
       this.dialogChatWarehouse = false;
+
       this.texto = "";
       this.textoTemporal = "";
       this.currentTask = null;
@@ -588,6 +621,16 @@ export default {
       }
       // Si es edición, esperará a blur o acción explícita
     },
+    onWarehouseSelected(index, selectedWarehouse) {
+      console.log("Almacén seleccionado:", selectedWarehouse);
+      this.chatMessages[index].editValue = selectedWarehouse;
+      
+      // Si es selección inicial, guardar inmediatamente
+      if (this.isInitialWarehouseSelection) {
+        this.saveFieldEdit(index);
+      }
+      // Si es edición, esperará a blur o acción explícita
+    },
     onCategoryBlur(index) {
       setTimeout(() => {
         const message = this.chatMessages[index];
@@ -606,6 +649,18 @@ export default {
         if (message && message.isEditing) {
           // Solo guardar si no es selección inicial (ya que esa se maneja en onCategorySelected)
           if (!this.isInitialStatusSelection) {
+            this.saveFieldEdit(index);
+          }
+        }
+      }, 200);
+    },
+
+    onWarehouseBlur(index) {
+      setTimeout(() => {
+        const message = this.chatMessages[index];
+        if (message && message.isEditing) {
+          // Solo guardar si no es selección inicial (ya que esa se maneja en onCategorySelected)
+          if (!this.isInitialWarehouseSelection) {
             this.saveFieldEdit(index);
           }
         }
@@ -632,7 +687,17 @@ export default {
             this.saveFieldEdit(index);
           }
     },
-    toggleDictado() {
+    onWarehouseClear(index) {
+      console.log("Selección del almacen limpiada");
+      const message = this.chatMessages[index];
+      // Establecer editValue a null
+      message.editValue = null;
+      // Guardar inmediatamente el valor null
+     if (!this.isInitialWarehouseSelection) {
+            this.saveFieldEdit(index);
+          }
+    },
+     toggleDictado() {
       if (!this.recognition) return;
 
       if (this.escuchando) {
@@ -648,20 +713,28 @@ export default {
       return new Date(dateString).toLocaleDateString("es-ES", options);
     },
 
+    handleMenuClose(message, index) {
+      if (
+        (message.showDatePicker === false || message.showTimePicker === false) &&
+        !this.chatMessages[index].isSaving
+      ) {
+        // Cuando el menú se cierra (click fuera)
+        this.saveFieldEdit(index);
+      }
+    },
     setTextFieldRef(el, index) {
       this.textFieldRefs[index] = el;
     },
     startFieldEdit(index) {
-      this.chatMessages[index].isEditing = true;
-      this.chatMessages[index].editValue = this.chatMessages[index].currentValue;
+     const message = this.chatMessages[index];
+      this.editingFieldKey = message.fieldKey; // ← Marcamos que este campo está en edición
 
-      if (["purchase_date", "expiration_date"].includes(this.chatMessages[index].fieldKey)) {
+      message.isEditing = true;
+      message.editValue = message.currentValue;
+
+      if (["purchase_date", "expiration_date"].includes(message.fieldKey)) {
         this.$nextTick(() => {
           this.chatMessages[index].showDatePicker = true;
-        });
-      } else if (["start_time", "end_time"].includes(this.chatMessages[index].fieldKey)) {
-        this.$nextTick(() => {
-          this.chatMessages[index].showTimePicker = true;
         });
       } else {
         this.$nextTick(() => {
@@ -672,143 +745,156 @@ export default {
         });
       }
     },
-
-    handleMenuClose(message, index) {
-      if (
-        (message.showDatePicker === false || message.showTimePicker === false) &&
-        !this.chatMessages[index].isSaving
-      ) {
-        // Cuando el menú se cierra (click fuera)
-        this.saveFieldEdit(index);
-      }
-    },
-    async saveFieldEdit(index) {
+   async saveFieldEdit(index) {
       console.log("saveFieldEdit", index);
       const message = this.chatMessages[index];
       console.log("Mensaje a guardar:", message);
       
       try {
+        // 1. Obtener y validar el valor
         let valueToValidate = message.editValue;
 
-        // Caso especial para category_id
-        if (message.fieldKey === "category_id" && typeof valueToValidate === "object" && valueToValidate !== null) {
-          valueToValidate = valueToValidate.id;
+        // Manejar casos especiales donde el valor es un objeto (selects)
+        if (["category_id", "warehouse_id", "status_id"].includes(message.fieldKey)) {
+          if (typeof valueToValidate === "object" && valueToValidate !== null) {
+          if (message.fieldKey === "category_id" || message.fieldKey === "status_id") {
+            valueToValidate = valueToValidate.id;
+          } else if (message.fieldKey === "warehouse_id") {
+            valueToValidate = valueToValidate.warehouse_id; // ✅ Correcto para warehouse
+          }
+        }
         }
 
-        if (message.fieldKey === "warehouse_id" && typeof valueToValidate === "object" && valueToValidate !== null) {
-          valueToValidate = valueToValidate.id;
-        }
-
-        if (message.fieldKey === "status_id" && typeof valueToValidate === "object" && valueToValidate !== null) {
-          valueToValidate = valueToValidate.id;
+        // Permitir campos opcionales vacíos (purchase_place, expiration_date, additional_notes)
+        const optionalFields = ["purchase_place", "expiration_date", "additional_notes"];
+        if (optionalFields.includes(message.fieldKey) && (valueToValidate === null || valueToValidate === "")) {
+          valueToValidate = undefined; // Marcamos como undefined para indicar que es opcional
         }
 
         const validatedValue = this.validateField(message.fieldKey, valueToValidate);
         this.productParameters[message.fieldKey] = validatedValue;
 
-        // Actualizar el texto mostrado
+        // 2. Actualizar la visualización del mensaje
         let displayValue = validatedValue;
-        if (message.fieldKey === "category_id" && typeof message.editValue === "object" && message.editValue !== null) {
+        if (message.fieldKey === "category_id" && typeof message.editValue === "object") {
           displayValue = message.editValue.nameCategory;
-        }
-
-        if (message.fieldKey === "status_id" && typeof message.editValue === "object" && message.editValue !== null) {
-          displayValue = message.editValue.nameStatus	;
-        }
-
-        if (message.fieldKey === "warehouse_id" && typeof message.editValue === "object" && message.editValue !== null) {
-          displayValue = message.editValue.title	;
+        } else if (message.fieldKey === "status_id" && typeof message.editValue === "object") {
+          displayValue = message.editValue.nameStatus;
+        } else if (message.fieldKey === "warehouse_id" && typeof message.editValue === "object") {
+          displayValue = message.editValue.title;
+        } else if (optionalFields.includes(message.fieldKey) && !validatedValue) {
+          displayValue = "(Seleccionar)"; // Mantener el placeholder para opcionales vacíos
         }
 
         message.currentValue = validatedValue;
         message.text = `• ${message.fieldLabel}: ${displayValue}`;
         message.isEditing = false;
-        // 🔥 Recalcular total_price si se editó quantity o unit_price
-    if (["quantity", "unit_price"].includes(message.fieldKey)) {
-      const quantity = parseFloat(this.productParameters.quantity) || 0;
-      const unitPrice = parseFloat(this.productParameters.unit_price) || 0;
-      const totalPrice = (quantity * unitPrice).toFixed(2); // Ajusta decimales según necesidad
 
-      // Actualizar parámetro
-      this.productParameters.total_price = parseFloat(totalPrice);
+        // 3. Recalcular total_price si se editó quantity o unit_price
+        if (["quantity", "unit_price"].includes(message.fieldKey)) {
+          const quantity = parseFloat(this.productParameters.quantity) || 0;
+          const unitPrice = parseFloat(this.productParameters.unit_price) || 0;
+          const totalPrice = (quantity * unitPrice).toFixed(2);
 
-      // Buscar el mensaje de total_price y actualizarlo
-      const totalMessageIndex = this.chatMessages.findIndex(m => m.fieldKey === "total_price");
-      if (totalMessageIndex !== -1) {
-        const totalMsg = this.chatMessages[totalMessageIndex];
-        totalMsg.currentValue = parseFloat(totalPrice);
-        totalMsg.text = `• ${totalMsg.fieldLabel}: ${totalPrice}`;
-        totalMsg.editValue = parseFloat(totalPrice);
-      }
-    }
+          this.productParameters.total_price = parseFloat(totalPrice);
+
+          // Actualizar el mensaje de total_price si existe
+          const totalMessageIndex = this.chatMessages.findIndex(m => m.fieldKey === "total_price");
+          if (totalMessageIndex !== -1) {
+            const totalMsg = this.chatMessages[totalMessageIndex];
+            totalMsg.currentValue = parseFloat(totalPrice);
+            totalMsg.text = `• ${totalMsg.fieldLabel}: ${totalPrice}`;
+            totalMsg.editValue = parseFloat(totalPrice);
+          }
+        }
+
         this.scrollToBottom();
 
-         const shouldContinueFlow = 
+        // 4. Determinar qué acción tomar después de guardar
+        const isInitialSelection = (
           (message.fieldKey === "category_id" && this.isInitialCategorySelection) ||
-          (message.fieldKey !== "category_id" && this.isInitialDataCollection);
-        
-        if (shouldContinueFlow) {
-          if (message.fieldKey === "category_id") {
-            this.isInitialCategorySelection = false; // Marcar que ya no es la primera selección
-          }
-          await this.startAutomaticDataCollection();
-        } else if (!this.productDataCollectionMode) {
-          // Si estamos en modo edición (después de completeCreation)
-          // Actualizar el mensaje de resumen si existe
-          this.updateSummaryMessage();
-        }
+          (message.fieldKey === "status_id" && this.isInitialStatusSelection) ||
+          (message.fieldKey === "warehouse_id" && this.isInitialWarehouseSelection)
+        );
+
+        if (isInitialSelection) {
+      // Es la primera vez que se ingresa un dato clave
+      if (message.fieldKey === "category_id") this.isInitialCategorySelection = false;
+      if (message.fieldKey === "status_id") this.isInitialStatusSelection = false;
+      if (message.fieldKey === "warehouse_id") this.isInitialWarehouseSelection = false;
+
+      await this.startAutomaticDataCollection();
+    }
+    else if (this.productDataCollectionMode) {
+      // Modo automático: seguir recolectando
+      await this.startAutomaticDataCollection();
+    }
+    else {
+      // Modo edición (después de haber completado)
+      // Pero: ¿todavía faltan campos obligatorios?
+      if (this.isFormComplete()) {
+        this.updateSummaryMessage(); // Todo bien, actualiza resumen
+      } else {
+        // ❌ Aún faltan campos obligatorios: NO mostrar resumen
+        // Solo actualiza el mensaje editado, pero no avances
+        console.log("Aún faltan campos obligatorios. No se actualiza el resumen completo.");
+        // Opcional: puedes mostrar un mensaje al usuario
+        // this.showAlert("error", "Faltan campos obligatorios por completar", 2000);
+      }
+    }
+    this.editingFieldKey = null;
       } catch (error) {
+        console.error("Error al guardar edición:", error);
         this.showAlert("error", error.message, 2000);
         message.editValue = message.currentValue;
         message.isEditing = false;
       }
     },
+    isFormComplete() {
+      const requiredFields = [
+        "name",
+        "quantity",
+        "unit_price",
+        "purchase_date",
+        "status_id",
+        "category_id"
+        // Añade más si "warehouse_id" es obligatorio cuando hay categoría
+      ];
 
-    // Añade este nuevo método
-    updateSummaryMessage() {
-      const summaryIndex = this.chatMessages.findIndex(msg => msg.isSummary);
-      if (summaryIndex !== -1) {
-        const newSummary = this.generateSummary();
-        this.chatMessages[summaryIndex].text = newSummary;
-        
-        // También actualizar el mensaje individual del campo editado
-        const fieldKey = this.chatMessages.find(m => m.isEditing)?.fieldKey;
-        if (fieldKey) {
-          const fieldMessageIndex = this.chatMessages.findIndex(
-            m => m.fieldKey === fieldKey && !m.isEditing
-          );
-          if (fieldMessageIndex !== -1) {
-            const fieldMessage = this.chatMessages[fieldMessageIndex];
-            const displayValue = this.getDisplayValueForField(fieldKey);
-            fieldMessage.text = `• ${fieldMessage.fieldLabel}: ${displayValue}`;
-            fieldMessage.currentValue = this.productParameters[fieldKey];
-          }
-        }
+      // Si hay categoría, warehouse_id también es obligatorio
+      const hasCategory = this.productParameters.category_id;
+      if (hasCategory) {
+        requiredFields.push("warehouse_id");
       }
-    },
 
-    // Método auxiliar para obtener valores mostrados
-    getDisplayValueForField(fieldKey) {
-      const value = this.productParameters[fieldKey];
-      if (fieldKey === "category_id") {
-        const category = this.categories.find(b => b.id === value);
-        return category?.nameCategory || `ID: ${value}`;
-      } else if (fieldKey === "status_id") {
-        const type = this.status.find(t => t.id === value);
-        return type?.nameStatus || `ID: ${value}`;
-      }else if (fieldKey === "warehouse_id") {
-        const type = this.warehouses.find(t => t.id === value);
-        return type?.title || `ID: ${value}`;
-      }
-      return value;
+      return requiredFields.every(field => {
+        const value = this.productParameters[field];
+        return value !== null && value !== undefined && value !== "";
+      });
     },
-    cancelFieldEdit(index) {
-      const message = this.chatMessages[index];
-      message.isEditing = false;
-      message.editValue = message.currentValue; // Revertir cambios
-      this.scrollToBottom();
-    },
+//okkk
     async sendMessage() {
+        if (this.editingFieldKey) {
+    const fieldKey = this.editingFieldKey;
+    const tempMessage = this.newMessage.trim();
+
+    if (tempMessage) {
+      // Encontrar el mensaje del campo que se está editando
+      const messageIndex = this.chatMessages.findIndex(m => m.fieldKey === fieldKey && m.isEditable);
+      if (messageIndex !== -1) {
+        const message = this.chatMessages[messageIndex];
+
+        // Simular edición: asignar valor temporal
+        message.editValue = tempMessage;
+        await this.saveFieldEdit(messageIndex); // Guardar
+      }
+    }
+
+    // ✅ Resetear estado
+    this.editingFieldKey = null;
+    this.newMessage = "";
+    return;
+  }
       if (this.newMessage.trim()) {
         this.isLoading = true;
         const tempMessage = this.newMessage;
@@ -821,7 +907,7 @@ export default {
         this.isTyping = true;
 
         try {
-          /*const lastAIMessage = this.chatMessages
+          const lastAIMessage = this.chatMessages
             .slice()
             .reverse()
             .find((m) => m.from === "ai" && m.isFieldPrompt);
@@ -832,14 +918,7 @@ export default {
                 tempMessage
               );
               this.productParameters[lastAIMessage.fieldName] = validatedValue;
-              this.chatMessages.push({
-                from: "ai",
-                text: `✅ ${
-                  lastAIMessage.fieldLabel || lastAIMessage.fieldName
-                } guardado: ${validatedValue}`,
-                timestamp: new Date().toLocaleTimeString(),
-              });
-              this.startAutomaticDataCollection();
+             this.startAutomaticDataCollection();
               return;
             } catch (error) {
               this.chatMessages.push({
@@ -852,66 +931,65 @@ export default {
               });
               return;
             }
-          }*/
+          }
 
           if (this.waitingForConfirmation) {
             await this.handleConfirmation(tempMessage);
             return;
           }
 
+          if (this.collectingPeople) {
+            await this.processPeopleSelection(tempMessage);
+            return;
+          }
+
           if (!this.productDataCollectionMode) {
             const response = await handleRequest({
-          endpoint: "ask-ai-task",
-          method: "POST",
-          data: {
-            question: tempMessage,
-            issue:
-              "Eres un asistente para gestión del hogar: tareas, metas, finanzas, salud, compras y presupuestos.",
-            home_id: this.home_id,
-          },
-        });
-        this.isTyping = false;
-        const { intentDetected, intent, task, answer, finances, budget, warehouse } = response.data;
-
+              endpoint: "ask-ai-task",
+              method: "POST",
+              data: {
+                question: tempMessage,
+                issue: "Eres un asistente para gestión de tareas y metas.",
+              },
+            });
+            this.isTyping = false;
+        const { intentDetected, intent, task, answer, finances, budget, warehouse, product } = response.data;
             if (intentDetected && intent) {
+
               this.data = { home_id: this.home_id };
-              switch (intent) {
+                switch (intent) {
             case "Tarea":
-              this.currentTask = null;
-              this.$nextTick(() => {
-                const taskData =
-                  typeof task === "string"
-                    ? JSON.parse(task)
-                    : task;
+                  this.currentTask = null;
+                  this.$nextTick(() => {
+                    const taskData = typeof task === "string" ? JSON.parse(task) : task;
 
-                this.currentTask = _.cloneDeep(taskData);
-                this.dialogChatTask = true;
-                this.scrollToBottom();
-              });
-              break;
+                    this.currentTask = _.cloneDeep(taskData);
+                    this.dialogChatTask = true;
+                    this.scrollToBottom();
+                  });
+                  break;
 
-            case "Meta":
-              this.currentTask = null;
-              this.$nextTick(() => {
-                const taskData =
-                  typeof task === "string"
-                    ? JSON.parse(task)
-                    : task;
+                case "Meta":
+                  this.currentTask = null;
+                  this.$nextTick(() => {
+                    const taskData =
+                      typeof response.data.task === "string" ? JSON.parse(task) : task;
 
-                this.currentTask = _.cloneDeep(taskData);
-                this.dialogChatTask = true;
-                this.scrollToBottom();
-              });
-              break;
-
-            case "Gasto":
+                    this.currentTask = _.cloneDeep(taskData);
+                    this.dialogChatTask = true;
+                    this.scrollToBottom();
+                  });
+                  break;
+              case "Gasto":
               this.currentFinance = null;
               this.$nextTick(() => {
                 const financeData =
                   typeof finances === "string"
                     ? JSON.parse(finances)
                     : finances;
-                 if(Number(financeData.spent) <= 0)
+
+              
+                if(financeData.spent <= 0)
                 {
                 this.chatMessages.push({
                 from: "ai",
@@ -922,7 +1000,7 @@ export default {
               });
             }else{
                 this.currentFinance = _.cloneDeep(financeData);
-                this.currentIntentFinance = response.data.intent;
+                this.currentIntentFinance = finances.intent;
                 this.dialogChatFinance = true;
                 this.scrollToBottom();
             }
@@ -935,8 +1013,10 @@ export default {
                 const financeData =
                   typeof finances === "string"
                     ? JSON.parse(finances)
-                    : finances;
-                 if(Number(financeData.income) <= 0)
+                    : response.data.finances;
+
+              
+                if(financeData.income <= 0)
                 {
                 this.chatMessages.push({
                 from: "ai",
@@ -947,7 +1027,7 @@ export default {
               });
             }else{
                 this.currentFinance = _.cloneDeep(financeData);
-                this.currentIntentFinance = response.data.intent;
+                this.currentIntentFinance = finances.intent;
                 this.dialogChatFinance = true;
                 this.scrollToBottom();
             }
@@ -955,32 +1035,27 @@ export default {
               break;
 
             case "Presupuesto":
-              this.$nextTick(async () => {
-                  this.productParameters = {
-                    ...this.productParameters,
-                    ...budget,
-                  };
-                if (Number(this.productParameters.amount) <= 0){
-                      this.chatMessages.push({
-                        from: "ai",
-                        text:
-                          /*answer ||*/
-                          "Detecte que desea registrar un presupuesto pero no especificaste el monto, podrías ser mas especifico",
-                        timestamp: new Date().toLocaleTimeString(),
-                      });
-                    }else{
-                  this.currentIntent = intent;
-                  this.productDataCollectionMode = true;
-                  this.chatMessages.push({
-                    from: "ai",
-                    text: `Datos del  ${this.currentIntent} recibidos. Puedes editarlos antes de confirmar.`,
-                    timestamp: new Date().toLocaleTimeString(),
-                  });
-                  await this.loadRequiredData();
-                  await this.showInitialData(budget);
-                  this.scrollToBottom();
-                }
-                });
+              this.currentBudget = null;
+              this.$nextTick(() => {
+                const budgetData =
+                  typeof budget === "string"
+                    ? JSON.parse(budget)
+                    : budget;
+                if(budgetData.amount <= 0)
+                {
+                this.chatMessages.push({
+                from: "ai",
+                text:
+                  /*answer ||*/
+                  "Detecte que desea registrar un presupuesto pero no especificaste el monto, podrías ser mas especifico",
+                timestamp: new Date().toLocaleTimeString(),
+              });
+            }else{
+                this.currentBudget = _.cloneDeep(budgetData);
+                this.dialogChatBudget = true;
+                this.scrollToBottom();
+              }
+              });
               break;
             case "Warehouse":
               this.currentWarehouse = null;
@@ -994,6 +1069,34 @@ export default {
                 this.dialogChatWarehouse = true;
                 this.scrollToBottom();
               });
+              break;
+
+              case "Producto":
+              this.$nextTick(async () => {
+                  this.productParameters = {
+                    ...this.productParameters,
+                    ...product,
+                  };
+                if (isNaN(product.quantity) || isNaN(product.unitPrice) || product.quantity <= 0 || product.unitPrice <= 0) {
+                    this.chatMessages.push({
+                      from: "ai",
+                      text: "⚠️ Parece que aún no has especificado bien la **cantidad** o el **precio unitario** del producto. Ambos deben ser valores numéricos mayores a cero. ¿Podrías revisarlo y corregirlo, por favor?",
+                      timestamp: new Date().toLocaleTimeString(),
+                    });
+                    return; // Detener el flujo hasta que se corrijan
+                  }else{
+                  this.currentIntent = intent;
+                  this.productDataCollectionMode = true;
+                  this.chatMessages.push({
+                    from: "ai",
+                    text: `Datos del  ${this.currentIntent} recibidos. Puedes editarlos antes de confirmar.`,
+                    timestamp: new Date().toLocaleTimeString(),
+                  });
+                  await this.loadRequiredData();
+                  await this.showInitialData(product);
+                  this.scrollToBottom();
+                }
+                });
               break;
 
             case "salud":
@@ -1010,7 +1113,7 @@ export default {
 
             default:
               // Respuesta por defecto si no se reconoce la intención
-              this.messages.push({
+              this.chatMessages.push({
                 from: "ai",
                 text:
                   answer ||
@@ -1018,6 +1121,16 @@ export default {
                 timestamp: new Date().toLocaleTimeString(),
               });
           }
+              /*if (response.data.task) {
+                this.productParameters = {
+                  ...this.productParameters,
+                  ...response.data.task,
+                };
+              }
+              await this.loadRequiredData();
+              this.currentProductIntent = response.data.intent;
+              this.productDataCollectionMode = true;
+              await this.showInitialData(response.data.task);*/
             } else {
               this.chatMessages.push({
                 from: "ai",
@@ -1025,7 +1138,7 @@ export default {
                 timestamp: new Date().toLocaleTimeString(),
               });
             }
-            
+            return;
           }
         } catch (error) {
           this.showAlert("error", error.message || "Ocurrió un error", 2000);
@@ -1068,7 +1181,7 @@ export default {
     },
     async showInitialData(productData) {
       if (!productData) return;
-            this.isInitialCategorySelection = (
+       this.isInitialCategorySelection = (
         productData.category_id === null || 
         productData.category_id === undefined
       );
@@ -1086,9 +1199,8 @@ export default {
           await this.showSummary(productData);
           await this.startAutomaticDataCollection();
     },
-    async showSummary(productData) {
-          // Definir los campos a mostrar, excluyendo spent/income mutuamente y budget_id condicionalmente
-      const fieldsToShow = [
+    /*async showSummary(productData) {
+        const fieldsToShow = [
         { key: "name", label: "Nombre del producto" },
         { key: "quantity", label: "Cantidad" },
         { key: "unit_price", label: "Precio unitario" },
@@ -1097,10 +1209,12 @@ export default {
         { key: "purchase_date", label: "Fecha de compra" },
         { key: "expiration_date", label: "Fecha de vencimiento" },
         { key: "additional_notes", label: "Notas adicionales" },
+        { key: "status_id", label: "Estado del producto" },
         { key: "category_id", label: "Categoría" },
         { key: "warehouse_id", label: "Almacén asociado" },
-        { key: "status_id", label: "Estado del producto" },
       ];
+
+
       // Mostrar campos normales como texto
       fieldsToShow.forEach((field) => {
         const value = productData[field.key];
@@ -1118,7 +1232,7 @@ export default {
 
           if (field.key === "warehouse_id") {
             // Buscar el nombre del presupuesto para mostrar
-            const warehouse = this.warehouses.find((b) => b.id === value);
+            const warehouse = this.warehouses.find((b) => b.warehouse_id === value);
             displayValue = warehouse ? `${warehouse.title}` : `ID: ${value}`;
             // Pasar los budgets disponibles para la edición con autocomplete
             additionalData.availableWarehouses = this.warehouses;
@@ -1151,63 +1265,192 @@ export default {
           this.shownChatFields.add(field.key);
         }
       });
-    },
+    },*/
+   async showSummary(productData) {
+  const fieldsToShow = [
+    { key: "name", label: "Nombre del producto" },
+    { key: "quantity", label: "Cantidad" },
+    { key: "unit_price", label: "Precio unitario" },
+    { key: "total_price", label: "Importe total", editable: false },
+    { key: "purchase_place", label: "Lugar de compra", optional: true },
+    { key: "purchase_date", label: "Fecha de compra" },
+    { key: "expiration_date", label: "Fecha de vencimiento", optional: true, dateField: true },
+    { key: "additional_notes", label: "Notas adicionales", optional: true },
+    { key: "status_id", label: "Estado del producto" },
+    { key: "category_id", label: "Categoría" },
+    { key: "warehouse_id", label: "Almacén asociado" }
+  ];
+
+  for (const field of fieldsToShow) {
+    const value = productData[field.key];
+
+    // ✅ 1. Validar dependencias antes de mostrar
+    if (field.key === "warehouse_id" && !productData.category_id) {
+      // No mostrar almacén si no hay categoría seleccionada
+      continue;
+    }
+
+    // ✅ 2. No mostrar campos obligatorios vacíos que aún no pueden editarse
+    if (!field.optional && (value === null || value === undefined || value === "")) {
+      // No lo mostramos en el chat todavía
+      // Solo lo mostraremos cuando el flujo lo requiera
+      continue;
+    }
+
+    // ✅ 3. Ahora procesamos el valor para mostrar
+    let displayValue = value;
+    let additionalData = {};
+    let isEmpty = false;
+
+    if (field.key === "category_id") {
+      const categoryInfo = this.categories.find((b) => b.id === value);
+      displayValue = categoryInfo ? categoryInfo.nameCategory : "(Seleccionar categoría)";
+      additionalData.availableCategories = this.categories;
+      isEmpty = !value;
+    } 
+    else if (field.key === "warehouse_id") {
+      const warehouse = this.warehouses
+        .filter(w => w.category_id === productData.category_id) // ✅ Filtrar por categoría
+        .find(w => w.warehouse_id === value);
+
+      const warehouseOptions = this.warehouses.filter(w => w.category_id === productData.category_id);
+      additionalData.availableWarehouses = warehouseOptions;
+
+      displayValue = warehouse ? warehouse.title : "(Seleccionar almacén)";
+      isEmpty = !value;
+    }
+    else if (field.key === "status_id") {
+      const status = this.status.find((b) => b.id === value);
+      displayValue = status ? status.nameStatus : "(Seleccionar estado)";
+      additionalData.availableStatus = this.status;
+      isEmpty = !value;
+    }
+    else if (field.key === "total_price") {
+      displayValue = value ? `$${parseFloat(value).toFixed(2)}` : "$0.00";
+    }
+    else if (field.dateField) {
+      displayValue = value || "(Seleccionar fecha)";
+      additionalData.showDatePicker = !value;
+      isEmpty = !value;
+    }
+    else if (field.optional) {
+      displayValue = value || "(Seleccionar)";
+      isEmpty = !value;
+    }
+
+    // ✅ 4. Solo ahora agregamos al chat
+    this.chatMessages.push({
+      from: "ai",
+      text: `• ${field.label}: ${displayValue}`,
+      timestamp: new Date().toLocaleTimeString(),
+      isEditable: field.editable !== false,
+      fieldKey: field.key,
+      fieldLabel: field.label,
+      currentValue: value,
+      editValue: value,
+      isEditing: false,
+      showDatePicker: additionalData.showDatePicker || false,
+      isEmpty: isEmpty,
+      ...additionalData
+    });
+
+    this.shownChatFields.add(field.key);
+  }
+},
+
     async startAutomaticDataCollection() {
-      const parametersOrder = [
-         "name",
-        "quantity",
-        "unit_price",
-        "total_price",
-        "purchase_place", // Ahora se pedirá la recurrencia
-        "purchase_date",
-        "category_id",
-        "expiration_date",
-        "additional_notes",
-        "warehouse_id",
-        "status_id",
-      ];
+  const parametersOrder = [
+    "name",
+    "quantity",
+    "unit_price",
+    "total_price",
+    "purchase_place",
+    "purchase_date",
+    "expiration_date",
+    "additional_notes",
+    "status_id",
+    "category_id",
+    "warehouse_id"
+  ];
 
-      const nextField = parametersOrder.find((field) => {
-        const value = this.productParameters[field];
+  // ✅ Buscar el primer campo que:
+  // - No tiene valor
+  // - No ha sido mostrado
+  // - Y sus dependencias están resueltas
+  const nextField = parametersOrder.find(field => {
+    const value = this.productParameters[field];
+    const hasValue = value !== null && value !== undefined && value !== "";
 
-        return !value && value !== 0;
-      });
+    if (hasValue || this.shownChatFields.has(field)) {
+      return false;
+    }
 
-      console.log("nextField");
-      console.log(nextField);
-       if (this.shownChatFields.has(nextField)) {
-        return;
+    // ✅ Dependencia: warehouse_id requiere category_id
+    if (field === "warehouse_id" && !this.productParameters.category_id) {
+      return false;
+    }
+
+    return true;
+  });
+
+  this.updateExistingSummary();
+
+  if (!nextField) {
+    if (this.isFormComplete()) {
+    this.completeCreation();
+  } else {
+    console.warn("Faltan campos obligatorios, no se puede completar.");
+  }
+    return;
+  }
+
+  // ✅ Marcar como mostrado y mostrar input
+  this.shownChatFields.add(nextField);
+  await this.showFieldInput(nextField);
+},
+    updateExistingSummary() {
+      const summaryIndex = this.chatMessages.findIndex(msg => msg.isSummary);
+      if (summaryIndex !== -1) {
+        // Solo actualizamos si ya existe
+        this.chatMessages[summaryIndex].text = this.generateSummary();
+        this.chatMessages[summaryIndex].timestamp = new Date().toLocaleTimeString();
+        this.scrollToBottom();
       }
+    },
+    updateOrCreateSummary() {
+      const summaryIndex = this.chatMessages.findIndex(msg => msg.isSummary);
+      const newSummary = this.generateSummary();
 
-      // Marcar como mostrado ANTES de mostrar el mensaje
-      this.shownChatFields.add(nextField);
-       /*if (nextField === 'category_id' && !this.isInitialCategorySelection) {
-        this.completeCreation(); // Saltar a confirmación
-      } else if (nextField === "type_id") {
-        await this.showPeriodOptions();
-      }else if (nextField === "budget_type") {
-        await this.showTypeOptions();
-      }*/if (nextField) {
-        this.showFieldInput(nextField);
+      if (summaryIndex === -1) {
+        // 🔹 Crear solo aquí (en completeCreation)
+        this.chatMessages.push({
+          from: "ai",
+          text: newSummary,
+          timestamp: new Date().toLocaleTimeString(),
+          isSummary: true,
+        });
       } else {
-        this.completeCreation();
+        // 🔹 Actualizar si ya existe
+        this.chatMessages[summaryIndex].text = newSummary;
       }
+
+      this.scrollToBottom();
     },
     async showFieldInput(field) {
       const fieldLabels = {
-         name: "el nombre del producto",
-                quantity: "la cantidad",
-                unit_price: "el precio unitario",
-                total_price: "el precio total",
-                purchase_place: "el lugar de compra",
-                purchase_date: "la fecha de compra (YYYY-MM-DD)",
-                expiration_date: "la fecha de vencimiento (YYYY-MM-DD)",
-                additional_notes: "notas adicionales",
-                warehouse_id: "el almacén de almacenamiento",
-                category_id: "la categoría del producto",
-                status_id: "el estado del producto"
+         name: "Nombre del producto",
+                quantity: "Cantidad",
+                unit_price: "Precio unitario",
+                total_price: "Precio total",
+                purchase_place: "Lugar de compra",
+                purchase_date: "Fcha de compra (YYYY-MM-DD)",
+                expiration_date: "Fecha de vencimiento (YYYY-MM-DD)",
+                additional_notes: "Notas adicionales",
+                warehouse_id: "Almacén seleccionado",
+                category_id: "Categoría del producto",
+                status_id: "Estado del producto"
       };
-       let additionalData = {};
+      let additionalData = {};
       if (field === "category_id") {
         this.isInitialCategorySelection = (
           this.productParameters[field] === null || 
@@ -1252,7 +1495,6 @@ export default {
         });
         return; // Salir para no ejecutar el código posterior
       }
-        // Caso 3: purchase_date o expiration_date → mostrar datepicker directamente
       if (field === "purchase_date" || field === "expiration_date") {
         this.chatMessages.push({
           from: "ai",
@@ -1263,155 +1505,98 @@ export default {
           fieldLabel: fieldLabels[field],
           currentValue: this.productParameters[field] || "",
           editValue: this.productParameters[field] || "",
-          isEditing: true, // Para activar el componente visual
+          //isEditing: true, // Para activar el componente visual
           showDatePicker: true, // ← ¡Aquí activas el menú del datepicker!
         });
         return;
       }
+      else {
+      // Para campos de texto normales
       this.chatMessages.push({
         from: "ai",
         text: `Por favor, ingresa ${fieldLabels[field] || field}:`,
         timestamp: new Date().toLocaleTimeString(),
-        isFieldPrompt: true,
-        fieldName: field,
+        isEditable: true,
+        fieldKey: field,
         fieldLabel: fieldLabels[field] || field,
+        currentValue: this.productParameters[field] || "",
+        editValue: this.productParameters[field] || "",
+        //isEditing: true // Activar edición directamente
       });
-
-      /*if (field === "budget_type") {
-        await this.showTypeOptions();
-      }
-      else if (field === "type_id") {
-        await this.showPeriodOptions();
-      }
-       else *//*if (field === "purchase_date" || field === "expiration_date") {
-        this.showDatePicker(field);
-      }*/
+    }
     },
     validateField(field, value) {
-      console.log("Validando campo de presupuesto:", field, "con valor:", value);
-      switch (field) {
-        case "title":
-          if (!value || value.trim().length === 0) {
-            throw new Error("el nombre es requerido");
-          }
-          return value.trim();
+  console.log("Validando campo de producto:", field, "con valor:", value);
+  
+  // Definir campos opcionales
+  const optionalFields = ["purchase_place", "expiration_date", "additional_notes"];
+  
+  // Si es campo opcional y está vacío, retornar null
+  if (optionalFields.includes(field) && (value === undefined || value === null || value === "")) {
+    return null;
+  }
 
-        case "quantity":
-          const quantity = parseFloat(value);
-          if (isNaN(quantity) || quantity <= 0) {
-            throw new Error("La cantidad debe ser un número positivo");
-          }
-          return quantity;
-          case "unit_price":
-          const unit_price = parseFloat(value);
-          if (isNaN(unit_price) || unit_price <= 0) {
-            throw new Error("El precio debe ser un número positivo");
-          }
-          return unit_price;
+  const fieldLabels = {
+    name: "nombre del producto",
+    quantity: "cantidad",
+    unit_price: "precio unitario",
+    total_price: "precio total",
+    purchase_place: "lugar de compra",
+    purchase_date: "fecha de compra",
+    expiration_date: "fecha de vencimiento",
+    additional_notes: "notas adicionales",
+    warehouse_id: "almacén",
+    category_id: "categoría",
+    status_id: "estado"
+  };
 
-        case "purchase_date":
-        case "expiration_date":
-          // Validar formato de fecha
-          if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-            throw new Error(
-              `Formato de fecha inválido para ${fieldLabels[field] || field} (YYYY-MM-DD)`
-            );
-          }
-
-          // Convertir a objeto Date para validaciones posteriores
-          const dateObj = new Date(value);
-          if (isNaN(dateObj.getTime())) {
-            // Verifica si la fecha es válida
-            throw new Error(`Fecha inválida para ${fieldLabels[field] || field}`);
-          }
-
-          // Validar que expiration_date sea posterior o igual a purchase_date (si ambos existen)
-          // Nota: Esto requiere acceso a los otros parámetros del formulario de presupuesto
-          // Por ejemplo, si estás validando expiration_date, necesitas el purchase_date del mismo presupuesto
-          // Esto puede ser complejo en el contexto actual de `financeParameters`.
-          // Una opción es pasar `this.productParameters` o el objeto completo como argumento adicional.
-
-          // Ejemplo básico asumiendo que tienes acceso a `this.productParameters`:
-
-          if (field === "expiration_date" && this.productParameters?.purchase_date) {
-            const startDate = new Date(this.productParameters.purchase_date);
-            const endDate = new Date(value);
-            if (endDate < startDate) {
-              throw new Error(
-                "La fecha de finalización debe ser posterior o igual a la fecha de inicio"
-              );
-            }
-          }
-          if (field === "purchase_date" && this.productParameters?.expiration_date) {
-            const startDate = new Date(value);
-            const endDate = new Date(this.productParameters.expiration_date);
-            if (endDate < startDate) {
-              throw new Error(
-                "La fecha de inicio debe ser anterior o igual a la fecha de finalización"
-              );
-            }
-          }
-
-          return value; // Devolver el string de fecha formateado
-
-        case "warehouse_id": // o "type" si el campo se llama "type" en el objeto
-           if (value === null || value === undefined || value === "") {
-            // Si es opcional, devolver null. Si es requerido, lanzar error.
-            // return null; // <-- Si es opcional
-            throw new Error("Debes seleccionar un estado"); // <-- Si es requerido
-          }
-          const warehouseId = parseInt(value, 10);
-          if (isNaN(warehouseId) || warehouseId <= 0) {
-            throw new Error("ID del estado debe ser un número entero positivo");
-          }
-          // Opcional: Validar que la categoría exista en una lista predefinida
-          // Esto dependería de cómo cargues las categorías disponibles.
-          // if (this.categories && !this.categories.some(c => c.id === categoryId)) {
-          //   throw new Error("La categoría seleccionada no es válida");
-          // }
-          return warehouseId;
-
-        case "status_id": // o "type" si el campo se llama "type" en el objeto
-          if (value === null || value === undefined || value === "") {
-            // Si es opcional, devolver null. Si es requerido, lanzar error.
-            // return null; // <-- Si es opcional
-            throw new Error("Debes seleccionar un estado"); // <-- Si es requerido
-          }
-          const statusID = parseInt(value, 10);
-          if (isNaN(statusID) || statusID <= 0) {
-            throw new Error("ID del estado debe ser un número entero positivo");
-          }
-          // Opcional: Validar que la categoría exista en una lista predefinida
-          // Esto dependería de cómo cargues las categorías disponibles.
-          // if (this.categories && !this.categories.some(c => c.id === categoryId)) {
-          //   throw new Error("La categoría seleccionada no es válida");
-          // }
-          return statusID;
-
-        case "category_id":
-          // Permitir que category_id sea null/undefined si es opcional al inicio
-          if (value === null || value === undefined || value === "") {
-            // Si es opcional, devolver null. Si es requerido, lanzar error.
-            // return null; // <-- Si es opcional
-            throw new Error("Debes seleccionar una categoría"); // <-- Si es requerido
-          }
-
-          const categoryId = parseInt(value, 10);
-          if (isNaN(categoryId) || categoryId <= 0) {
-            throw new Error("ID de categoría debe ser un número entero positivo");
-          }
-          // Opcional: Validar que la categoría exista en una lista predefinida
-          // Esto dependería de cómo cargues las categorías disponibles.
-          // if (this.categories && !this.categories.some(c => c.id === categoryId)) {
-          //   throw new Error("La categoría seleccionada no es válida");
-          // }
-          return categoryId;
-        default:
-          // Para cualquier otro campo, simplemente devolver el valor
-          // o podrías lanzar un error si quieres ser estricto
-          return value;
+  switch (field) {
+    case "name":
+    case "purchase_place":
+      if (!value || value.trim().length === 0) {
+        throw new Error(`El ${fieldLabels[field]} es requerido`);
       }
-    },
+      return value.trim();
+
+    case "quantity":
+    case "unit_price":
+    case "total_price":
+      const num = parseFloat(value);
+      if (isNaN(num) || num < 0) {
+        throw new Error(`El ${fieldLabels[field]} debe ser un número positivo`);
+      }
+      return num;
+
+    case "purchase_date":
+    case "expiration_date":
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        throw new Error(`Formato de ${fieldLabels[field]} inválido (YYYY-MM-DD)`);
+      }
+      const dateObj = new Date(value);
+      if (isNaN(dateObj.getTime())) {
+        throw new Error(`Fecha inválida para ${fieldLabels[field]}`);
+      }
+      return value;
+
+    case "warehouse_id":
+    case "category_id":
+    case "status_id":
+      if (value === null || value === undefined || value === "") {
+        throw new Error(`Debes seleccionar un ${fieldLabels[field]}`);
+      }
+      const id = parseInt(value, 10);
+      if (isNaN(id) || id <= 0) {
+        throw new Error(`ID de ${fieldLabels[field]} inválido`);
+      }
+      return id;
+
+    case "additional_notes":
+      return value ? value.trim() : null;
+
+    default:
+      return value;
+  }
+},
     fixEncoding(str) {
       try {
         return decodeURIComponent(escape(str));
@@ -1428,25 +1613,6 @@ export default {
         if (container) container.scrollTop = container.scrollHeight;
       });
     },
-    /*handleTypeSelection(type) {
-      this.productParameters.budget_type = type.id;
-
-      // Actualizar el mensaje de prioridad existente o crear uno nuevo
-      const priorityMessageIndex = this.chatMessages.findIndex(
-        (m) => m.from === "ai" && m.component === "TypePersonalOptions"
-      );
-
-      if (priorityMessageIndex !== -1) {
-        this.chatMessages[priorityMessageIndex].props.selectedId = type.id;
-      }
-
-       if (this.isInitialCategorySelection) {
-      this.startAutomaticDataCollection();
-    } else {
-      // Si estamos editando, actualizar el resumen
-      this.updateSummaryMessage();
-    }
-    },*/
     showAlert(type, message, timeout) {
       this.sb_type = type;
       this.sb_message = message;
@@ -1454,66 +1620,33 @@ export default {
       this.sb_icon = type === "success" ? "mdi-check-circle" : "mdi-alert-circle";
       this.snackbar = true;
     },
-
-    generateSummary() {
-      let summary = `Resumen del presupuesto:\n\n`;
-      
-      const parametersToShow = [
-        { key: "description", label: "Descripción" },
-        { key: "amount", label: "Monto" },
-        //{ key: "purchase_date", label: "Fecha inicio" },
-        //{ key: "expiration_date", label: "Fecha fin" },
-        { key: "currency", label: "Moneda" },
-        { key: "budget_type", label: "Tipo" },
-        { key: "type_id", label: "Período" },
-        { key: "category_id", label: "Categoría" },
-      ];
-
-      parametersToShow.forEach(({ key, label }) => {
-        const value = this.productParameters[key];
-        if (value !== null && value !== undefined && value !== "") {
-          if (key === "budget_type") {
-            const type = this.types.find((t) => t.id === value);
-            summary += `• ${label}: ${type?.name || "No especificado"}\n`;
-          } else if (key === "type_id") {
-            const period = this.typesPeriod.find((b) => b.id === value);
-            summary += `• ${label}: ${period?.nameTranslated || `ID: ${value}`}\n`;
-          } else if (key === "category_id") {
-            const category = this.categories.find((b) => b.id === value);
-            summary += `• ${label}: ${category?.nameCategory || `ID: ${value}`}\n`;
-          } else {
-            summary += `• ${label}: ${value}\n`;
-          }
-        }
+    cancelSelection() {
+      // Limpiar selección de personas
+      this.productParameters.people = [];
+      this.productParameters = Object.assign({}, this.defaultItem);
+      this.originalItem = Object.assign({}, this.defaultItem);
+      this.chatMessages.push({
+        from: "ai",
+        text: "Creación cancelada. ¿En qué más puedo ayudarte?",
+        timestamp: new Date().toLocaleTimeString(),
       });
-
-      return summary;
     },
-    completeCreation() {
+       completeCreation() {
       this.isTyping = true;
       this.productDataCollectionMode = false;
 
-      // Eliminar mensajes de resumen y confirmación anteriores si existen
-      this.chatMessages = this.chatMessages.filter(msg => 
-        !msg.isSummary && !msg.isConfirmation
-      );
+      // ✅ Aquí sí: crear o actualizar el resumen
+      this.updateOrCreateSummary();
 
-      // Generar y mostrar resumen actualizado
-      const summary = this.generateSummary();
-      
+      // ❌ Eliminar solo confirmación anterior
+      this.chatMessages = this.chatMessages.filter(msg => !msg.isConfirmation);
+
+      // ✅ Mostrar confirmación
       this.chatMessages.push({
         from: "ai",
-        text: summary,
+        text: `¿Deseas crear esta ${this.currentProductIntent.toLowerCase()} con los datos proporcionados?`,
         timestamp: new Date().toLocaleTimeString(),
-        isSummary: true // Marcar como mensaje de resumen
-      });
-
-      // Mostrar confirmación
-      this.chatMessages.push({
-        from: "ai",
-        text: "¿Deseas crear este presupuesto con los datos proporcionados?",
-        timestamp: new Date().toLocaleTimeString(),
-        isConfirmation: true, // Marcar como mensaje de confirmación
+        isConfirmation: true,
         buttons: [
           {
             text: "Cancelar",
@@ -1536,57 +1669,173 @@ export default {
       this.isTyping = false;
       this.scrollToBottom();
     },
+   generateSummary() {
+      let summary = `Resumen del producto:\n\n`;
+
+      // Definir campos y sus labels (extraídos de showSummary)
+      const parameterLabels = {
+        name: "Nombre del producto",
+        quantity: "Cantidad",
+        unit_price: "Precio unitario",
+        total_price: "Importe total",
+        purchase_place: "Lugar de compra",
+        purchase_date: "Fecha de compra",
+        expiration_date: "Fecha de vencimiento",
+        additional_notes: "Notas adicionales",
+        status_id: "Estado del producto",
+        category_id: "Categoría",
+        warehouse_id: "Almacén asociado"
+      };
+
+      // Recorrer todos los campos posibles del producto
+      Object.keys(parameterLabels).forEach((key) => {
+        const value = this.productParameters[key];
+        
+        // Solo mostrar campos con valor
+        if (value !== null && value !== undefined && value !== "") {
+          let displayValue = value;
+          
+          // Manejar campos especiales (relaciones)
+          if (key === "category_id") {
+            const category = this.categories.find(c => c.id === value);
+            displayValue = category?.nameCategory || `ID: ${value}`;
+          } 
+          else if (key === "status_id") {
+            const status = this.status.find(s => s.id === value);
+            displayValue = status?.nameStatus || `ID: ${value}`;
+          }
+          else if (key === "warehouse_id") {
+            const warehouse = this.warehouses.find(w => w.warehouse_id === value);
+            displayValue = warehouse?.title || `ID: ${value}`;
+          }
+          else if (["unit_price", "total_price"].includes(key)) {
+            displayValue = `$${parseFloat(value).toFixed(2)}`;
+          }
+
+          summary += `• ${parameterLabels[key]}: ${displayValue}\n`;
+        }
+      });
+
+      return summary;
+    },
+    updateSummaryMessage() {
+      const summaryIndex = this.chatMessages.findIndex(msg => msg.isSummary);
+      if (summaryIndex !== -1) {
+        // Actualizar el resumen completo
+        const newSummary = this.generateSummary();
+        this.chatMessages[summaryIndex].text = newSummary;
+
+        // Actualizar mensaje individual del campo editado
+        const fieldKey = this.chatMessages.find(m => m.isEditing)?.fieldKey;
+        if (fieldKey) {
+          const fieldLabel = {
+            type: "Tipo",
+            title: "Título",
+            description: "Descripción",
+            priority_id: "Prioridad",
+            recurrence: "Recurrencia",
+            purchase_date: "Fecha inicio",
+            expiration_date: "Fecha fin",
+            estimated_time: "Duración estimada",
+            geo_location: "Ubicación",
+          }[fieldKey];
+
+          if (fieldLabel) {
+            const fieldMessageIndex = this.chatMessages.findIndex(
+              m => m.fieldKey === fieldKey && !m.isEditing && !m.isSummary
+            );
+            if (fieldMessageIndex !== -1) {
+              const displayValue = this.getDisplayValueForField(fieldKey);
+              this.chatMessages[fieldMessageIndex].text = `• ${fieldLabel}: ${displayValue}`;
+              this.chatMessages[fieldMessageIndex].currentValue = this.productParameters[fieldKey];
+            }
+          }
+        }
+      }
+    },
+    getDisplayValueForField(fieldKey) {
+      const value = this.productParameters[fieldKey];
+      if (!value) return value;
+
+      if (fieldKey === "category_id") {
+        const category = this.categories.find(b => b.id === value);
+        return category?.nameCategory || `ID: ${value}`;
+      } else if (fieldKey === "status_id") {
+        const type = this.status.find(t => t.id === value);
+        return type?.nameStatus || `ID: ${value}`;
+      }else if (fieldKey === "warehouse_id") {
+        const type = this.warehouses.find(t => t.id === value);
+        return type?.title || `ID: ${value}`;
+      }
+      return value;
+    },
+
+
     // Maneja la confirmación del usuario
     async handleConfirmation(userResponse) {
       this.waitingForConfirmation = false;
 
       if (userResponse.toLowerCase() === "si" || userResponse.toLowerCase() === "sí") {
         const fieldsToUpdate = [
+          "id",
+          "home_id",
+          "warehouse_id",
+          "product_id",
+          "status_id",
           "category_id",
-          "amount",
-          "used_amount",
-          //"purchase_date",
-          //"expiration_date",
-          "budget_type",
-          "status",
-          "description",
-          "currency",
-          "type_id",
+          "name",
+          "unit_price",
+          "quantity",
+          "total_price",
+          "purchase_date",
+          "purchase_place",
+          "expiration_date",
+          "brand",
+          "additional_notes",
+          "maintenance_date",
+          "due_date",
+          "frequency",
+          "type",
         ];
 
         let updatedFields = Object.keys(this.productParameters)
           .filter(
             (key) =>
               fieldsToUpdate.includes(key) &&
-              this.productParameters[key] !== this.defaultItem[key]
+              this.productParameters[key] !== this.originalItem[key]
           )
           .reduce((obj, key) => {
             obj[key] = this.productParameters[key];
             return obj;
           }, {});
-
-        updatedFields.home_id = this.home_id;
-
         if (Object.keys(updatedFields).length > 0) {
+          updatedFields.home_id = this.home_id;
+          const formData = new FormData();
+          for (let key in updatedFields) {
+            formData.append(key, updatedFields[key]);
+          }
+
           try {
             const result = await handleRequest({
-              endpoint: "budget",
+              endpoint: "person-home-warehouse-product",
               method: "POST",
-              data: updatedFields,
+              data: formData,
             });
 
             // Manejo de la respuesta según el resultado
             if (result.success) {
               this.chatMessages.push({
                 from: "ai",
-                text: `✅ ${this.currentIntent} creado exitosamente!`,
+                text: `✅ ${this.currentProductIntent} creado exitosamente!`,
                 timestamp: new Date().toLocaleTimeString(),
               });
+              
+                this.handleCancellation();
             }
           } catch (error) {
             this.chatMessages.push({
               from: "ai",
-              text: `❌ Error al crear la ${this.currentIntent}: ${error.message}`,
+              text: `❌ Error al crear la ${this.currentProductIntent}: ${error.message}`,
               timestamp: new Date().toLocaleTimeString(),
             });
           } finally {
@@ -1595,7 +1844,7 @@ export default {
         } else {
           this.chatMessages.push({
             from: "ai",
-            text: "No se realizaron cambios en el presupuesto.",
+            text: "No se realizaron cambios en el producto.",
             timestamp: new Date().toLocaleTimeString(),
           });
         }
@@ -1605,16 +1854,14 @@ export default {
 
       // Resetear
       this.productDataCollectionMode = false;
-      this.currentIntent = null;
+      this.currentProductIntent = null;
       this.productParameters = {};
       this.scrollToBottom();
-      this.handleCancellation();
     },
     handleCancellation() {
       this.waitingForConfirmation = false;
-      this.productParameters.people = [];
-      this.productParameters = Object.assign({}, this.defaultItem);
-      this.originalItem = Object.assign({}, this.defaultItem);
+          this.productParameters = Object.assign({}, this.defaultItem);
+          this.originalItem = Object.assign({}, this.defaultItem);
       // Mensaje con botones de opción
       this.chatMessages.push({
         from: "ai",
@@ -1624,101 +1871,106 @@ export default {
           {
             text: "Salir",
             color: "grey",
-            variant: "outlined", // Botón con borde
+            variant: "outlined",  // Botón con borde
             action: () => this.closeDialog(),
             props: {
               class: "mr-2",
               size: "default",
-            },
+            }
           },
           {
-            text: "Nueva conversación",
-            color: "primary",
-            variant: "flat", // Botón sólido
-            action: () => this.startNewConversation(),
-            props: {
-              size: "default",
-            },
-          },
-        ],
+        text: "Nueva conversación",
+        color: "primary",
+        variant: "flat",  // Botón sólido
+        action: () => this.startNewConversation(),
+        props: {
+          size: "default",
+        }
+      }
+        ]
       });
     },
 
     // Método para nueva conversación
     startNewConversation() {
-      // Limpiar el chat
+          // Limpiar el chat
       this.chatMessages = [];
-
+      
       // Reiniciar todas las variables de estado relacionadas con tareas
       this.productDataCollectionMode = false;
-      this.currentIntent = null;
+      this.currentProductIntent = null;
       this.productParameters = {
-        budget_type: null,
-        amount: null,
-        description: null,
+         name: null,
+        quantity: null,
+        unit_price: null,
+        total_price: null,
+        purchase_place: null,
         purchase_date: null,
         expiration_date: null,
+        additional_notes: null,
+        warehouse_id: null,
         category_id: null,
-        currency: "CLP",
-        status: "Activo",
+        status_id: null
       };
       this.waitingForConfirmation = false;
+      this.collectingPeople = false;
       this.isTyping = false;
-
+      
       // Mensaje inicial del asistente
       this.chatMessages.push({
         from: "ai",
         text: "¡Hola! ¿En qué puedo ayudarte hoy?",
-        timestamp: new Date().toLocaleTimeString(),
+        timestamp: new Date().toLocaleTimeString()
       });
-
+      
       // Asegurarse de que el scroll se actualice
       this.scrollToBottom();
     },
 
     // Método para cerrar el diálogo
     closeDialog() {
+      
       // Opcional: limpiar la conversación
       this.chatMessages = [];
       // Emitir evento para cerrar el diálogo (ajusta según tu implementación)
-      this.$emit("close-dialog");
-      this.$emit("close-all-dialogs", "ChatBudget");
-    },
-    //date y time
-    handleDateSelection(field, dateEvent) {
-      const { value } = dateEvent;
-      
-      if (!value) {
-        this.showAlert("error", "Fecha inválida", 2000);
-        return;
-      }
+      this.$emit('close-dialog');
+      this.$emit("close-all-dialogs", "ChatProduct");
 
-      // Actualizar el valor en el modelo
+    },
+    async handleDateSelection(field, dateEvent) {
+      const { value } = dateEvent;
+
+      // Actualizar el valor en productParameters
       this.productParameters[field] = value;
-      
-      // Actualizar el mensaje en el chat
-      const messageIndex = this.chatMessages.findIndex(m => m.fieldKey === field);
-      if (messageIndex !== -1) {
-        const message = this.chatMessages[messageIndex];
+
+      // Encontrar el mensaje correspondiente
+      const message = this.chatMessages.find((m) => m.fieldKey === field);
+
+      if (message) {
         message.currentValue = value;
         message.editValue = value;
         message.text = `• ${message.fieldLabel}: ${value}`;
         message.isEditing = false;
-        message.showDatePicker = false;
       }
 
-      this.scrollToBottom();
-      
-      // Continuar el flujo si es necesario
-      if (this.isInitialDataCollection) {
-        this.startAutomaticDataCollection();
-      }
+      // Continuar con el flujo automático
+      await this.startAutomaticDataCollection();
     },
   },
 };
 </script>
 
 <style scoped>
+.description-text {
+  max-width: 200px;
+  /* Establece un límite de ancho */
+  overflow: hidden;
+  /* Oculta el texto que exceda */
+  text-overflow: ellipsis;
+  /* Añade "..." al final del texto largo */
+  white-space: nowrap;
+  /* Evita el salto de línea */
+}
 .v-slide-group__content {
   padding: 4px 0;
 }
@@ -1745,7 +1997,7 @@ export default {
   background-color: #888;
   border-radius: 12px;
   padding: 1px;
-  min-width: 100% !important;
+   min-width: 100% !important;
 }
 
 .ai-message {
@@ -1754,7 +2006,6 @@ export default {
   padding: 1px;
   min-width: 100% !important;
 }
-
 
 .fade-enter-active,
 .fade-leave-active {
@@ -1779,7 +2030,7 @@ export default {
 /* Efecto hover para los botones */
 .v-btn--action-cancel:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   transition: all 0.2s ease;
 }
 </style>

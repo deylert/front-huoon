@@ -45,23 +45,6 @@
           style="min-width: 0; max-width: 100%; width: fit-content" >
                   <!-- Campo editable con componente -->
                   <template v-if="message.isEditable && message.isEditing">
-                    <div v-if="['date'].includes(message.fieldKey)">
-                       <v-menu v-model="message.showDatePicker" :close-on-content-click="false"
-                        transition="scale-transition" offset-y location="bottom"
-                        @update:modelValue="handleMenuClose(message, index)">
-                        <template #activator="{ props }">
-                          <v-text-field v-bind="props" :model-value="financeParameters[message.fieldKey]"
-                            :label="message.fieldLabel" variant="outlined" density="comfortable"
-                            style="width: auto; min-width: 10em" no-resize
-                            @click:appendInner="message.showDatePicker = true" />
-                        </template>
-
-                        <DatePicker :dateValue="financeParameters[message.fieldKey]" :fieldType="message.fieldKey"
-                          @date-updated="
-                        handleDateSelection(message.fieldKey, $event)
-                      " />
-                      </v-menu>
-                    </div>
                     <div v-if="message.fieldKey === 'budget_id'">
                       <v-autocomplete
                         v-model="message.editValue"
@@ -119,6 +102,23 @@
                           <v-btn size="small" color="primary" @click="saveFieldEdit(index)" class="ml-2" variant="text">Guardar</v-btn>
                         </div>
                         -->
+                    </div>
+                    <div v-else-if="['date'].includes(message.fieldKey)">
+                       <v-menu v-model="message.showDatePicker" :close-on-content-click="false"
+                        transition="scale-transition" offset-y location="bottom"
+                        @update:modelValue="handleMenuClose(message, index)">
+                        <template #activator="{ props }">
+                          <v-text-field v-bind="props" :model-value="financeParameters[message.fieldKey]"
+                            :label="message.fieldLabel" variant="outlined" density="comfortable"
+                            style="width: auto; min-width: 10em" no-resize
+                            @click:appendInner="message.showDatePicker = true" />
+                        </template>
+
+                        <DatePicker :dateValue="financeParameters[message.fieldKey]" :fieldType="message.fieldKey"
+                          @date-updated="
+                        handleDateSelection(message.fieldKey, $event)
+                      " />
+                      </v-menu>
                     </div>
                     <v-textarea
                       v-else-if="['title', 'description'].includes(message.fieldKey)"
@@ -340,6 +340,20 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+   <v-dialog v-model="dialogChatProduct" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-text>
+        <!-- Pasamos los parámetros al componente ChatTask -->
+        <ChatProduct :productData="currentProduct" @close-dialog="closeDialgChat()"
+          @close-all-dialogs="closeAllDialogs($event)" />
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn text @click="closeDialgChat()">Cerrar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
   </div>
 </template>
 
@@ -376,6 +390,7 @@ export default {
     ChatBudget: defineAsyncComponent(() => import("./ChatBudget.vue")),
     ChatTask: defineAsyncComponent(() => import("./ChatTask.vue")),
     ChatWarehouse: defineAsyncComponent(() => import("./ChatWarehouse.vue")),
+    ChatProduct: defineAsyncComponent(() => import("./ChatProduct.vue")), 
   },
   data() {
     return {
@@ -383,9 +398,11 @@ export default {
       dialogChatTask: false,
       dialogChatBudget: false,
       dialogChatWarehouse: false,
+      dialogChatProduct: false,
       currentTask: null,
       currentBudget: null,
       currentWarehouse: null,
+      currentProduct: null,
        transactionType: null,
       isInitialCategorySelection: false,
       textoTemporal: "",
@@ -599,12 +616,14 @@ export default {
       this.dialogChatFinance = false;
       this.dialogChatBudget = false;
       this.dialogChatWarehouse = false;
+      this.dialogChatProduct = false;
       this.texto = "";
       this.textoTemporal = "";
       this.currentTask = null;
       this.currentFinance = null;
       this.currentBudget = null;
       this.currentWarehouse = null;
+      this.currentProduct = null;
       this.$emit("close-all-dialogs", "ChatFinance");
       //this.initialize();
     },
@@ -774,6 +793,7 @@ export default {
               finances,
               budget,
               warehouse,
+              product
             } = response.data;
 
             if (intentDetected && intent) {
@@ -901,6 +921,27 @@ export default {
                 this.scrollToBottom();
               });
               break;
+              case "Producto":
+              this.currentProduct = null;
+              this.$nextTick(() => {
+                const productData =
+                  typeof product === "string"
+                    ? JSON.parse(product)
+                    : product;
+                if (isNaN(productData.quantity) || isNaN(productData.unit_price) || productData.quantity <= 0 || productData.unit_price <= 0) {
+                    this.chatMessages.push({
+                      from: "ai",
+                      text: "⚠️ Parece que aún no has especificado bien la **cantidad** o el **precio unitario** del producto. Ambos deben ser valores numéricos mayores a cero. ¿Podrías revisarlo y corregirlo, por favor?",
+                      timestamp: new Date().toLocaleTimeString(),
+                    });
+                    return; // Detener el flujo hasta que se corrijan
+                  }else{
+                this.currentProduct = _.cloneDeep(productData);
+                this.dialogChatProduct = true;
+                this.scrollToBottom();
+              }
+              });
+              break;
                 case "salud":
                   this.currentHealthData = _.cloneDeep(task || {});
                   this.dialogChatHealth = true;
@@ -995,7 +1036,10 @@ export default {
     },
 
     async showFinanceSummary(financeData) {
+  // Definir el orden de los campos (type primero si existe)
   const fieldsToShow = [
+    // Mostrar tipo primero si existe en los datos
+    ...(financeData.type ? [{ key: "type", label: "Tipo" }] : []),
     { key: "description", label: "Descripción" },
     ...(this.transactionType === "Gasto" ? [{ key: "spent", label: "Gasto" }] : []),
     ...(this.transactionType === "Ingreso" ? [{ key: "income", label: "Ingreso" }] : []),
@@ -1003,13 +1047,35 @@ export default {
     ...(this.transactionType === "Gasto" ? [{ key: "budget_id", label: "Presupuesto" }] : []),
   ];
 
-  // Procesar cada campo
+  // Procesar cada campo en el orden definido
   for (const field of fieldsToShow) {
     const value = financeData[field.key];
 
+    // Manejar el campo type de manera especial (componente TypePersonalOptions)
+    if (field.key === "type") {
+      this.chatMessages.push({
+        from: "ai",
+        text: "• Tipo:",
+        component: "TypePersonalOptions",
+        props: {
+          options: this.types,
+          selectedId: financeData.type,
+        },
+        timestamp: new Date().toLocaleTimeString(),
+        isEditable: true,
+        fieldKey: "type",
+        fieldLabel: "Tipo",
+        currentValue: financeData.type,
+        editValue: financeData.type,
+        isEditing: false
+      });
+      this.shownChatFields.add("type");
+      continue;
+    }
+
     let displayValue = value;
     let additionalData = {};
-
+    
     // Caso especial: budget_id en Gasto → siempre mostrar, incluso si es null
     if (field.key === "budget_id" && this.transactionType === "Gasto") {
       if (value !== null && value !== undefined) {
@@ -1019,7 +1085,16 @@ export default {
         displayValue = "(Sin asignar)";
       }
       additionalData.availableBudgets = this.budgets;
+    }
 
+    // Para campos de monto (spent/income), formatear como moneda
+    if (field.key === "spent" || field.key === "income") {
+      displayValue = `$${parseFloat(value).toFixed(2)}`;
+    }
+
+    // Mostrar el campo si tiene valor o es budget_id en gasto
+    if ((value !== null && value !== undefined && value !== "") || 
+        (field.key === "budget_id" && this.transactionType === "Gasto")) {
       this.chatMessages.push({
         from: "ai",
         text: `• ${field.label}: ${displayValue}`,
@@ -1035,45 +1110,7 @@ export default {
       });
 
       this.shownChatFields.add(field.key);
-      continue; // Saltar al siguiente campo
     }
-
-    // Para otros campos: solo mostrar si tienen valor
-    if (value !== null && value !== undefined && value !== "") {
-      if (field.key === "spent" || field.key === "income") {
-        displayValue = `$${parseFloat(value).toFixed(2)}`;
-      }
-
-      this.chatMessages.push({
-        from: "ai",
-        text: `• ${field.label}: ${displayValue}`,
-        timestamp: new Date().toLocaleTimeString(),
-        isEditable: true,
-        fieldKey: field.key,
-        fieldLabel: field.label,
-        currentValue: value,
-        editValue: value,
-        isEditing: false,
-        showDatePicker: false,
-      });
-
-      this.shownChatFields.add(field.key);
-    }
-  }
-
-  // Mostrar tipo si existe
-  if (financeData.type) {
-    this.chatMessages.push({
-      from: "ai",
-      text: "Tipo:",
-      component: "TypePersonalOptions",
-      props: {
-        options: this.types,
-        selectedId: financeData.type,
-      },
-      timestamp: new Date().toLocaleTimeString(),
-    });
-    this.shownChatFields.add("type");
   }
 },
 
@@ -1159,56 +1196,63 @@ export default {
       }
     },
 
-    async saveFieldEdit(index) {
+   async saveFieldEdit(index) {
       console.log("saveFieldEdit", index);
       const message = this.chatMessages[index];
       console.log("Mensaje a guardar:", message);
-
+      
       try {
+        // 1. Obtener y validar el valor
         let valueToValidate = message.editValue;
 
-        // Caso especial para budget_id
-        if (
-          message.fieldKey === "budget_id" &&
-          typeof valueToValidate === "object" &&
-          valueToValidate !== null
-        ) {
-          valueToValidate = valueToValidate.id;
+        // Manejar casos especiales donde el valor es un objeto (selects)
+        if (["budget_id", "type"].includes(message.fieldKey)) {
+          if (typeof valueToValidate === "object" && valueToValidate !== null) {
+            valueToValidate = valueToValidate.id;
+          }
         }
 
         const validatedValue = this.validateField(message.fieldKey, valueToValidate);
         this.financeParameters[message.fieldKey] = validatedValue;
 
-        // Actualizar el texto mostrado
+        // 2. Actualizar la visualización del mensaje
         let displayValue = validatedValue;
-        if (
-          message.fieldKey === "budget_id" &&
-          typeof message.editValue === "object" &&
-          message.editValue !== null
-        ) {
+        if (message.fieldKey === "budget_id" && typeof message.editValue === "object") {
           displayValue = message.editValue.categoryName;
-        } else if (message.fieldKey === "spent" || message.fieldKey === "income") {
+        } else if (message.fieldKey === "type" && typeof message.editValue === "object") {
+          displayValue = message.editValue.name;
+        } else if (["spent", "income"].includes(message.fieldKey)) {
           displayValue = `$${parseFloat(validatedValue).toFixed(2)}`;
-        } else if (message.fieldKey === "date") {
-          displayValue = validatedValue;
         }
 
         message.currentValue = validatedValue;
         message.text = `• ${message.fieldLabel}: ${displayValue}`;
         message.isEditing = false;
+
         this.scrollToBottom();
 
-        if (this.financeDataCollectionMode) {
-          // Si estamos en recolección inicial
-          if (message.fieldKey === "budget_id") {
-            this.isInitialBudgetSelection = false;
-          }
+        // 3. Determinar qué acción tomar después de guardar
+        const isInitialSelection = (
+          (message.fieldKey === "budget_id" && this.isInitialBudgetSelection) ||
+          (message.fieldKey === "type" && this.isInitialTypeSelection)
+        );
+
+        if (isInitialSelection) {
+          // Caso 1: Es una selección inicial (primer ingreso de datos)
+          if (message.fieldKey === "budget_id") this.isInitialBudgetSelection = false;
+          if (message.fieldKey === "type") this.isInitialTypeSelection = false;
+          
+          await this.startAutomaticDataCollection();
+        } else if (this.financeDataCollectionMode) {
+          // Caso 2: Estamos en modo recolección de datos (no es selección inicial)
           await this.startAutomaticDataCollection();
         } else {
-          // Si estamos editando después del resumen
+          // Caso 3: Estamos en modo edición (después de completeCreation)
           this.updateFinanceSummary();
         }
+
       } catch (error) {
+        console.error("Error al guardar edición:", error);
         this.showAlert("error", error.message, 2000);
         message.editValue = message.currentValue;
         message.isEditing = false;

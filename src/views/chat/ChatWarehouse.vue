@@ -313,7 +313,7 @@
     <v-card>
       <v-card-text>
         <!-- Pasamos los parámetros al componente ChatTask -->
-        <ChatFinance :financeData="currentFinance" @close-dialog="closeDialgChat()" @close-all-dialogs="$emit('close-all-dialogs')" />
+        <ChatFinance :financeData="currentFinance" :transactionIntent="currentIntentFinance" @close-dialog="closeDialgChat()" @close-all-dialogs="$emit('close-all-dialogs')" />
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
@@ -358,6 +358,7 @@ export default {
       currentTask: null,
       currentBudget: null,
       currentFinance: null,
+      currentIntentFinance: null,
       isInitialCategorySelection: false,
       textoTemporal: "",
       warehouseDataCollectionMode: false,
@@ -739,44 +740,82 @@ export default {
                   break;
 
                 case "Gasto":
-                this.currentFinance = null;
-                this.$nextTick(() => {
-                  const financeData =
-                    typeof finances === "string"
-                      ? JSON.parse(finances)
-                      : finances;
+              this.currentFinance = null;
+              this.$nextTick(() => {
+                const financeData =
+                  typeof response.data.finances === "string"
+                    ? JSON.parse(response.data.finances)
+                    : response.data.finances;
 
-                  this.currentFinance = _.cloneDeep(financeData);
-                  this.dialogChatFinance = true;
-                  this.scrollToBottom();
-                });
-                break;
+              
+                if(financeData.spent <= 0)
+                {
+                this.chatMessages.push({
+                from: "ai",
+                text:
+                  /*answer ||*/
+                  "Detecte que desea registrar un gasto pero no especificaste el monto, podrías ser mas especifico",
+                timestamp: new Date().toLocaleTimeString(),
+              });
+            }else{
+                this.currentFinance = _.cloneDeep(financeData);
+                this.currentIntentFinance = response.data.intent;
+                this.dialogChatFinance = true;
+                this.scrollToBottom();
+            }
+              });
+              break;
 
             case "Ingreso":
               this.currentFinance = null;
               this.$nextTick(() => {
                 const financeData =
-                  typeof finances === "string"
-                    ? JSON.parse(finances)
-                    : finances;
+                  typeof response.data.finances === "string"
+                    ? JSON.parse(response.data.finances)
+                    : response.data.finances;
 
+              
+                if(financeData.income <= 0)
+                {
+                this.chatMessages.push({
+                from: "ai",
+                text:
+                  /*answer ||*/
+                  "Detecte que desea registrar un ingreso pero no especificaste el monto, podrías ser mas especifico",
+                timestamp: new Date().toLocaleTimeString(),
+              });
+            }else{
                 this.currentFinance = _.cloneDeep(financeData);
+                this.currentIntentFinance = response.data.intent;
                 this.dialogChatFinance = true;
                 this.scrollToBottom();
+            }
               });
               break;
 
-                case "Presupuesto":
-                  this.currentBudget = null;
-                  this.$nextTick(() => {
-                    const budgetData =
-                      typeof budget === "string" ? JSON.parse(budget) : budget;
-
-                    this.currentBudget = _.cloneDeep(budgetData);
-                    this.dialogChatBudget = true;
-                    this.scrollToBottom();
-                  });
-                  break;
+            case "Presupuesto":
+              this.currentBudget = null;
+              this.$nextTick(() => {
+                const budgetData =
+                  typeof response.data.budget === "string"
+                    ? JSON.parse(response.data.budget)
+                    : response.data.budget;
+                if(budgetData.amount <= 0)
+                {
+                this.chatMessages.push({
+                from: "ai",
+                text:
+                  /*answer ||*/
+                  "Detecte que desea registrar un presupuesto pero no especificaste el monto, podrías ser mas especifico",
+                timestamp: new Date().toLocaleTimeString(),
+              });
+            }else{
+                this.currentBudget = _.cloneDeep(budgetData);
+                this.dialogChatBudget = true;
+                this.scrollToBottom();
+              }
+              });
+              break;
 
                 case "salud":
                   this.currentHealthData = _.cloneDeep(task || {});

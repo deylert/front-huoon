@@ -26,7 +26,7 @@ export default {
     fieldType: {
       type: String,
       required: true,
-      validator: value => ['start_date', 'end_date', 'date'].includes(value)
+      validator: value => ['start_date', 'end_date', 'date', 'purchase_date', 'expiration_date'].includes(value)
     },
     minDate: {
       type: String,
@@ -44,9 +44,11 @@ export default {
   },
   computed: {
     effectiveMinDate() {
-      if (this.minDate) return this.minDate;
-      return this.fieldType === 'start_date' ? this.getTodayDate() : null;
-    }
+  if (this.minDate) return this.minDate;
+  if (this.fieldType === 'start_date') return this.getTodayDate();
+  if (this.fieldType === 'purchase_date') return /* alguna otra lógica */;
+  return null;
+}
   },
   methods: {
     parseDate(dateString) {

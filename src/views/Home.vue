@@ -349,7 +349,7 @@
     <v-card>
       <v-card-text>
         <!-- Pasamos los parámetros al componente ChatTask -->
-        <ChatFinance :financeData="currentFinance" @close-dialog="closeDialgChat()"
+        <ChatFinance :financeData="currentFinance" :transactionIntent="currentIntentFinance" @close-dialog="closeDialgChat()"
           @close-all-dialogs="closeAllDialogs($event)" />
       </v-card-text>
       <v-divider></v-divider>
@@ -387,6 +387,20 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+  <v-dialog v-model="dialogChatProduct" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-text>
+        <!-- Pasamos los parámetros al componente ChatTask -->
+        <ChatProduct :productData="currentProduct" @close-dialog="closeDialgChat()"
+          @close-all-dialogs="closeAllDialogs($event)" />
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn text @click="closeDialgChat()">Cerrar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
@@ -400,6 +414,7 @@ import ChatTask from "../views/chat/ChatTask.vue";
 import ChatFinance from "./chat/ChatFinance.vue";
 import ChatBudget from "./chat/ChatBudget.vue";
 import ChatWarehouse from "./chat/ChatWarehouse.vue";
+import ChatProduct from "./chat/ChatProduct.vue";
 
 /*import { Line as LineChart } from 'vue-chartjs'
 
@@ -411,7 +426,8 @@ export default {
     ChatFinance,
     ChatTask,
     ChatBudget,
-    ChatWarehouse
+    ChatWarehouse,
+    ChatProduct
   },
   //components: { LineChart },
   data() {
@@ -421,10 +437,13 @@ export default {
       dialogChatFinance: false,
       dialogChatBudget: false,
       dialogChatWarehouse: false,
+      dialogChatProduct: false,
       currentTask: null,
       currentFinance: null,
       currentBudget: null,
       currentWarehouse: null,
+      currentIntentFinance: null,
+      currentProduct: null,
       selected2: null,
       texto: "", // texto confirmado y editable
       textoTemporal: "", // texto dictado en vivo (solo para mostrar)
@@ -861,12 +880,14 @@ export default {
       this.dialogChatFinance = false;
       this.dialogChatBudget = false;
       this.dialogChatWarehouse = false;
+      this.dialogChatProduct = false;
       this.texto = "";
       this.textoTemporal = "";
       this.currentTask = null;
       this.currentFinance = null;
       this.currentBudget = null;
       this.currentWarehouse = null;
+      this.currentProduct = null;
       this.initialize();
     },
     formatIntuitiveDate(dateString) {
@@ -957,7 +978,7 @@ export default {
           },
         });
         this.isTyping = false;
-        const { intentDetected, intent, task, answer, finances, budget, warehouse } = response.data;
+        const { intentDetected, intent, task, answer, finances, budget, warehouse, product } = response.data;
 
         if (intentDetected && intent) {
           // Preparar datos comunes
@@ -1008,13 +1029,26 @@ export default {
               this.currentFinance = null;
               this.$nextTick(() => {
                 const financeData =
-                  typeof response.data.finances === "string"
-                    ? JSON.parse(response.data.finances)
-                    : response.data.finances;
+                  typeof finances === "string"
+                    ? JSON.parse(finances)
+                    : finances;
 
+              
+                if(financeData.spent <= 0)
+                {
+                this.messages.push({
+                from: "ai",
+                text:
+                  /*answer ||*/
+                  "Detecte que desea registrar un gasto pero no especificaste el monto, podrías ser mas especifico",
+                timestamp: new Date().toLocaleTimeString(),
+              });
+            }else{
                 this.currentFinance = _.cloneDeep(financeData);
+                this.currentIntentFinance = response.data.intent;
                 this.dialogChatFinance = true;
                 this.scrollToBottom();
+            }
               });
               break;
 
@@ -1022,13 +1056,26 @@ export default {
               this.currentFinance = null;
               this.$nextTick(() => {
                 const financeData =
-                  typeof response.data.finances === "string"
-                    ? JSON.parse(response.data.finances)
-                    : response.data.finances;
+                  typeof finances === "string"
+                    ? JSON.parse(finances)
+                    : finances;
 
+              
+                if(financeData.income <= 0)
+                {
+                this.messages.push({
+                from: "ai",
+                text:
+                  /*answer ||*/
+                  "Detecte que desea registrar un ingreso pero no especificaste el monto, podrías ser mas especifico",
+                timestamp: new Date().toLocaleTimeString(),
+              });
+            }else{
                 this.currentFinance = _.cloneDeep(financeData);
+                this.currentIntentFinance = response.data.intent;
                 this.dialogChatFinance = true;
                 this.scrollToBottom();
+            }
               });
               break;
 
@@ -1036,13 +1083,23 @@ export default {
               this.currentBudget = null;
               this.$nextTick(() => {
                 const budgetData =
-                  typeof response.data.budget === "string"
-                    ? JSON.parse(response.data.budget)
-                    : response.data.budget;
-
+                  typeof budget === "string"
+                    ? JSON.parse(budget)
+                    : budget;
+                if(budgetData.amount <= 0)
+                {
+                this.messages.push({
+                from: "ai",
+                text:
+                  /*answer ||*/
+                  "Detecte que desea registrar un presupuesto pero no especificaste el monto, podrías ser mas especifico",
+                timestamp: new Date().toLocaleTimeString(),
+              });
+            }else{
                 this.currentBudget = _.cloneDeep(budgetData);
                 this.dialogChatBudget = true;
                 this.scrollToBottom();
+              }
               });
               break;
 
@@ -1057,6 +1114,30 @@ export default {
                 this.currentWarehouse = _.cloneDeep(warehouseData);
                 this.dialogChatWarehouse = true;
                 this.scrollToBottom();
+              });
+              break;
+            
+              case "Producto":
+              this.currentProduct = null;
+              this.$nextTick(() => {
+                const productData =
+                  typeof product === "string"
+                    ? JSON.parse(product)
+                    : product;
+                if(productData.quantity <= 0)
+                {
+                this.messages.push({
+                from: "ai",
+                text:
+                  /*answer ||*/
+                  "Detecte que desea registrar un producto pero no especificaste la cantidad, podrías ser mas especifico",
+                timestamp: new Date().toLocaleTimeString(),
+              });
+            }else{
+                this.currentProduct = _.cloneDeep(productData);
+                this.dialogChatProduct = true;
+                this.scrollToBottom();
+              }
               });
               break;
 

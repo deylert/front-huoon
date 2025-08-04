@@ -1,14 +1,6 @@
 <template>
-  <v-snackbar
-    class="mt-12"
-    location="right top"
-    :timeout="sb_timeout"
-    :color="sb_type"
-    elevation="24"
-    :multi-line="true"
-    vertical
-    v-model="snackbar"
-  >
+  <v-snackbar class="mt-12" location="right top" :timeout="sb_timeout" :color="sb_type" elevation="24"
+    :multi-line="true" vertical v-model="snackbar">
     <v-row>
       <v-col md="2">
         <v-avatar :icon="sb_icon" color="sb_type" size="40"></v-avatar>
@@ -19,93 +11,121 @@
       </v-col>
     </v-row>
   </v-snackbar>
-    <v-container class="pa-4 bg-grey-lighten-4">
-    <v-card class="bg-transparent" elevation="0" variant="flat">
-        <v-card-text>
-    <v-row justify="space-between" align="center" class="mb-6">
-          <h2 class="text-body-2 font-weight-bold">
-            {{ $t('product.listing.title') }}
-          </h2>
-          <v-btn icon color="deep-purple-accent-4" variant="flat" class="elevation-3" @click="showAddProduct"
-          :loading="loadingProduct">
-            <v-icon>mdi-plus</v-icon>
-          </v-btn>
+  <v-container>
+    <v-card class="pa-4" elevation="4" rounded="lg">
+      <v-card-text>
+        <v-row justify="space-between" align="center" class="mb-6">
+          <!-- Foto del usuario -->
+          <v-col cols="1">
+            <!-- Contenedor relativo para posicionar elementos absolutos dentro -->
+            <div style="position: relative; display: inline-block;">
+              <v-avatar size="80" class="me-4" color="grey-lighten-4">
+                <v-icon color="error" size="40">mdi-store</v-icon>
+              </v-avatar>
+              <!-- Botón de edición con estilo mejorado -->
+              <v-btn icon variant="text" size="small" color="grey-lighten-4" @click="editWarehouse()" style="
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+      ">
+                <v-icon color="primary" size="20">mdi-pencil</v-icon>
+              </v-btn>
+            </div>
+          </v-col>
+
+          <!-- Resto de tu código permanece igual -->
+          <v-col cols="10">
+            <div class="text-h6 font-weight-bold mb-1">{{ warehouseData.title }}</div>
+            <div class="text-body-2 text-grey-darken-1 text-truncate">
+              {{warehouseData.description }}
+              <v-tooltip activator="parent" location="buttom" max-width="350px">
+                <span class="d-inline-block" style="white-space: normal; word-break: break-word; width: 100%">
+                  {{ $t("warehouse.fields.description") }}: {{ warehouseData.description }}
+                </span>
+              </v-tooltip>
+            </div>
+            <div class="text-body-2 text-grey-darken-1 text-truncate">
+              {{warehouseData.location }}
+              <v-tooltip activator="parent" location="buttom" max-width="350px">
+                <span class="d-inline-block" style="white-space: normal; word-break: break-word; width: 100%">
+                  {{ $t("warehouse.fields.home_location") }}: {{ warehouseData.location }}
+                </span>
+              </v-tooltip>
+            </div>
+          </v-col>
+          <v-col cols="1">
+            <v-btn icon color="deep-purple-accent-4" variant="flat" class="elevation-3" @click="showAddProduct"
+              :loading="loadingProduct">
+              <v-icon>mdi-plus</v-icon>
+            </v-btn>
+          </v-col>
+          <v-col cols="12">
+            <h2 class="text-body-2 font-weight-bold">
+              {{ $t('product.listing.title') }}
+            </h2>
+          </v-col>
+          <!-- Productos del almacén seleccionado -->
+          <v-col cols="12" class="pa-0 pt-4">
+            <v-row>
+              <template v-if="paginatedProducts.length > 0">
+                <v-col v-for="product in paginatedProducts" :key="product.id" cols="3" class="ml-2">
+                  <v-card class="rounded-lg" max-width="35vh">
+                    <v-img height="25vh" :src="`${$axios.defaults.baseURL}images/${product.image}`" cover></v-img>
+
+                    <v-card-title>
+                      <v-tooltip bottom location="top" class="custom-tooltip">
+                        <template v-slot:activator="{ props }">
+                          <span v-bind="props">{{ product.productName }}</span>
+                        </template>
+                        {{ product.productName }}
+                      </v-tooltip>
+                    </v-card-title>
+
+                    <v-card-subtitle>
+                      <v-tooltip bottom location="top">
+                        <template v-slot:activator="{ props }">
+                          <span v-bind="props">
+                            {{ $t("product.listing.description") }}: {{ product.additionalNotes }}
+                          </span>
+                        </template>
+                        {{ product.additionalNotes }}
+                      </v-tooltip>
+                    </v-card-subtitle>
+
+                    <v-card-text>
+                      {{ $t("product.listing.quantity") }}: {{ product.quantity }}
+                    </v-card-text>
+
+                    <v-card-actions justify="end" class="w-100">
+                      <v-btn color="#DA7171" @click="deleteItem(product)">
+                        {{ $t("product.listing.delete") }}
+                      </v-btn>
+                      <v-btn color="#03626C" @click="editItem(product)" :loading="loadingProductEdit">
+                        {{ $t("product.listing.edit") }}
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-col>
+              </template>
+              <template v-else>
+                <v-col cols="12" class="text-center py-8">
+                  {{ $t("product.listing.noProducts") }}
+                </v-col>
+              </template>
+
+              <!-- Paginación -->
+              <v-col cols="12" class="text-center">
+                <v-pagination v-model="currentPage" :length="pageCount" :total-visible="5"></v-pagination>
+              </v-col>
+            </v-row>
+          </v-col>
         </v-row>
-        <v-row>
-    <!-- Productos del almacén seleccionado -->
-    <v-col cols="12" class="pa-0 pt-4">
-    <v-row>
-      <template v-if="paginatedProducts.length > 0">
-        <v-col v-for="product in paginatedProducts" :key="product.id" cols="12" md="3">
-          <v-card class="mx-auto rounded-lg" max-width="35vh">
-            <v-img
-              height="25vh"
-              :src="`${$axios.defaults.baseURL}images/${product.image}`"
-              cover
-            ></v-img>
-
-            <v-card-title>
-              <v-tooltip bottom location="top" class="custom-tooltip">
-                <template v-slot:activator="{ props }">
-                  <span v-bind="props">{{ product.productName }}</span>
-                </template>
-                {{ product.productName }}
-              </v-tooltip>
-            </v-card-title>
-
-            <v-card-subtitle>
-              <v-tooltip bottom location="top">
-                <template v-slot:activator="{ props }">
-                  <span v-bind="props">
-                    {{ $t("product.listing.description") }}: {{ product.additionalNotes }}
-                  </span>
-                </template>
-                {{ product.additionalNotes }}
-              </v-tooltip>
-            </v-card-subtitle>
-
-            <v-card-text>
-              {{ $t("product.listing.quantity") }}: {{ product.quantity }}
-            </v-card-text>
-
-            <v-card-actions justify="end" class="w-100">
-              <v-btn color="#DA7171" @click="deleteItem(product)">
-                {{ $t("product.listing.delete") }}
-              </v-btn>
-              <v-btn
-                color="#03626C"
-                @click="editItem(product)"
-                :loading="loadingProductEdit"
-              >
-                {{ $t("product.listing.edit") }}
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-col>
-      </template>
-      <template v-else>
-        <v-col cols="12" class="text-center py-8">
-          {{ $t("product.listing.noProducts") }}
-        </v-col>
-      </template>
-
-      <!-- Paginación -->
-      <v-col cols="12" class="text-center">
-        <v-pagination
-          v-model="currentPage"
-          :length="pageCount"
-          :total-visible="5"
-        ></v-pagination>
-      </v-col>
-    </v-row>
-    </v-col>
-    </v-row>
-    </v-card-text>
+      </v-card-text>
     </v-card>
-    </v-container>
+  </v-container>
 
-    <!-- Crear/Editar Producto -->
-    <!--<v-dialog v-model="dialog" max-width="800px">
+  <!-- Crear/Editar Producto -->
+  <!--<v-dialog v-model="dialog" max-width="800px">
       <v-form ref="form" v-model="valid">
         <v-card>
           <v-toolbar color="#03626C">
@@ -269,341 +289,338 @@
         </v-card>
       </v-form>
     </v-dialog>-->
-    <v-dialog
-      v-model="dialog"
-      fullscreen
-      persistent
-      transition="dialog-bottom-transition"
-      content-class="fullscreen-dialog"
-    >
-      <v-form ref="form" v-model="valid" class="h-100">
-        <v-card class="pa-10">
-          <v-card-text class="pt-12">
-            <!-- Pasos laterales -->
-            <h5 class="text-grey-darken-2 font-weight-medium">
-              {{ $t(`product.formTitle.${editedIndex === -1 ? "create" : "edit"}`) }}
-            </h5>
-            <p class="text-grey-lighten-1">{{ $t("product.formInstructions") }}</p>
+  <v-dialog v-model="dialog" fullscreen persistent transition="dialog-bottom-transition"
+    content-class="fullscreen-dialog">
+    <v-form ref="form" v-model="valid" class="h-100">
+      <v-card class="pa-10">
+        <v-card-text class="pt-12">
+          <!-- Pasos laterales -->
+          <h5 class="text-grey-darken-2 font-weight-medium">
+            {{ $t(`product.formTitle.${editedIndex === -1 ? "create" : "edit"}`) }}
+          </h5>
+          <p class="text-grey-lighten-1">{{ $t("product.formInstructions") }}</p>
 
-            <v-row class="mt-12">
-              <v-col cols="3">
-                <v-timeline align="start" side="end" dense>
-                  <v-timeline-item
-                    v-for="(s, index) in steps"
-                    :key="index"
-                    :dot-color="
+          <v-row class="mt-12">
+            <v-col cols="3">
+              <v-timeline align="start" side="end" dense>
+                <v-timeline-item v-for="(s, index) in steps" :key="index" :dot-color="
                       step > index
                         ? 'green'
                         : step === index
                         ? 'deep-purple'
                         : 'grey-lighten-1'
-                    "
-                    :icon="
+                    " :icon="
                       step >= index
                         ? step === index
                           ? `mdi-numeric-${index + 1}`
                           : 'mdi-check'
                         : null
-                    "
-                    size="large"
-                  >
-                    <template #opposite>
-                      <div class="text-end">
-                        <strong>{{ $t(`product.steps.${s.title}.title`) }}</strong>
-                        <div class="text-caption text-grey">
-                          {{ $t(`product.steps.${s.title}.subtitle`) }}
-                        </div>
+                    " size="large">
+                  <template #opposite>
+                    <div class="text-end">
+                      <strong>{{ $t(`product.steps.${s.title}.title`) }}</strong>
+                      <div class="text-caption text-grey">
+                        {{ $t(`product.steps.${s.title}.subtitle`) }}
                       </div>
-                    </template>
-                  </v-timeline-item>
-                </v-timeline>
-              </v-col>
+                    </div>
+                  </template>
+                </v-timeline-item>
+              </v-timeline>
+            </v-col>
 
-              <!-- Contenido dinámico según paso -->
-              <v-col cols="9">
-                <h3 class="text-deep-purple-accent-3 mb-8">
-                  {{ $t(`product.steps.${steps[step].title}.title`) }}
-                </h3>
+            <!-- Contenido dinámico según paso -->
+            <v-col cols="9">
+              <h3 class="text-deep-purple-accent-3 mb-8">
+                {{ $t(`product.steps.${steps[step].title}.title`) }}
+              </h3>
 
-                <!-- Paso 1: Información básica -->
-                <v-row dense v-if="step === 0">
-                  <v-col cols="12" md="6">
-                    <v-text-field
-                      v-model="editedItem.name"
-                      :label="$t('product.fields.name')"
-                      variant="underlined"
-                      :rules="validationRules.name"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="6">
-                    <v-text-field
-                      v-model="editedItem.brand"
-                      :label="$t('product.fields.brand')"
-                      variant="underlined"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="6">
-                    <v-file-input
-                      clearable
-                      v-model="file"
-                      ref="fileInput"
-                      :label="$t('product.fields.image')"
-                      variant="underlined"
-                      :prepend-icon="false"
-                      density="compact"
-                      name="file"
-                      accept=".png, .jpg, .jpeg"
-                      @change="onFileSelected"
-                    ></v-file-input>
-                  </v-col>
-                  <v-col cols="12" md="6">
-                    <v-card
-                      elevation="6"
-                      class="mx-auto"
-                      max-width="210"
-                      max-height="120"
-                    >
-                      <img
-                        v-if="imagenDisponible()"
-                        :src="imgedit"
-                        height="120"
-                        width="210"
-                      />
-                    </v-card>
-                  </v-col>
-                  <v-col cols="12" md="12">
-                    <v-textarea
-                      v-model="editedItem.additional_notes"
-                      :label="$t('product.fields.additional_notes')"
-                      variant="underlined"
-                    ></v-textarea>
-                  </v-col>
-                </v-row>
+              <!-- Paso 1: Información básica -->
+              <v-row dense v-if="step === 0">
+                <v-col cols="12" md="6">
+                  <v-text-field v-model="editedItem.name" :label="$t('product.fields.name')" variant="underlined"
+                    :rules="validationRules.name"></v-text-field>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-text-field v-model="editedItem.brand" :label="$t('product.fields.brand')"
+                    variant="underlined"></v-text-field>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-file-input clearable v-model="file" ref="fileInput" :label="$t('product.fields.image')"
+                    variant="underlined" :prepend-icon="false" density="compact" name="file" accept=".png, .jpg, .jpeg"
+                    @change="onFileSelected"></v-file-input>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-card elevation="6" class="mx-auto" max-width="210" max-height="120">
+                    <img v-if="imagenDisponible()" :src="imgedit" height="120" width="210" />
+                  </v-card>
+                </v-col>
+                <v-col cols="12" md="12">
+                  <v-textarea v-model="editedItem.additional_notes" :label="$t('product.fields.additional_notes')"
+                    variant="underlined"></v-textarea>
+                </v-col>
+              </v-row>
 
-                <!-- Paso 2: Información de compra -->
-                <v-row dense v-if="step === 1">
-                  <v-col cols="12" md="4">
-                    <v-text-field
-                      v-model="editedItem.unit_price"
-                      :label="$t('product.fields.unit_price')"
-                      variant="underlined"
-                      type="number"
-                      :rules="validationRules.unit_price"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="4">
-                    <v-text-field
-                      v-model="editedItem.quantity"
-                      :label="$t('product.fields.quantity')"
-                      variant="underlined"
-                      type="number"
-                      :rules="validationRules.quantity"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="4">
-                    <v-text-field
-                      :model-value="formattedTotalPrice"
-                      :label="$t('product.fields.total_price')"
-                      variant="underlined"
-                      type="number"
-                      readonly
-                      @update:model-value="
+              <!-- Paso 2: Información de compra -->
+              <v-row dense v-if="step === 1">
+                <v-col cols="12" md="4">
+                  <v-text-field v-model="editedItem.unit_price" :label="$t('product.fields.unit_price')"
+                    variant="underlined" type="number" :rules="validationRules.unit_price"></v-text-field>
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field v-model="editedItem.quantity" :label="$t('product.fields.quantity')"
+                    variant="underlined" type="number" :rules="validationRules.quantity"></v-text-field>
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field :model-value="formattedTotalPrice" :label="$t('product.fields.total_price')"
+                    variant="underlined" type="number" readonly @update:model-value="
                         (val) => (editedItem.total_price = parseFloat(val))
-                      "
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="6">
-                    <v-autocomplete
-                      v-model="editedItem.status_id"
-                      :items="status"
-                      :label="$t('product.fields.status')"
-                      item-title="nameStatus"
-                      item-value="id"
-                      variant="underlined"
-                      density="compact"
-                      :rules="validationRules.status_id"
-                      :no-data-text="$t('product.validation.no_data')"
-                    >
-                      <template v-slot:item="{ props, item }">
-                        <v-list-item v-bind="props">
-                          <template v-slot:prepend>
-                            <v-avatar size="24">
-                              <v-icon>{{ item.raw.iconStatus }}</v-icon>
-                            </v-avatar>
-                          </template>
-                        </v-list-item>
-                      </template>
-                    </v-autocomplete>
-                  </v-col>
-                  <v-col cols="12" md="6">
-                    <v-autocomplete
-                      v-model="editedItem.category_id"
-                      :items="categories"
-                      :label="$t('product.fields.category')"
-                      item-title="nameCategory"
-                      item-value="id"
-                      variant="underlined"
-                      density="compact"
-                      :rules="validationRules.category_id"
-                      :no-data-text="$t('product.validation.no_data')"
-                    >
-                      <template v-slot:item="{ props, item }">
-                        <v-list-item v-bind="props">
-                          <template v-slot:prepend>
-                            <v-avatar size="24">
-                              <template v-if="isImage(item.raw.iconCategory)">
-                                <img
-                                  :src="`${this.$axios.defaults.baseURL}images/${
+                      "></v-text-field>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-autocomplete v-model="editedItem.status_id" :items="status" :label="$t('product.fields.status')"
+                    item-title="nameStatus" item-value="id" variant="underlined" density="compact"
+                    :rules="validationRules.status_id" :no-data-text="$t('product.validation.no_data')">
+                    <template v-slot:item="{ props, item }">
+                      <v-list-item v-bind="props">
+                        <template v-slot:prepend>
+                          <v-avatar size="24">
+                            <v-icon>{{ item.raw.iconStatus }}</v-icon>
+                          </v-avatar>
+                        </template>
+                      </v-list-item>
+                    </template>
+                  </v-autocomplete>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-autocomplete v-model="editedItem.category_id" :items="categories"
+                    :label="$t('product.fields.category')" item-title="nameCategory" item-value="id"
+                    variant="underlined" density="compact" :rules="validationRules.category_id"
+                    :no-data-text="$t('product.validation.no_data')">
+                    <template v-slot:item="{ props, item }">
+                      <v-list-item v-bind="props">
+                        <template v-slot:prepend>
+                          <v-avatar size="24">
+                            <template v-if="isImage(item.raw.iconCategory)">
+                              <img :src="`${this.$axios.defaults.baseURL}images/${
                                     item.raw.iconCategory
-                                  }?t=${Date.now()}`"
-                                  alt="icon"
-                                />
-                              </template>
-                              <template v-else>
-                                <v-icon>{{ getIconName(item.raw.iconCategory) }}</v-icon>
-                              </template>
-                            </v-avatar>
-                          </template>
-                        </v-list-item>
-                      </template>
-                    </v-autocomplete>
-                  </v-col>
-                  <v-col cols="12" md="6">
-                    <v-menu
-                      v-model="menu"
-                      :close-on-content-click="false"
-                      :nudge-right="40"
-                      transition="scale-transition"
-                      offset-y
-                      min-width="290px"
-                    >
-                      <template v-slot:activator="{ props }">
-                        <v-text-field
-                          v-bind="props"
-                          :modelValue="dateFormatted"
-                          variant="underlined"
-                          :label="$t('product.fields.purchase_date')"
-                          :rules="validationRules.purchase_date"
-                        ></v-text-field>
-                      </template>
-                      <v-locale-provider>
-                        <v-date-picker
-                          :title="$t('product.fields.purchase_date')"
-                          color="#03626C"
-                          :modelValue="input"
-                          @update:model-value="updateDate"
-                          format="yyyy-MM-dd"
-                        ></v-date-picker>
-                      </v-locale-provider>
-                    </v-menu>
-                  </v-col>
-                  <v-col cols="12" md="6">
-                    <v-menu
-                      v-model="menu2"
-                      :close-on-content-click="false"
-                      :nudge-right="40"
-                      transition="scale-transition"
-                      offset-y
-                      min-width="290px"
-                    >
-                      <template v-slot:activator="{ props }">
-                        <v-text-field
-                          v-bind="props"
-                          :modelValue="dateFormatted2"
-                          variant="underlined"
-                          :label="$t('product.fields.expiration_date')"
-                        ></v-text-field>
-                      </template>
-                      <v-locale-provider>
-                        <v-date-picker
-                          :title="$t('product.fields.expiration_date')"
-                          color="#03626C"
-                          :modelValue="input2"
-                          format="yyyy-MM-dd"
-                          :min="dateFormatted"
-                          @update:model-value="updateDate1"
-                        ></v-date-picker>
-                      </v-locale-provider>
-                    </v-menu>
-                  </v-col>
-                </v-row>
+                                  }?t=${Date.now()}`" alt="icon" />
+                            </template>
+                            <template v-else>
+                              <v-icon>{{ getIconName(item.raw.iconCategory) }}</v-icon>
+                            </template>
+                          </v-avatar>
+                        </template>
+                      </v-list-item>
+                    </template>
+                  </v-autocomplete>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-menu v-model="menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
+                    offset-y min-width="290px">
+                    <template v-slot:activator="{ props }">
+                      <v-text-field v-bind="props" :modelValue="dateFormatted" variant="underlined"
+                        :label="$t('product.fields.purchase_date')"
+                        :rules="validationRules.purchase_date"></v-text-field>
+                    </template>
+                    <v-locale-provider>
+                      <v-date-picker :title="$t('product.fields.purchase_date')" color="#03626C" :modelValue="input"
+                        @update:model-value="updateDate" format="yyyy-MM-dd"></v-date-picker>
+                    </v-locale-provider>
+                  </v-menu>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-menu v-model="menu2" :close-on-content-click="false" :nudge-right="40"
+                    transition="scale-transition" offset-y min-width="290px">
+                    <template v-slot:activator="{ props }">
+                      <v-text-field v-bind="props" :modelValue="dateFormatted2" variant="underlined"
+                        :label="$t('product.fields.expiration_date')"></v-text-field>
+                    </template>
+                    <v-locale-provider>
+                      <v-date-picker :title="$t('product.fields.expiration_date')" color="#03626C" :modelValue="input2"
+                        format="yyyy-MM-dd" :min="dateFormatted" @update:model-value="updateDate1"></v-date-picker>
+                    </v-locale-provider>
+                  </v-menu>
+                </v-col>
+              </v-row>
 
-                <!-- Paso 3: Configuración adicional -->
-                <v-row dense v-if="step === 2">
-                  <v-col cols="12" md="6">
-                    <v-text-field
-                      v-model="editedItem.frequency"
-                      :label="$t('product.fields.frequency')"
-                      variant="underlined"
-                      type="number"
-                      :rules="validationRules.frequency"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="6">
-                    <v-select
-                      v-model="editedItem.type"
-                      :items="[$t('product.types.winter'), $t('product.types.summer')]"
-                      :label="$t('product.fields.type')"
-                      variant="underlined"
-                    ></v-select>
-                  </v-col>
-                  <v-col cols="12" md="12">
-                    <v-text-field
-                      v-model="editedItem.purchase_place"
-                      :label="$t('product.fields.purchase_place')"
-                      variant="underlined"
-                    ></v-text-field>
-                  </v-col>
-                </v-row>
+              <!-- Paso 3: Configuración adicional -->
+              <v-row dense v-if="step === 2">
+                <v-col cols="12" md="6">
+                  <v-text-field v-model="editedItem.frequency" :label="$t('product.fields.frequency')"
+                    variant="underlined" type="number" :rules="validationRules.frequency"></v-text-field>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-select v-model="editedItem.type" :items="[$t('product.types.winter'), $t('product.types.summer')]"
+                    :label="$t('product.fields.type')" variant="underlined"></v-select>
+                </v-col>
+                <v-col cols="12" md="12">
+                  <v-text-field v-model="editedItem.purchase_place" :label="$t('product.fields.purchase_place')"
+                    variant="underlined"></v-text-field>
+                </v-col>
+              </v-row>
 
-                <!-- Navegación -->
-                <div class="d-flex justify-space-between mt-8">
-                  <v-btn
-                    variant="text"
-                    class="text-grey-darken-1"
-                    @click="step > 0 ? step-- : close()"
-                  >
-                    {{ step === 0 ? $t("buttons.close") : $t("buttons.previous") }}
-                  </v-btn>
+              <!-- Navegación -->
+              <div class="d-flex justify-space-between mt-8">
+                <v-btn variant="text" class="text-grey-darken-1" @click="step > 0 ? step-- : close()">
+                  {{ step === 0 ? $t("buttons.close") : $t("buttons.previous") }}
+                </v-btn>
 
-                  <v-btn
-                    variant="text"
-                    class="text-deep-purple-accent-3"
-                    @click="nextStep"
-                    :disabled="!valid"
-                  >
-                    {{
-                      step === steps.length - 1 ? $t("buttons.saveAndClose") : $t("buttons.next")
-                    }}
-                  </v-btn>
-                </div>
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
-      </v-form>
-    </v-dialog>
-
-    <v-dialog v-model="dialogDelete" max-width="500px">
-      <v-card>
-        <v-toolbar color="#DA7171">
-          <span class="text-subtitle-2 ml-4"> {{ $t('deleteDialog.title', { item: $t(`deleteDialog.items.product`) }) }}</span>
-        </v-toolbar>
-        <v-card-text class="mt-2 mb-2"> {{ $t('deleteDialog.message') }}</v-card-text>
-        <v-divider></v-divider>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="#DA7171" variant="flat" @click="closeDelete">{{ $t('taskForm.buttons.cancel') }}</v-btn>
-          <v-btn
-            color="#03626C"
-            variant="flat"
-            :loading="loading"
-            @click="deleteItemConfirm"
-            >{{ $t('taskForm.buttons.confirmDelete') }}</v-btn
-          >
-        </v-card-actions>
+                <v-btn variant="text" class="text-deep-purple-accent-3" @click="nextStep" :disabled="!valid">
+                  {{
+                  step === steps.length - 1 ? $t("buttons.saveAndClose") : $t("buttons.next")
+                  }}
+                </v-btn>
+              </div>
+            </v-col>
+          </v-row>
+        </v-card-text>
       </v-card>
-    </v-dialog>
+    </v-form>
+  </v-dialog>
+
+  <v-dialog v-model="dialogDelete" max-width="500px">
+    <v-card>
+      <v-toolbar color="#DA7171">
+        <span class="text-subtitle-2 ml-4"> {{ $t('deleteDialog.title', { item: $t(`deleteDialog.items.product`) })
+          }}</span>
+      </v-toolbar>
+      <v-card-text class="mt-2 mb-2"> {{ $t('deleteDialog.message') }}</v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn color="#DA7171" variant="flat" @click="closeDelete">{{ $t('taskForm.buttons.cancel') }}</v-btn>
+        <v-btn color="#03626C" variant="flat" :loading="loading" @click="deleteItemConfirm">{{
+          $t('taskForm.buttons.confirmDelete') }}</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!--Almacén-->
+  <v-dialog v-model="dialogWarehouse" fullscreen persistent transition="dialog-bottom-transition"
+    content-class="fullscreen-dialog">
+    <v-form ref="form" v-model="valid" class="h-100">
+      <v-card class="pa-10">
+        <v-card-text class="pt-12">
+          <h5 class="text-grey-darken-2 font-weight-medium">{{ formTitleWarehouse }}</h5>
+          <p class="text-grey-lighten-1">
+            {{ $t("warehouse.formInstructions") }}
+          </p>
+
+          <v-row class="mt-12">
+            <!-- Side steps -->
+            <v-col cols="3">
+              <v-timeline align="start" side="end" dense>
+                <v-timeline-item v-for="(s, index) in stepsW" :key="index" :dot-color="
+                    stepW > index
+                      ? 'green'
+                      : stepW === index
+                      ? 'deep-purple'
+                      : 'grey-lighten-1'
+                  " :icon="
+                    stepW >= index
+                      ? stepW === index
+                        ? `mdi-numeric-${index + 1}`
+                        : 'mdi-check'
+                      : null
+                  " size="large">
+                  <template #opposite>
+                    <div class="text-end">
+                      <strong>{{ $t(`warehouse.steps.${s.title}.title`) }}</strong>
+                      <div class="text-caption text-grey">
+                        {{ $t(`warehouse.steps.${s.title}.subtitle`) }}
+                      </div>
+                    </div>
+                  </template>
+                </v-timeline-item>
+              </v-timeline>
+            </v-col>
+
+            <!-- Contenido dinámico según paso -->
+            <v-col cols="9">
+              <h3 class="text-deep-purple-accent-3 mb-8">
+                {{ $t(`warehouse.steps.${stepsW[stepW].title}.title`) }}
+              </h3>
+
+              <!-- Paso 1: Información básica -->
+              <v-row dense v-if="stepW === 0">
+                <!--<v-col cols="12" md="12" v-show="editedIndex === -1">
+                  <v-autocomplete v-model="editedItemWarehouse.warehouse_id" :items="warehouses"
+                    :label="$t('warehouse.fields.warehouse')" item-title="title" item-value="id" variant="underlined">
+                    <template v-slot:item="{ props, item }">
+                      <v-list-item v-bind="props">
+                        <v-list-item-subtitle class="d-flex flex-column">
+                          <v-tooltip location="top right">
+                            <template v-slot:activator="{ props }">
+                              <div class="description-text" v-bind="props" :title="item.raw.description">
+                                {{ $t("warehouse.fields.description") }}:
+                                {{ item.raw.description }}
+                              </div>
+                            </template>
+                            <span>{{ item.raw.description }}</span>
+                          </v-tooltip>
+                          <v-tooltip location="top right">
+                            <template v-slot:activator="{ props }">
+                              <div class="description-text" v-bind="props" :title="item.raw.location">
+                                {{ $t("warehouse.fields.home_location") }}:
+                                {{ item.raw.location }}
+                              </div>
+                            </template>
+                            <span>{{ item.raw.location }}</span>
+                          </v-tooltip>
+                        </v-list-item-subtitle>
+                      </v-list-item>
+                    </template>
+                  </v-autocomplete>
+                </v-col>-->
+
+                <v-col cols="12" md="12">
+                  <v-text-field v-model="editedItemWarehouse.title" clearable :label="$t('warehouse.fields.name')"
+                    variant="underlined" :rules="nameRules"></v-text-field>
+                </v-col>
+
+                <v-col cols="12" md="12">
+                  <v-text-field v-model="editedItemWarehouse.location" clearable
+                    :label="$t('warehouse.fields.home_location')" variant="underlined"
+                    :rules="locationRules"></v-text-field>
+                </v-col>
+              </v-row>
+
+              <!-- Paso 2: Configuración adicional -->
+              <v-row dense v-if="stepW === 1">
+                <v-col cols="12" md="6">
+                  <v-select v-model="editedItemWarehouse.status" :items="[
+                      { id: 0, label: $t('warehouse.status.public') },
+                      { id: 1, label: $t('warehouse.status.private') },
+                    ]" item-title="label" item-value="id" :label="$t('warehouse.fields.status')" variant="underlined"
+                    :rules="statusRules"></v-select>
+                </v-col>
+
+                <v-col cols="12" md="12">
+                  <v-textarea v-model="editedItemWarehouse.description" clearable
+                    :label="$t('warehouse.fields.description')" variant="underlined"
+                    :rules="descriptionRules"></v-textarea>
+                </v-col>
+              </v-row>
+
+              <div class="d-flex justify-space-between mt-8">
+                <v-btn variant="text" class="text-grey-darken-1" @click="stepW > 0 ? stepW-- : this.closeWarehouse()">
+                  {{ stepW === 0 ? $t("buttons.close") : $t("buttons.previous") }}
+                </v-btn>
+
+                <v-btn variant="text" class="text-deep-purple-accent-3" @click="nextStepW" :disabled="!valid">
+                  {{
+                  stepW === stepsW.length - 1
+                  ? $t("buttons.saveAndClose")
+                  : $t("buttons.next")
+                  }}
+                </v-btn>
+              </div>
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
+    </v-form>
+  </v-dialog>
   <!--</v-container>-->
 </template>
 
@@ -617,13 +634,26 @@ export default {
       default: null,
     },
   },
+  emits: ['warehouse-updated'],
   data: () => ({
     steps: [
       { title: "basic", subtitle: "basic_information" },
       { title: "purchase", subtitle: "purchase_details" },
       { title: "additional", subtitle: "additional_configuration" },
     ],
+    dialogWarehouse: false,
     step: 0,
+    stepsW: [
+      {
+        title: "basic",
+        subtitle: "basic_information",
+      },
+      {
+        title: "configuration",
+        subtitle: "additional_configuration",
+      },
+    ],
+    stepW: 0,
     snackbar: false,
     sb_type: "",
     sb_message: "",
@@ -733,12 +763,39 @@ export default {
       product_id: null, // Imagen
     },
 
+    editedItemWarehouse: {
+      id: "",
+      title: "",
+      description: "",
+      location: "",
+      status: "",
+      home_id: "",
+      warehouse_id: "",
+    },
+    defaultItemWarehouse: {
+      id: "",
+      title: "",
+      description: "",
+      location: "",
+      status: "",
+      warehouse_id: "",
+      home_id: "",
+    },
+    originalItemWarehouse: {
+      id: "",
+      title: "",
+      description: "",
+      location: "",
+      status: "",
+      home_id: "",
+      warehouse_id: "",
+    },
+    warehouse: [],
     tab: null,
     menu: false,
     menu2: false,
     input: null,
     input2: null,
-
     /*nameRules: [
       (v) => !!v || "El campo es requerido",
       (v) => (v && v.length <= 50) ||
@@ -759,6 +816,22 @@ export default {
     "editedItem.quantity": {
       handler: "calculateTotalPrice",
       immediate: true,
+    },
+    "editedItemWarehouse.warehouse_id"(newVal) {
+      if (!this.isEditing) {
+        // Si está en modo edición, no ejecutar la lógica del watch
+        return;
+      }
+      const selectedWarehouse = this.warehouses.find((w) => w.id === newVal);
+      if (selectedWarehouse) {
+        this.editedItemWarehouse.title = selectedWarehouse.title;
+        this.editedItemWarehouse.description = selectedWarehouse.description;
+        this.editedItemWarehouse.location = selectedWarehouse.location;
+      } else {
+        this.editedItemWarehouse.title = "";
+        this.editedItemWarehouse.description = "";
+        this.editedItemWarehouse.location = "";
+      }
     },
   },
   computed: {
@@ -851,6 +924,57 @@ export default {
     selectRules() {
       return [(v) => !!v || this.$t("product.validation.required")];
     },
+     nameRules() {
+      return [
+        (v) =>
+          (v && v.length >= 3) ||
+          this.$t("warehouse.validation.min_length", {
+            field: this.$t("warehouse.fields.name"),
+            length: 3,
+          }),
+        (v) =>
+          (v && v.length <= 50) ||
+          this.$t("warehouse.validation.max_length", {
+            field: this.$t("warehouse.fields.name"),
+            length: 50,
+          }),
+      ];
+    },
+    locationRules() {
+      return [
+        (v) =>
+          (v && v.length <= 100) ||
+          this.$t("warehouse.validation.max_length", {
+            field: this.$t("warehouse.fields.home_location"),
+            length: 100,
+          }),
+      ];
+    },
+    statusRules() {
+      return [
+        (v) =>
+          (v !== null && v !== undefined) ||
+          this.$t("warehouse.validation.required", {
+            field: this.$t("warehouse.fields.status"),
+          }),
+        (v) =>
+          [0, 1].includes(v) ||
+          this.$t("warehouse.validation.invalid_selection", {
+            field: this.$t("warehouse.fields.status"),
+          }),
+      ];
+    },
+    descriptionRules() {
+      return [
+        (v) =>
+          !v ||
+          v.length <= 255 ||
+          this.$t("warehouse.validation.max_length", {
+            field: this.$t("warehouse.fields.description"),
+            length: 255,
+          }),
+      ];
+    },
     // Obtener el almacén seleccionado
     /*selectedStore() {
       const store = this.warehouseData.find(
@@ -877,6 +1001,10 @@ export default {
     formTitle() {
       return this.editedIndex === -1 ? "Agregar Nuevo Producto" : "Editar Producto";
     },
+    formTitleWarehouse() {
+      return "Editar Almacén";
+    },
+
     imgedit() {
       return this.imgMiniatura;
     },
@@ -913,6 +1041,110 @@ export default {
     this.showPersonProducts();
   },
   methods: {
+    nextStepW() {
+      if (this.stepW < this.stepsW.length - 1) {
+        this.stepW++;
+      } else {
+        this.dialogWarehouse = false;
+        this.step = 0;
+        this.editDataWarehouse();
+      }
+    },
+    closeWarehouse() {
+      this.dialogWarehouse = false;
+      this.loading = false;
+      this.$nextTick(() => {
+        this.editedItemWarehouse = Object.assign({}, this.defaultItemWarehouse);
+        this.originalItemWarehouse = Object.assign({}, this.defaultItemWarehouse);
+      });
+    },
+    async editDataWarehouse(){
+      const fieldsToUpdate = ["id", "title", "location", "description", "status"];
+        let updatedFields = Object.keys(this.editedItemWarehouse)
+          .filter(
+            (key) =>
+              fieldsToUpdate.includes(key) &&
+              this.editedItemWarehouse[key] !== this.originalItemWarehouse[key]
+          )
+          .reduce((obj, key) => {
+            obj[key] = this.editedItemWarehouse[key];
+            return obj;
+          }, {});
+        if (Object.keys(updatedFields).length > 0) {
+          updatedFields.id = this.editedItemWarehouse.id;
+          this.loading = true;
+          try {
+            const result = await handleRequest({
+              endpoint: "person-warehouse",
+              method: "PUT",
+              data: updatedFields,
+            });
+
+            // Manejo de la respuesta según el resultado
+            if (result.success) {
+              this.showAlert("success", result.message, 3000);
+              //this.initialize();
+             this.$emit('warehouse-updated', result.data.personWarehouse);
+ 
+            } else {
+              this.loading = false;
+              this.showAlert("warning", result.message, 3000);
+            }
+          } catch (error) {
+            this.loading = false;
+            // Este bloque captura errores inesperados fuera del manejo estándar
+            this.showAlert(
+              "error",
+              "Ocurrió un error inesperado al procesar la solicitud.",
+              3000
+            );
+          }
+        }
+    },
+    async editWarehouse() {
+      console.log("editWarehouse", this.warehouseData);
+      this.stepW = 0;
+      // Asigna los datos del almacén al objeto de edición
+      this.editedItemWarehouse = {
+        ...this.warehouseData
+      };
+    
+      this.originalItemWarehouse = { ...this.warehouseData };
+      this.data = {};
+      this.data.home_id = this.home_id;
+      this.editedItemWarehouse.home_id = this.home_id;
+      try {
+        const result = await handleRequest({
+          endpoint: "person-warehouse-home-select",
+          method: "POST",
+          data: this.data,
+        });
+
+        if (result.success) {
+          // Si la solicitud es exitosa, asignamos las sucursales
+          //this.warehouses = result.data?.warehouses || [];
+          this.warehouses =
+            result.data?.warehouses || [];
+        } else {
+          // Si no hay datos, asignamos un array vacío
+          this.warehouses = [];
+          this.showAlert(
+            "info",
+            result.message || "No hay alamacenes disponibles.",
+            3000
+          );
+        }
+      } catch (error) {
+        this.showAlert(
+          "error",
+          "Ocurrió un error inesperado al cargar los almacenes.",
+          3000
+        );
+      } finally {
+        this.dialogWarehouse = true;
+      }
+      this.isEditing = false;
+    },
     calculateTotalPrice() {
       this.editedItem.total_price = (
         this.editedItem.unit_price * this.editedItem.quantity
@@ -1038,7 +1270,7 @@ export default {
       try {
         const result = await handleRequest({
           endpoint: "productcategory-productstatus-apk",
-          method: "GET",
+          method: "POST",
         });
 
         if (result.success) {
@@ -1388,7 +1620,10 @@ export default {
   padding: 8px;
   /* Opcional: ajustar padding */
 }
-
+.v-tooltip__content {
+  transform: translateX(-50%) !important;
+  left: 50% !important;
+}
 .text-wrap {
   white-space: normal;
   /* Permitir que el texto se envuelva */

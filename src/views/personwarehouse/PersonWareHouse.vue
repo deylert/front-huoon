@@ -234,7 +234,7 @@
     <v-card class="bg-grey-lighten-4">
       <v-card-text class="bg-grey-lighten-4">
         <!-- Aquí pasamos el 'selectedWorker' al componente dentro del diálogo -->
-        <Product :warehouseData="warehouseData" />
+        <Product :warehouseData="warehouseData" @warehouse-updated="handleWarehouseUpdate" />
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
@@ -415,6 +415,13 @@ export default {
     this.initialize();
   },
   methods: {
+     handleWarehouseUpdate(updatedData) {
+      // Actualizar los datos en el padre
+      this.warehouseData = {
+        ...this.warehouseData,
+        ...updatedData
+      };
+    },
     showProducts(warehouse) {
       this.warehouseData = warehouse;
       this.dialogProduct = true;
@@ -593,11 +600,47 @@ export default {
       }
       this.close();
     },
-    editItem(item) {
+    async editItem(item) {
       this.editedIndex = 1;
       this.originalItem = Object.assign({}, item);
       this.editedItem = Object.assign({}, item);
-      this.dialog = true;
+      this.data.home_id = this.home_id;
+      this.editedItem.home_id = this.home_id;
+      try {
+        const result = await handleRequest({
+          endpoint: "person-warehouse-home-select",
+          method: "POST",
+          data: this.data,
+        });
+
+        if (result.success) {
+          // Si la solicitud es exitosa, asignamos las sucursales
+          //this.warehouses = result.data?.warehouses || [];
+          this.warehouses =
+            result.data?.warehouses?.filter(
+              (warehouse) =>
+                !this.personwarehouses.some(
+                  (personwarehouse) => personwarehouse.warehouse_id === warehouse.id
+                )
+            ) || [];
+        } else {
+          // Si no hay datos, asignamos un array vacío
+          this.warehouses = [];
+          this.showAlert(
+            "info",
+            result.message || "No hay alamacenes disponibles.",
+            3000
+          );
+        }
+      } catch (error) {
+        this.showAlert(
+          "error",
+          "Ocurrió un error inesperado al cargar los almacenes.",
+          3000
+        );
+      } finally {
+        this.dialog = true;
+      }
       this.isEditing = false;
     },
     deleteItem(item) {

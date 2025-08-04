@@ -1,4 +1,5 @@
 <template>
+  <div>
   <v-snackbar
     class="mt-12"
     location="right top"
@@ -206,17 +207,15 @@
             </div>
 
             <div v-if="isTyping" class="d-flex justify-start align-center mb-8 mb-2 ml-3">
-              <div class="d-flex align-end">
-                <v-avatar size="28" class="mb-2 mr-3">
-                  <v-img src="@/assets/logo-verde.png" alt="Avatar" />
-                </v-avatar>
-                <div
-                  class="chat-bubble px-8 py-3 rounded-xl bg-grey-darken-1-lighten-2 text-black"
-                >
-                  <span class="typing-indicator">•••</span>
-                </div>
+            <div class="d-flex align-end">
+              <v-avatar size="28" class="mb-2 mr-3">
+                <v-img src="@/assets/logo-verde.png" alt="Avatar" />
+              </v-avatar>
+              <div class="chat-bubble px-8 py-3 rounded-xl bg-grey-lighten-2 text-black">
+                <span class="typing-indicator">•••</span>
               </div>
             </div>
+          </div>
           </div>
 
           <!-- Herramientas -->
@@ -341,6 +340,7 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+  </div>
 </template>
 
 <script>
@@ -364,6 +364,10 @@ export default {
       type: Object,
       default: null,
     },
+     transactionIntent: {
+    type: String,
+    validator: (value) => ["Gasto", "Ingreso"].includes(value)
+  },
   },
   components: {
     DatePicker,
@@ -382,6 +386,7 @@ export default {
       currentTask: null,
       currentBudget: null,
       currentWarehouse: null,
+       transactionType: null,
       isInitialCategorySelection: false,
       textoTemporal: "",
       financeDataCollectionMode: false,
@@ -461,6 +466,9 @@ export default {
     },
   },
   async mounted() {
+     if (this.transactionIntent) {
+    this.transactionType = this.transactionIntent;
+  }
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
@@ -521,40 +529,69 @@ export default {
     }
 
     console.log("Datos recibidos del componente padre (financeData):", financeData);
+    console.log(this.transactionType);
     this.name = JSON.parse(LocalStorageService.getItem("name"));
     this.user = JSON.parse(LocalStorageService.getItem("user"));
     this.user_id = JSON.parse(LocalStorageService.getItem("user_id"));
     this.home_id = JSON.parse(LocalStorageService.getItem("home_id"));
     this.imageUrl = LocalStorageService.getItem("image").replace(/['"]+/g, "");
     if (this.financeData) {
-      try {
-        await this.loadRequiredData();
-        // Copiar los datos de la tarea
-        this.financeParameters = {
-          ...this.financeParameters,
-          ...financeData,
-        };
-        this.financeDataCollectionMode = true;
-        this.currentTransactionType = this.financeData.spent > 0 ? "gasto" : "ingreso";
-        this.currentFinanceIntent = financeData.spent > 0 ? "Gasto" : "Ingreso";
-        // Mostrar en el chat
-        this.chatMessages.push({
-          from: "ai",
-          text: `Datos del  ${this.currentFinanceIntent} recibidos. Puedes editarlos antes de confirmar.`,
-          timestamp: new Date().toLocaleTimeString(),
-        });
+  try {
+    
+    // Copiar los datos de entrada
+    this.financeParameters = {
+      ...this.financeParameters,
+      ...this.financeData,
+    };
 
-        // Iniciar flujo de edición
+    this.financeDataCollectionMode = true;
+    this.currentTransactionType = this.transactionType;
+    this.currentFinanceIntent = this.transactionType;
 
-        await this.showInitialFinanceData(financeData);
-      } catch (error) {
-        this.showAlert("error", "Error al cargar datos: " + error.message);
-      }
-    } else if (this.initialMessage) {
-      // Si no hay financeData, pero hay initialMessage, simular envío
-      this.newMessage = this.initialMessage;
-      this.sendMessage();
+    // ✅ Validar el monto correcto según la intención
+    const requiredAmountField = this.transactionType === "Gasto" ? "spent" : "income";
+    const amountValue = this.financeData[requiredAmountField];
+
+    if (amountValue === null || amountValue === undefined || amountValue <= 0) {
+      // ❌ No hay monto válido → advertir y forzar a ingresarlo
+      this.chatMessages.push({
+        from: "ai",
+        text: `Detecté que deseas registrar un ${this.transactionType}, pero no se ha proporcionado un monto válido. Por favor, podrías especificar mejor lo que deseas hacer.`,
+        timestamp: new Date().toLocaleTimeString(),
+      });
+      this.financeDataCollectionMode = false;
+      this.currentFinanceIntent = null;
+      this.isInitialBudgetSelection = false;
+      this.financeParameters = {
+        type: null,
+        spent: null,
+        description: null,
+        income: null,
+        date: null,
+        budget_id: null,
+      };
+      this.waitingForConfirmation = false;
+      this.isTyping = false;
+      // No mostramos el resumen aún
+      //await this.startAutomaticDataCollection(); // Esto pedirá el monto primero
+    } else {
+    await this.loadRequiredData();
+      // ✅ Si el monto es válido, mostrar confirmación y resumen
+      this.chatMessages.push({
+        from: "ai",
+        text: `Datos del  ${this.currentFinanceIntent} recibidos. Puedes editarlos antes de confirmar.`,
+        timestamp: new Date().toLocaleTimeString(),
+      });
+
+      await this.showInitialFinanceData(this.financeData);
     }
+  } catch (error) {
+    this.showAlert("error", "Error al cargar datos: " + error.message);
+  }
+} else if (this.initialMessage) {
+  this.newMessage = this.initialMessage;
+  this.sendMessage();
+}
   },
   methods: {
     closeDialgChat() {
@@ -771,10 +808,20 @@ export default {
                       ...this.financeParameters,
                       ...finances,
                     };
-                    this.currentIntent = intent;
+                    if (Number(this.financeParameters.spent) <= 0){
+                      this.chatMessages.push({
+                        from: "ai",
+                        text:
+                          /*answer ||*/
+                          "Detecte que desea registrar un gasto pero no especificaste el monto, podrías ser mas especifico",
+                        timestamp: new Date().toLocaleTimeString(),
+                      });
+                    }else{
+                      this.currentIntent = intent;
                     this.currentFinanceIntent = intent;
                     this.currentTransactionType = intent;
                     this.financeDataCollectionMode = true;
+                    this.transactionType = "Gasto";
                     this.chatMessages.push({
                       from: "ai",
                       text: `Datos del  ${this.currentIntent} recibidos. Puedes editarlos antes de confirmar.`,
@@ -783,6 +830,7 @@ export default {
                     await this.loadRequiredData();
                     await this.showInitialFinanceData(finances);
                     this.scrollToBottom();
+                    }
                   });
                   break;
 
@@ -792,10 +840,20 @@ export default {
                       ...this.financeParameters,
                       ...finances,
                     };
+                     if (Number(this.financeParameters.income) <= 0){
+                      this.chatMessages.push({
+                        from: "ai",
+                        text:
+                          /*answer ||*/
+                          "Detecte que desea registrar un ingreso pero no especificaste el monto, podrías ser mas especifico",
+                        timestamp: new Date().toLocaleTimeString(),
+                      });
+                    }else{
                     this.currentIntent = intent;
                     this.currentFinanceIntent = intent;
                     this.currentTransactionType = intent;
                     this.financeDataCollectionMode = true;
+                    this.transactionType = "Ingreso";
                     this.chatMessages.push({
                       from: "ai",
                       text: `Datos del  ${this.currentIntent} recibidos. Puedes editarlos antes de confirmar.`,
@@ -804,6 +862,7 @@ export default {
                     await this.loadRequiredData();
                     await this.showInitialFinanceData(finances);
                     this.scrollToBottom();
+                  }
                   });
                   break;
 
@@ -813,9 +872,20 @@ export default {
                     const budgetData =
                       typeof budget === "string" ? JSON.parse(budget) : budget;
 
-                    this.currentBudget = _.cloneDeep(budgetData);
-                    this.dialogChatBudget = true;
-                    this.scrollToBottom();
+                     if(Number(budgetData.amount) <= 0)
+                      {
+                      this.chatMessages.push({
+                      from: "ai",
+                      text:
+                        /*answer ||*/
+                        "Detecte que desea registrar un presupuesto pero no especificaste el monto, podrías ser mas especifico",
+                      timestamp: new Date().toLocaleTimeString(),
+                    });
+                  }else{
+                      this.currentBudget = _.cloneDeep(budgetData);
+                      this.dialogChatBudget = true;
+                      this.scrollToBottom();
+                    }
                   });
                   break;
                   case "Warehouse":
@@ -845,7 +915,7 @@ export default {
 
                 default:
                   // Respuesta por defecto si no se reconoce la intención
-                  this.messages.push({
+                  this.chatMessages.push({
                     from: "ai",
                     text:
                       answer ||
@@ -914,7 +984,7 @@ export default {
       if (!financeData) return;
 
       // Inicializar estado para budget_id
-      if (financeData.spent > 0) {
+      if (this.transactionType === "Gasto") {
         this.isInitialBudgetSelection =
           financeData.budget_id === null || financeData.budget_id === undefined;
       }
@@ -925,63 +995,87 @@ export default {
     },
 
     async showFinanceSummary(financeData) {
-      // Definir campos a mostrar
-      const fieldsToShow = [
-        { key: "description", label: "Descripción" },
-        ...(financeData.spent > 0 ? [{ key: "spent", label: "Gasto" }] : []),
-        ...(financeData.income > 0 ? [{ key: "income", label: "Ingreso" }] : []),
-        { key: "date", label: "Fecha" },
-        ...(financeData.spent > 0 && financeData.budget_id
-          ? [{ key: "budget_id", label: "Presupuesto" }]
-          : []),
-      ];
+  const fieldsToShow = [
+    { key: "description", label: "Descripción" },
+    ...(this.transactionType === "Gasto" ? [{ key: "spent", label: "Gasto" }] : []),
+    ...(this.transactionType === "Ingreso" ? [{ key: "income", label: "Ingreso" }] : []),
+    { key: "date", label: "Fecha" },
+    ...(this.transactionType === "Gasto" ? [{ key: "budget_id", label: "Presupuesto" }] : []),
+  ];
 
-      // Mostrar campos editables
-      fieldsToShow.forEach((field) => {
-        const value = financeData[field.key];
-        if (value !== null && value !== undefined && value !== "") {
-          let displayValue = value;
-          let additionalData = {};
+  // Procesar cada campo
+  for (const field of fieldsToShow) {
+    const value = financeData[field.key];
 
-          if (field.key === "spent" || field.key === "income") {
-            displayValue = `$${parseFloat(value).toFixed(2)}`;
-          } else if (field.key === "budget_id") {
-            const budgetInfo = this.budgets.find((b) => b.id === value);
-            displayValue = budgetInfo ? budgetInfo.categoryName : `ID: ${value}`;
-            additionalData.availableBudgets = this.budgets;
-          }
+    let displayValue = value;
+    let additionalData = {};
 
-          this.chatMessages.push({
-            from: "ai",
-            text: `• ${field.label}: ${displayValue}`,
-            timestamp: new Date().toLocaleTimeString(),
-            isEditable: true,
-            fieldKey: field.key,
-            fieldLabel: field.label,
-            currentValue: value,
-            editValue: value,
-            isEditing: false,
-            showDatePicker: false,
-            ...additionalData,
-          });
-          // Mostrar componente de tipo si existe
-          this.shownChatFields.add(field.key);
-        }
-      });
-      if (financeData.type) {
-        this.chatMessages.push({
-          from: "ai",
-          text: "Tipo:",
-          component: "TypePersonalOptions",
-          props: {
-            options: this.types,
-            selectedId: financeData.type,
-          },
-          timestamp: new Date().toLocaleTimeString(),
-        });
-        this.shownChatFields.add("type");
+    // Caso especial: budget_id en Gasto → siempre mostrar, incluso si es null
+    if (field.key === "budget_id" && this.transactionType === "Gasto") {
+      if (value !== null && value !== undefined) {
+        const budgetInfo = this.budgets.find(b => b.id === value);
+        displayValue = budgetInfo ? budgetInfo.categoryName : `ID: ${value}`;
+      } else {
+        displayValue = "(Sin asignar)";
       }
-    },
+      additionalData.availableBudgets = this.budgets;
+
+      this.chatMessages.push({
+        from: "ai",
+        text: `• ${field.label}: ${displayValue}`,
+        timestamp: new Date().toLocaleTimeString(),
+        isEditable: true,
+        fieldKey: field.key,
+        fieldLabel: field.label,
+        currentValue: value,
+        editValue: value,
+        isEditing: false,
+        showDatePicker: false,
+        ...additionalData,
+      });
+
+      this.shownChatFields.add(field.key);
+      continue; // Saltar al siguiente campo
+    }
+
+    // Para otros campos: solo mostrar si tienen valor
+    if (value !== null && value !== undefined && value !== "") {
+      if (field.key === "spent" || field.key === "income") {
+        displayValue = `$${parseFloat(value).toFixed(2)}`;
+      }
+
+      this.chatMessages.push({
+        from: "ai",
+        text: `• ${field.label}: ${displayValue}`,
+        timestamp: new Date().toLocaleTimeString(),
+        isEditable: true,
+        fieldKey: field.key,
+        fieldLabel: field.label,
+        currentValue: value,
+        editValue: value,
+        isEditing: false,
+        showDatePicker: false,
+      });
+
+      this.shownChatFields.add(field.key);
+    }
+  }
+
+  // Mostrar tipo si existe
+  if (financeData.type) {
+    this.chatMessages.push({
+      from: "ai",
+      text: "Tipo:",
+      component: "TypePersonalOptions",
+      props: {
+        options: this.types,
+        selectedId: financeData.type,
+      },
+      timestamp: new Date().toLocaleTimeString(),
+    });
+    this.shownChatFields.add("type");
+  }
+},
 
     async startAutomaticDataCollection() {
       const parametersOrder = [
@@ -990,7 +1084,7 @@ export default {
         "income",
         "date",
         "type",
-        ...(this.financeParameters.spent > 0 ? ["budget_id"] : []),
+        ...(this.transactionType === "Gasto" ? ["budget_id"] : []),
       ];
 
       const nextField = parametersOrder.find((field) => {
@@ -1007,7 +1101,7 @@ export default {
 
       if (nextField === "type") {
         await this.showTypeOptions();
-      } else if (nextField === "budget_id" && !this.isInitialBudgetSelection) {
+      } else if (nextField === "budget_id") {
         // Si es budget_id pero no es la primera selección, completar creación
         this.completeFinanceCreation();
       } else if (nextField) {
@@ -1149,9 +1243,9 @@ export default {
 
       // Determinar qué campo de monto mostrar
       let amountToShow = [];
-      if (this.financeParameters.spent > 0) {
+      if (this.transactionType === "Gasto") {
         amountToShow = [{ key: "spent", label: "Gasto" }];
-      } else if (this.financeParameters.income > 0) {
+      } else if (this.transactionType === "Ingreso") {
         amountToShow = [{ key: "income", label: "Ingreso" }];
       }
 
@@ -1161,7 +1255,7 @@ export default {
         { key: "description", label: "Descripción" },
         ...amountToShow,
         { key: "date", label: "Fecha" },
-        ...(this.financeParameters.spent > 0 && this.financeParameters.budget_id
+        ...(this.transactionType === "Gasto" && this.financeParameters.budget_id
           ? [{ key: "budget_id", label: "Presupuesto" }]
           : []),
       ];
@@ -1402,7 +1496,6 @@ export default {
     },
     handleCancellation() {
       this.waitingForConfirmation = false;
-      this.financeParameters.people = [];
       this.financeParameters = Object.assign({}, this.defaultItem);
       this.originalItem = Object.assign({}, this.defaultItem);
       // Mensaje con botones de opción

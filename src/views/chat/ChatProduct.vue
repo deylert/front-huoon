@@ -38,18 +38,18 @@
                   <template v-if="message.isEditable && message.isEditing">
 
                     <!-- Campos de fecha -->
-                    <div v-if="['start_date', 'end_date'].includes(message.fieldKey)">
+                    <div v-if="['purchase_date', 'expiration_date'].includes(message.fieldKey)">
                       <v-menu v-model="message.showDatePicker" :close-on-content-click="false"
                         transition="scale-transition" offset-y location="bottom"
                         @update:modelValue="handleMenuClose(message, index)">
                         <template #activator="{ props }">
-                          <v-text-field v-bind="props" :model-value="budgetParameters[message.fieldKey]"
+                          <v-text-field v-bind="props" :model-value="productParameters[message.fieldKey]"
                             :label="message.fieldLabel" variant="outlined" density="comfortable"
                             style="width: auto; min-width: 10em" no-resize
                             @click:appendInner="message.showDatePicker = true" />
                         </template>
 
-                        <DatePicker :dateValue="budgetParameters[message.fieldKey]" :fieldType="message.fieldKey"
+                        <DatePicker :dateValue="productParameters[message.fieldKey]" :fieldType="message.fieldKey"
                           @date-updated="
                         handleDateSelection(message.fieldKey, $event)
                       " />
@@ -61,8 +61,8 @@
                       <v-autocomplete v-model="message.editValue" :items="message.availableCategories || categories"
                         :label="message.fieldLabel" item-title="nameCategory" item-value="id" variant="outlined"
                         density="comfortable" style="width: auto; min-width: 20em" return-object hide-details
-                        @update:modelValue="onBudgetSelected(index, $event)" @blur="onBudgetBlur(index)"
-                        @click:clear="onBudgetClear(index)">
+                        @update:modelValue="onCategorySelected(index, $event)" @blur="onCategoryBlur(index)"
+                        @click:clear="onCategoryClear(index)">
                         <!-- Templates de item y selection (mantener igual) -->
                         <template v-slot:item="{ props, item }">
                           <v-list-item v-bind="props">
@@ -104,9 +104,27 @@
                         </template>
                       </v-autocomplete>
                     </div>
-
+                    <div v-if="message.fieldKey === 'status_id'">
+                    <v-autocomplete
+                      v-model="message.editValue" :items="message.availableStatus || status"
+                        :label="message.fieldLabel" item-title="nameStatus" item-value="id" variant="outlined"
+                        density="comfortable" style="width: auto; min-width: 20em" return-object hide-details
+                        @update:modelValue="onStatusSelected(index, $event)" @blur="onStatusBlur(index)"
+                        @click:clear="onStatusClear(index)"
+                    >
+                      <template v-slot:item="{ props, item }">
+                        <v-list-item v-bind="props">
+                          <template v-slot:prepend>
+                            <v-avatar size="24">
+                              <v-icon>{{ item.raw.iconStatus }}</v-icon>
+                            </v-avatar>
+                          </template>
+                        </v-list-item>
+                      </template>
+                    </v-autocomplete>
+                    </div>
                     <!-- Textarea para campos largos -->
-                    <v-textarea v-else-if="['title', 'description'].includes(message.fieldKey)"
+                    <v-textarea v-else-if="['title', 'additional_notes', 'purchase_place'].includes(message.fieldKey)"
                       v-model="message.editValue" :label="message.fieldLabel" variant="outlined" density="comfortable"
                       style="width: auto; min-width: 50em" :ref="(el) => setTextFieldRef(el, index)" autofocus auto-grow
                       rows="2" no-resize @keyup.enter="saveFieldEdit(index)" @blur="saveFieldEdit(index)"></v-textarea>
@@ -116,24 +134,6 @@
                       density="comfortable" style="width: auto; min-width: 10em"
                       :ref="(el) => setTextFieldRef(el, index)" autofocus no-resize @keyup.enter="saveFieldEdit(index)"
                       @blur="saveFieldEdit(index)"></v-text-field>
-
-                    <!-- Botones de acción -->
-                    <!--<div class="d-flex justify-end" style="gap: 8px">
-                <v-btn
-                  size="small"
-                  variant="text"
-                  @click="cancelFieldEdit(index)"
-                >
-                  Cancelar
-                </v-btn>
-                <v-btn
-                  size="small"
-                  color="primary"
-                  @click="saveFieldEdit(index)"
-                >
-                  Guardar
-                </v-btn>
-              </div>-->
                   </template>
 
                   <!-- Resto del código permanece igual -->
@@ -168,8 +168,7 @@
 
                   <!-- Componente dinámico -->
                   <component v-if="message.component && !message.isEditing" :is="message.component"
-                    v-bind="message.props" @type-selected="handleTypeSelection($event)" @period-selected="handlePeriodSelection($event)"
-                    @date-updated="updateDate($event)" />
+                    v-bind="message.props" @date-updated="updateDate($event)" />
                 </div>
               </div>
             </div>
@@ -287,7 +286,7 @@ export default {
       type: String,
       default: "",
     },
-    budgetData: {
+    productData: {
       type: Object,
       default: null,
     },
@@ -311,8 +310,10 @@ export default {
       currentWarehouse: null,
       currentIntentFinance: null,
       isInitialCategorySelection: false,
+      isInitialStatusSelection: false,
+      isInitialWarehouseSelection: false,
       textoTemporal: "",
-      budgetDataCollectionMode: false,
+      productDataCollectionMode: false,
       currentIntent: null,
       editingField: null,
       escuchando: false,
@@ -320,49 +321,50 @@ export default {
       cargando: false,
       compatible: true,
       tools: [],
-      budgetParameters: {
-        budget_type: null,
-        type_id: null,
-        amount: null,
-        description: null,
-        start_date: null,
-        end_date: null,
+      productParameters: {
+         name: null,
+        quantity: null,
+        unit_price: null,
+        total_price: null,
+        purchase_place: null,
+        purchase_date: null,
+        expiration_date: null,
+        additional_notes: null,
+        warehouse_id: null,
         category_id: null,
-        currency: "CLP",
-        status: "Activo",
+        status_id: null
       },
       originalItem: {
-        budget_type: null,
-        type_id: null,
-        amount: null,
-        description: null,
-        start_date: null,
-        end_date: null,
+        name: null,
+        quantity: null,
+        unit_price: null,
+        total_price: null,
+        purchase_place: null,
+        purchase_date: null,
+        expiration_date: null,
+        additional_notes: null,
+        warehouse_id: null,
         category_id: null,
-        currency: null,
-        status: null,
+        status_id: null
       },
       defaultItem: {
-        budget_type: null,
-        type_id: null,
-        amount: null,
-        description: null,
-        start_date: null,
-        end_date: null,
+        name: null,
+        quantity: null,
+        unit_price: null,
+        total_price: null,
+        purchase_place: null,
+        purchase_date: null,
+        expiration_date: null,
+        additional_notes: null,
+        warehouse_id: null,
         category_id: null,
-        currency: "CLP",
-        status: "Activo",
+        status_id: null
       },
       textFieldRefs: [],
       currentParameterIndex: 0,
       waitingForConfirmation: false,
-      collectingPeople: false,
-      currentRoleSelection: null,
-      priorities: [],
-      roles: [],
-      people: [],
-      recurrences: [],
-      typesPeriod: [],
+      warehouses: [],
+      categories: [],
       status: [],
       isTyping: false,
       imageUrl: "",
@@ -377,8 +379,6 @@ export default {
       sb_title: "",
       sb_icon: "mdi-check-circle",
       answers: [],
-      types: [],
-      categories: [],
       currentQuestionIndex: 0,
       questions: [
         "Hola, ¿cómo te encuentras hoy? ¿Te gustaría hablar sobre viajes? ¿A dónde deseas viajar?",
@@ -446,58 +446,61 @@ export default {
       this.escuchando = false;
       this.textoTemporal = "";
     };
-    let budgetData = this.budgetData;
+    let productData = this.productData;
 
     // Si es string, parsearlo
-    if (typeof budgetData === "string") {
+    if (typeof productData === "string") {
       try {
-        budgetData = JSON.parse(budgetData);
+        productData = JSON.parse(productData);
       } catch (error) {
-        console.error("Error parsing budgetData:", error);
+        console.error("Error parsing productData:", error);
         return;
       }
     }
 
-    console.log("Datos recibidos del componente padre (budgetData):", budgetData);
+    console.log("Datos recibidos del componente padre (productData):", productData);
     this.name = JSON.parse(LocalStorageService.getItem("name"));
     this.user = JSON.parse(LocalStorageService.getItem("user"));
     this.user_id = JSON.parse(LocalStorageService.getItem("user_id"));
     this.home_id = JSON.parse(LocalStorageService.getItem("home_id"));
     this.imageUrl = LocalStorageService.getItem("image").replace(/['"]+/g, "");
-    if (this.budgetData) {
+    if (this.productData) {
       try {
         // Copiar los datos de la tarea
-        this.budgetParameters = {
-          ...this.budgetParameters,
-          ...budgetData,
+        this.productParameters = {
+          ...this.productParameters,
+          ...productData,
         };
-        this.budgetDataCollectionMode = true;
-        //this.currentTransactionType = this.budgetData.spent > 0 ? 'gasto' : 'ingreso';
-        this.currentIntent = "Presupuesto";
+        this.productDataCollectionMode = true;
+        //this.currentTransactionType = this.productData.spent > 0 ? 'gasto' : 'ingreso';
+        this.currentIntent = "Producto";
         // Mostrar en el chat
         // ✅ Validar que el campo 'amount' sea válido (> 0)
-    const amountValue = this.budgetData.amount;
+    const amountValue = this.productData.quantity;
 
     if (amountValue === null || amountValue === undefined || amountValue <= 0) {
       // ❌ Monto no válido → advertir y reiniciar flujo
       this.chatMessages.push({
         from: "ai",
-        text: `Detecté que deseas registrar un ${this.currentIntent}, pero no se ha proporcionado un monto válido. Por favor, podrías especificar mejor lo que deseas hacer.`,
+        text: `Detecté que deseas registrar un ${this.currentIntent}, pero no se ha proporcionado una cantidad válida. Por favor, podrías especificar mejor lo que deseas hacer.`,
         timestamp: new Date().toLocaleTimeString(),
       });
 
       // Reiniciar estado para evitar datos parciales
-       this.budgetDataCollectionMode = false;
+       this.productDataCollectionMode = false;
       this.currentIntent = null;
-      this.budgetParameters = {
-        budget_type: null,
-        amount: null,
-        description: null,
-        start_date: null,
-        end_date: null,
+      this.productParameters = {
+        name: null,
+        quantity: null,
+        unit_price: null,
+        total_price: null,
+        purchase_place: null,
+        purchase_date: null,
+        expiration_date: null,
+        additional_notes: null,
+        warehouse_id: null,
         category_id: null,
-        currency: "CLP",
-        status: "Activo",
+        status_id: null
       };
       this.waitingForConfirmation = false;
       this.isTyping = false;
@@ -514,13 +517,13 @@ export default {
       });
 
       // Iniciar flujo de edición/resumen
-      await this.showInitialData(this.budgetData);
+      await this.showInitialData(this.productData);
     }
       } catch (error) {
         this.showAlert("error", "Error al cargar datos: " + error.message);
       }
     } else if (this.initialMessage) {
-      // Si no hay budgetData, pero hay initialMessage, simular envío
+      // Si no hay productData, pero hay initialMessage, simular envío
       this.newMessage = this.initialMessage;
       this.sendMessage();
     }
@@ -542,7 +545,7 @@ export default {
       this.currentFinance = null;
       this.currentBudget = null;
       this.currentWarehouse = null;
-      this.$emit("close-all-dialogs", "ChatBudgets");
+      this.$emit("close-all-dialogs", "ChatProduct");
       //this.initialize();
     },
     isImage(icon) {
@@ -565,7 +568,7 @@ export default {
       // En otros casos, devolver un ícono por defecto
       return "mdi-help-circle";
     },
-    onBudgetSelected(index, selectedBudget) {
+    onCategorySelected(index, selectedBudget) {
       console.log("Categoría seleccionada:", selectedBudget);
       this.chatMessages[index].editValue = selectedBudget;
       
@@ -575,12 +578,21 @@ export default {
       }
       // Si es edición, esperará a blur o acción explícita
     },
-
-    onBudgetBlur(index) {
+    onStatusSelected(index, selectedStatus) {
+      console.log("Estado seleccionada:", selectedStatus);
+      this.chatMessages[index].editValue = selectedStatus;
+      
+      // Si es selección inicial, guardar inmediatamente
+      if (this.isInitialStatusSelection) {
+        this.saveFieldEdit(index);
+      }
+      // Si es edición, esperará a blur o acción explícita
+    },
+    onCategoryBlur(index) {
       setTimeout(() => {
         const message = this.chatMessages[index];
         if (message && message.isEditing) {
-          // Solo guardar si no es selección inicial (ya que esa se maneja en onBudgetSelected)
+          // Solo guardar si no es selección inicial (ya que esa se maneja en onCategorySelected)
           if (!this.isInitialCategorySelection) {
             this.saveFieldEdit(index);
           }
@@ -588,13 +600,37 @@ export default {
       }, 200);
     },
 
-    onBudgetClear(index) {
-      console.log("Selección de presupuesto limpiada");
+    onStatusBlur(index) {
+      setTimeout(() => {
+        const message = this.chatMessages[index];
+        if (message && message.isEditing) {
+          // Solo guardar si no es selección inicial (ya que esa se maneja en onCategorySelected)
+          if (!this.isInitialStatusSelection) {
+            this.saveFieldEdit(index);
+          }
+        }
+      }, 200);
+    },
+
+    onCategoryClear(index) {
+      console.log("Selección de la categoría limpiada");
       const message = this.chatMessages[index];
       // Establecer editValue a null
       message.editValue = null;
       // Guardar inmediatamente el valor null
-      this.saveFieldEdit(index);
+      if (!this.isInitialCategorySelection) {
+            this.saveFieldEdit(index);
+          }
+    },
+    onStatusClear(index) {
+      console.log("Selección del estado limpiada");
+      const message = this.chatMessages[index];
+      // Establecer editValue a null
+      message.editValue = null;
+      // Guardar inmediatamente el valor null
+     if (!this.isInitialStatusSelection) {
+            this.saveFieldEdit(index);
+          }
     },
     toggleDictado() {
       if (!this.recognition) return;
@@ -619,7 +655,7 @@ export default {
       this.chatMessages[index].isEditing = true;
       this.chatMessages[index].editValue = this.chatMessages[index].currentValue;
 
-      if (["start_date", "end_date"].includes(this.chatMessages[index].fieldKey)) {
+      if (["purchase_date", "expiration_date"].includes(this.chatMessages[index].fieldKey)) {
         this.$nextTick(() => {
           this.chatMessages[index].showDatePicker = true;
         });
@@ -659,8 +695,16 @@ export default {
           valueToValidate = valueToValidate.id;
         }
 
+        if (message.fieldKey === "warehouse_id" && typeof valueToValidate === "object" && valueToValidate !== null) {
+          valueToValidate = valueToValidate.id;
+        }
+
+        if (message.fieldKey === "status_id" && typeof valueToValidate === "object" && valueToValidate !== null) {
+          valueToValidate = valueToValidate.id;
+        }
+
         const validatedValue = this.validateField(message.fieldKey, valueToValidate);
-        this.budgetParameters[message.fieldKey] = validatedValue;
+        this.productParameters[message.fieldKey] = validatedValue;
 
         // Actualizar el texto mostrado
         let displayValue = validatedValue;
@@ -668,19 +712,38 @@ export default {
           displayValue = message.editValue.nameCategory;
         }
 
-        if (message.fieldKey === "type_id" && typeof message.editValue === "object" && message.editValue !== null) {
-          displayValue = message.editValue.nameTranslated	;
+        if (message.fieldKey === "status_id" && typeof message.editValue === "object" && message.editValue !== null) {
+          displayValue = message.editValue.nameStatus	;
+        }
+
+        if (message.fieldKey === "warehouse_id" && typeof message.editValue === "object" && message.editValue !== null) {
+          displayValue = message.editValue.title	;
         }
 
         message.currentValue = validatedValue;
         message.text = `• ${message.fieldLabel}: ${displayValue}`;
         message.isEditing = false;
+        // 🔥 Recalcular total_price si se editó quantity o unit_price
+    if (["quantity", "unit_price"].includes(message.fieldKey)) {
+      const quantity = parseFloat(this.productParameters.quantity) || 0;
+      const unitPrice = parseFloat(this.productParameters.unit_price) || 0;
+      const totalPrice = (quantity * unitPrice).toFixed(2); // Ajusta decimales según necesidad
+
+      // Actualizar parámetro
+      this.productParameters.total_price = parseFloat(totalPrice);
+
+      // Buscar el mensaje de total_price y actualizarlo
+      const totalMessageIndex = this.chatMessages.findIndex(m => m.fieldKey === "total_price");
+      if (totalMessageIndex !== -1) {
+        const totalMsg = this.chatMessages[totalMessageIndex];
+        totalMsg.currentValue = parseFloat(totalPrice);
+        totalMsg.text = `• ${totalMsg.fieldLabel}: ${totalPrice}`;
+        totalMsg.editValue = parseFloat(totalPrice);
+      }
+    }
         this.scrollToBottom();
 
-        // Continuar el flujo solo si:
-        // 1. Es la primera selección de categoría (category_id era null/undefined)
-        // 2. O es cualquier otro campo durante la recolección inicial de datos
-        const shouldContinueFlow = 
+         const shouldContinueFlow = 
           (message.fieldKey === "category_id" && this.isInitialCategorySelection) ||
           (message.fieldKey !== "category_id" && this.isInitialDataCollection);
         
@@ -689,12 +752,11 @@ export default {
             this.isInitialCategorySelection = false; // Marcar que ya no es la primera selección
           }
           await this.startAutomaticDataCollection();
-        } else if (!this.budgetDataCollectionMode) {
+        } else if (!this.productDataCollectionMode) {
           // Si estamos en modo edición (después de completeCreation)
           // Actualizar el mensaje de resumen si existe
           this.updateSummaryMessage();
         }
-        
       } catch (error) {
         this.showAlert("error", error.message, 2000);
         message.editValue = message.currentValue;
@@ -706,7 +768,7 @@ export default {
     updateSummaryMessage() {
       const summaryIndex = this.chatMessages.findIndex(msg => msg.isSummary);
       if (summaryIndex !== -1) {
-        const newSummary = this.generateBudgetSummary();
+        const newSummary = this.generateSummary();
         this.chatMessages[summaryIndex].text = newSummary;
         
         // También actualizar el mensaje individual del campo editado
@@ -719,7 +781,7 @@ export default {
             const fieldMessage = this.chatMessages[fieldMessageIndex];
             const displayValue = this.getDisplayValueForField(fieldKey);
             fieldMessage.text = `• ${fieldMessage.fieldLabel}: ${displayValue}`;
-            fieldMessage.currentValue = this.budgetParameters[fieldKey];
+            fieldMessage.currentValue = this.productParameters[fieldKey];
           }
         }
       }
@@ -727,13 +789,16 @@ export default {
 
     // Método auxiliar para obtener valores mostrados
     getDisplayValueForField(fieldKey) {
-      const value = this.budgetParameters[fieldKey];
+      const value = this.productParameters[fieldKey];
       if (fieldKey === "category_id") {
         const category = this.categories.find(b => b.id === value);
         return category?.nameCategory || `ID: ${value}`;
-      } else if (fieldKey === "budget_type") {
-        const type = this.types.find(t => t.id === value);
-        return type?.name || "No especificado";
+      } else if (fieldKey === "status_id") {
+        const type = this.status.find(t => t.id === value);
+        return type?.nameStatus || `ID: ${value}`;
+      }else if (fieldKey === "warehouse_id") {
+        const type = this.warehouses.find(t => t.id === value);
+        return type?.title || `ID: ${value}`;
       }
       return value;
     },
@@ -756,7 +821,7 @@ export default {
         this.isTyping = true;
 
         try {
-          const lastAIMessage = this.chatMessages
+          /*const lastAIMessage = this.chatMessages
             .slice()
             .reverse()
             .find((m) => m.from === "ai" && m.isFieldPrompt);
@@ -766,7 +831,7 @@ export default {
                 lastAIMessage.fieldName,
                 tempMessage
               );
-              this.budgetParameters[lastAIMessage.fieldName] = validatedValue;
+              this.productParameters[lastAIMessage.fieldName] = validatedValue;
               this.chatMessages.push({
                 from: "ai",
                 text: `✅ ${
@@ -787,14 +852,14 @@ export default {
               });
               return;
             }
-          }
+          }*/
 
           if (this.waitingForConfirmation) {
             await this.handleConfirmation(tempMessage);
             return;
           }
 
-          if (!this.budgetDataCollectionMode) {
+          if (!this.productDataCollectionMode) {
             const response = await handleRequest({
           endpoint: "ask-ai-task",
           method: "POST",
@@ -891,11 +956,11 @@ export default {
 
             case "Presupuesto":
               this.$nextTick(async () => {
-                  this.budgetParameters = {
-                    ...this.budgetParameters,
+                  this.productParameters = {
+                    ...this.productParameters,
                     ...budget,
                   };
-                if (Number(this.budgetParameters.amount) <= 0){
+                if (Number(this.productParameters.amount) <= 0){
                       this.chatMessages.push({
                         from: "ai",
                         text:
@@ -905,7 +970,7 @@ export default {
                       });
                     }else{
                   this.currentIntent = intent;
-                  this.budgetDataCollectionMode = true;
+                  this.productDataCollectionMode = true;
                   this.chatMessages.push({
                     from: "ai",
                     text: `Datos del  ${this.currentIntent} recibidos. Puedes editarlos antes de confirmar.`,
@@ -973,20 +1038,23 @@ export default {
     },
     async loadRequiredData() {
       this.isLoading = true;
+      this.data = {};
+      this.data.home_id = this.home_id;
       try {
         const result = await handleRequest({
-          endpoint: "category-budgets",
+          endpoint: "productcategory-productstatus-apk",
           method: "POST",
+          data: this.data
         });
 
         if (result.success) {
-          this.categories = result.data.categories || [];
-          this.types = result.data.types || [];
-          this.typesPeriod = result.data.typesPeriodo || [];
+          this.categories = result.data.productcategories || [];
+          this.status = result.data?.productstatus || [];
+          this.warehouses = result.data?.productwarehouses || [];
         } else {
           this.categories = [];
-          this.types = [];
-          this.typesPeriod = [];
+          this.status = [];
+          this.warehouses = [];
         }
       } catch (error) {
         this.showAlert(
@@ -998,67 +1066,44 @@ export default {
         this.isLoading = false;
       }
     },
-    async showInitialData(budgetData) {
-      if (!budgetData) return;
+    async showInitialData(productData) {
+      if (!productData) return;
             this.isInitialCategorySelection = (
-        budgetData.category_id === null || 
-        budgetData.category_id === undefined
+        productData.category_id === null || 
+        productData.category_id === undefined
+      );
+      this.isInitialStatusSelection = (
+        productData.status_id === null || 
+        productData.status_id === undefined
+      );
+
+      this.isInitialWarehouseSelection = (
+        productData.warehouse_id === null || 
+        productData.warehouse_id === undefined
       );
       
-      this.isInitialDataCollection = !budgetData;
-          await this.showSummary(budgetData);
+      this.isInitialDataCollection = !productData;
+          await this.showSummary(productData);
           await this.startAutomaticDataCollection();
     },
-    async showPeriodOptions() {
-      this.isTyping = true;
-      setTimeout(() => {
-        this.chatMessages.push({
-          from: "ai",
-          text: "Selecciona el período del presupuesto:",
-          component: "PeriodOptions",
-          props: {
-            options: this.typesPeriod,
-            selectedId: this.budgetParameters.type_id,
-          },
-          timestamp: new Date().toLocaleTimeString(),
-        });
-        this.isTyping = false;
-        this.scrollToBottom();
-      }, 100);
-    },
-    handlePeriodSelection(period){
-      this.budgetParameters.type_id = period.id;
-
-      // Actualizar el mensaje de prioridad existente o crear uno nuevo
-      const priorityMessageIndex = this.chatMessages.findIndex(
-        (m) => m.from === "ai" && m.component === "PeriodOptions"
-      );
-
-      if (priorityMessageIndex !== -1) {
-        this.chatMessages[priorityMessageIndex].props.selectedId = period.id;
-      }
-
-       if (this.isInitialCategorySelection) {
-      this.startAutomaticDataCollection();
-    } else {
-      // Si estamos editando, actualizar el resumen
-      this.updateSummaryMessage();
-    }
-    },
-    async showSummary(budgetData) {
+    async showSummary(productData) {
           // Definir los campos a mostrar, excluyendo spent/income mutuamente y budget_id condicionalmente
       const fieldsToShow = [
-        { key: "description", label: "Descripción" },
-        { key: "amount", label: "Monto" },
-        //{ key: "start_date", label: "Fecha inicio" },
-        //{ key: "end_date", label: "Fecha fin" },
-        { key: "currency", label: "Moneda" },
-        //{ key: "type_id", label: "Período" },
+        { key: "name", label: "Nombre del producto" },
+        { key: "quantity", label: "Cantidad" },
+        { key: "unit_price", label: "Precio unitario" },
+        { key: "total_price", label: "Importe total" },
+        { key: "purchase_place", label: "Lugar de compra" },
+        { key: "purchase_date", label: "Fecha de compra" },
+        { key: "expiration_date", label: "Fecha de vencimiento" },
+        { key: "additional_notes", label: "Notas adicionales" },
         { key: "category_id", label: "Categoría" },
+        { key: "warehouse_id", label: "Almacén asociado" },
+        { key: "status_id", label: "Estado del producto" },
       ];
       // Mostrar campos normales como texto
       fieldsToShow.forEach((field) => {
-        const value = budgetData[field.key];
+        const value = productData[field.key];
         if (value !== null && value !== undefined && value !== "") {
           let displayValue = value;
           let additionalData = {}; // Para pasar datos adicionales necesarios para la edición
@@ -1071,11 +1116,30 @@ export default {
             additionalData.availableCategories = this.categories;
           }
 
+          if (field.key === "warehouse_id") {
+            // Buscar el nombre del presupuesto para mostrar
+            const warehouse = this.warehouses.find((b) => b.id === value);
+            displayValue = warehouse ? `${warehouse.title}` : `ID: ${value}`;
+            // Pasar los budgets disponibles para la edición con autocomplete
+            additionalData.availableWarehouses = this.warehouses;
+          }
+
+          if (field.key === "status_id") {
+            // Buscar el nombre del presupuesto para mostrar
+            const status = this.status.find((b) => b.id === value);
+            displayValue = status ? `${status.nameStatus}` : `ID: ${value}`;
+            // Pasar los budgets disponibles para la edición con autocomplete
+            additionalData.availableStatus = this.status;
+          }
+
+          // Añadir excepción para total_price
+          const isEditable = field.key !== "total_price"; // No editable
+
           this.chatMessages.push({
             from: "ai",
             text: `• ${field.label}: ${displayValue}`, // Usar displayValue formateado
             timestamp: new Date().toLocaleTimeString(),
-            isEditable: true,
+            isEditable,
             fieldKey: field.key,
             fieldLabel: field.label,
             currentValue: value, // Valor real para guardar
@@ -1087,56 +1151,24 @@ export default {
           this.shownChatFields.add(field.key);
         }
       });
-
-        // (Manteniendo tu lógica actual con componente)
-      if (budgetData.budget_type) {
-        this.chatMessages.push({
-          from: "ai",
-          text: "Tipo:", // El componente TypePersonalOptions se encargará de mostrar el nombre
-          component: "TypePersonalOptions", // O "TypeFinanceOptions" si lo renombraste
-          props: {
-            options: this.types,
-            selectedId: budgetData.budget_type,
-          },
-          timestamp: new Date().toLocaleTimeString(),
-          // Nota: Este mensaje con componente no sigue el patrón isEditable/isEditing
-          // porque su edición se maneja internamente por el componente TypePersonalOptions.
-          // Si quieres editarlo inline como los otros, necesitarías cambiarlo a texto + autocomplete.
-        });
-        this.shownChatFields.add("budget_type");
-      }
-      if (budgetData.type_id) {
-        this.chatMessages.push({
-          from: "ai",
-          text: "Período:", // El componente PeriodOptions se encargará de mostrar el nombre
-          component: "PeriodOptions", // O "PeriodOptions" si lo renombraste
-          props: {
-            options: this.typesPeriod,
-            selectedId: budgetData.type_id,
-          },
-          timestamp: new Date().toLocaleTimeString(),
-          // Nota: Este mensaje con componente no sigue el patrón isEditable/isEditing
-          // porque su edición se maneja internamente por el componente PeriodOptions.
-          // Si quieres editarlo inline como los otros, necesitarías cambiarlo a texto + autocomplete.
-        });
-        this.shownChatFields.add("type_id");
-      }
     },
     async startAutomaticDataCollection() {
       const parametersOrder = [
-        "description",
-        "amount",
-        //"start_date",
-        //"end_date",
-        "currency",
-        "budget_type",
+         "name",
+        "quantity",
+        "unit_price",
+        "total_price",
+        "purchase_place", // Ahora se pedirá la recurrencia
+        "purchase_date",
         "category_id",
-        "currency",
-        "type_id"
+        "expiration_date",
+        "additional_notes",
+        "warehouse_id",
+        "status_id",
       ];
 
       const nextField = parametersOrder.find((field) => {
-        const value = this.budgetParameters[field];
+        const value = this.productParameters[field];
 
         return !value && value !== 0;
       });
@@ -1149,13 +1181,13 @@ export default {
 
       // Marcar como mostrado ANTES de mostrar el mensaje
       this.shownChatFields.add(nextField);
-       if (nextField === 'category_id' && !this.isInitialCategorySelection) {
+       /*if (nextField === 'category_id' && !this.isInitialCategorySelection) {
         this.completeCreation(); // Saltar a confirmación
       } else if (nextField === "type_id") {
         await this.showPeriodOptions();
       }else if (nextField === "budget_type") {
         await this.showTypeOptions();
-      } else if (nextField) {
+      }*/if (nextField) {
         this.showFieldInput(nextField);
       } else {
         this.completeCreation();
@@ -1163,40 +1195,79 @@ export default {
     },
     async showFieldInput(field) {
       const fieldLabels = {
-        description: "la descripción",
-        amount: "el monto del presupuesto",
-        start_date: "la fecha (YYYY-MM-DD)",
-        end_date: "la fecha (YYYY-MM-DD)",
-        currency: "la moneda (USD, EUR, MXN, etc.)",
-        budget_type: "el tipo de transacción",
-        type_id: "el período",
-        category_id: "Categoría",
+         name: "el nombre del producto",
+                quantity: "la cantidad",
+                unit_price: "el precio unitario",
+                total_price: "el precio total",
+                purchase_place: "el lugar de compra",
+                purchase_date: "la fecha de compra (YYYY-MM-DD)",
+                expiration_date: "la fecha de vencimiento (YYYY-MM-DD)",
+                additional_notes: "notas adicionales",
+                warehouse_id: "el almacén de almacenamiento",
+                category_id: "la categoría del producto",
+                status_id: "el estado del producto"
       };
+       let additionalData = {};
+      if (field === "category_id") {
+        this.isInitialCategorySelection = (
+          this.productParameters[field] === null || 
+          this.productParameters[field] === undefined
+        );
+        additionalData.availableCategories = this.categories; 
+        this.chatMessages.push({
+          from: "ai",
+          text: `Por favor, selecciona la ${fieldLabels[field] || field}:`,
+          timestamp: new Date().toLocaleTimeString(),
+          isEditable: true,
+          fieldKey: field,
+          fieldLabel: fieldLabels[field] || field,
+          currentValue: this.productParameters[field], // Puede ser null
+          editValue: this.productParameters[field],   // Puede ser null
+          isEditing: true, // Iniciar en modo edición directamente
+          showDatePicker: false,
+          ...additionalData, // Pasar las categorías para el autocomplete
+        });
+        return; // Salir para no ejecutar el código posterior
+      }
 
-      // Para category_id, mostrar directamente el autocomplete en lugar de pedir texto
-  if (field === "category_id") {
-    // Verificar si es la primera vez (valor null/undefined)
-    this.isInitialCategorySelection = (
-      this.budgetParameters[field] === null || 
-      this.budgetParameters[field] === undefined
-    );
-      // Si es la primera vez, mostrar el mensaje de selección
-    this.chatMessages.push({
-      from: "ai",
-      text: `Por favor, selecciona la ${fieldLabels[field] || field}:`,
-      timestamp: new Date().toLocaleTimeString(),
-      isEditable: true,
-      fieldKey: field,
-      fieldLabel: fieldLabels[field] || field,
-      currentValue: this.budgetParameters[field], // Puede ser null
-      editValue: this.budgetParameters[field],   // Puede ser null
-      isEditing: true, // Iniciar en modo edición directamente
-      showDatePicker: false,
-      availableCategories: this.categories, // Pasar las categorías para el autocomplete
-    });
-    return; // Salir para no ejecutar el código posterior
-  }
-
+      if (field === "status_id") {
+        // Verificar si es la primera vez (valor null/undefined)
+        this.isInitialStatusSelection = (
+          this.productParameters[field] === null || 
+          this.productParameters[field] === undefined
+        );
+          // Si es la primera vez, mostrar el mensaje de selección
+        this.chatMessages.push({
+          from: "ai",
+          text: `Por favor, selecciona el ${fieldLabels[field] || field}:`,
+          timestamp: new Date().toLocaleTimeString(),
+          isEditable: true,
+          fieldKey: field,
+          fieldLabel: fieldLabels[field] || field,
+          currentValue: this.productParameters[field], // Puede ser null
+          editValue: this.productParameters[field],   // Puede ser null
+          isEditing: true, // Iniciar en modo edición directamente
+          showDatePicker: false,
+          availableStatus: this.status, // Pasar las categorías para el autocomplete
+        });
+        return; // Salir para no ejecutar el código posterior
+      }
+        // Caso 3: purchase_date o expiration_date → mostrar datepicker directamente
+      if (field === "purchase_date" || field === "expiration_date") {
+        this.chatMessages.push({
+          from: "ai",
+          text: `Selecciona ${fieldLabels[field]}:`,
+          timestamp: new Date().toLocaleTimeString(),
+          isEditable: true,
+          fieldKey: field,
+          fieldLabel: fieldLabels[field],
+          currentValue: this.productParameters[field] || "",
+          editValue: this.productParameters[field] || "",
+          isEditing: true, // Para activar el componente visual
+          showDatePicker: true, // ← ¡Aquí activas el menú del datepicker!
+        });
+        return;
+      }
       this.chatMessages.push({
         from: "ai",
         text: `Por favor, ingresa ${fieldLabels[field] || field}:`,
@@ -1206,34 +1277,40 @@ export default {
         fieldLabel: fieldLabels[field] || field,
       });
 
-      if (field === "budget_type") {
+      /*if (field === "budget_type") {
         await this.showTypeOptions();
       }
       else if (field === "type_id") {
         await this.showPeriodOptions();
       }
-       else if (field === "start_date" || field === "end_date") {
+       else *//*if (field === "purchase_date" || field === "expiration_date") {
         this.showDatePicker(field);
-      }
+      }*/
     },
     validateField(field, value) {
       console.log("Validando campo de presupuesto:", field, "con valor:", value);
       switch (field) {
-        case "description":
+        case "title":
           if (!value || value.trim().length === 0) {
-            throw new Error("La descripción es requerida");
+            throw new Error("el nombre es requerido");
           }
           return value.trim();
 
-        case "amount":
-          const amount = parseFloat(value);
-          if (isNaN(amount) || amount <= 0) {
-            throw new Error("El monto del presupuesto debe ser un número positivo");
+        case "quantity":
+          const quantity = parseFloat(value);
+          if (isNaN(quantity) || quantity <= 0) {
+            throw new Error("La cantidad debe ser un número positivo");
           }
-          return amount;
+          return quantity;
+          case "unit_price":
+          const unit_price = parseFloat(value);
+          if (isNaN(unit_price) || unit_price <= 0) {
+            throw new Error("El precio debe ser un número positivo");
+          }
+          return unit_price;
 
-        case "start_date":
-        case "end_date":
+        case "purchase_date":
+        case "expiration_date":
           // Validar formato de fecha
           if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
             throw new Error(
@@ -1248,16 +1325,16 @@ export default {
             throw new Error(`Fecha inválida para ${fieldLabels[field] || field}`);
           }
 
-          // Validar que end_date sea posterior o igual a start_date (si ambos existen)
+          // Validar que expiration_date sea posterior o igual a purchase_date (si ambos existen)
           // Nota: Esto requiere acceso a los otros parámetros del formulario de presupuesto
-          // Por ejemplo, si estás validando end_date, necesitas el start_date del mismo presupuesto
+          // Por ejemplo, si estás validando expiration_date, necesitas el purchase_date del mismo presupuesto
           // Esto puede ser complejo en el contexto actual de `financeParameters`.
-          // Una opción es pasar `this.budgetParameters` o el objeto completo como argumento adicional.
+          // Una opción es pasar `this.productParameters` o el objeto completo como argumento adicional.
 
-          // Ejemplo básico asumiendo que tienes acceso a `this.budgetParameters`:
+          // Ejemplo básico asumiendo que tienes acceso a `this.productParameters`:
 
-          if (field === "end_date" && this.budgetParameters?.start_date) {
-            const startDate = new Date(this.budgetParameters.start_date);
+          if (field === "expiration_date" && this.productParameters?.purchase_date) {
+            const startDate = new Date(this.productParameters.purchase_date);
             const endDate = new Date(value);
             if (endDate < startDate) {
               throw new Error(
@@ -1265,9 +1342,9 @@ export default {
               );
             }
           }
-          if (field === "start_date" && this.budgetParameters?.end_date) {
+          if (field === "purchase_date" && this.productParameters?.expiration_date) {
             const startDate = new Date(value);
-            const endDate = new Date(this.budgetParameters.end_date);
+            const endDate = new Date(this.productParameters.expiration_date);
             if (endDate < startDate) {
               throw new Error(
                 "La fecha de inicio debe ser anterior o igual a la fecha de finalización"
@@ -1277,48 +1354,39 @@ export default {
 
           return value; // Devolver el string de fecha formateado
 
-        case "currency":
-          if (!value || value.trim().length === 0) {
-            throw new Error("La moneda es requerida");
-          }
-          // Validar contra una lista de monedas permitidas (puedes ajustarla)
-          const allowedCurrencies = [ "USD", "EUR", "MXN", "ARS", "COP", "PEN", "CLP",
-            "BRL",
-          ]; // Ampliada
-          if (!allowedCurrencies.includes(value.toUpperCase().trim())) {
-            throw new Error(
-              `Moneda no válida. Monedas permitidas: ${allowedCurrencies.join(", ")}`
-            );
-          }
-          return value.toUpperCase().trim();
-
-        case "budget_type": // o "type" si el campo se llama "type" en el objeto
-          if (!value || value.trim().length === 0) {
-            throw new Error("El tipo de presupuesto es requerido");
-          }
-          // Si tienes una lista de tipos de presupuesto válidos, puedes validarla aquí
-          // const allowedBudgetTypes = ['Hogar', 'Personal', 'Ahorro', 'Viaje']; // Ejemplo
-          // if (!allowedBudgetTypes.includes(value.trim())) {
-          //   throw new Error(`Tipo de presupuesto no válido. Tipos permitidos: ${allowedBudgetTypes.join(', ')}`);
-          // }
-          return value.trim();
-
-        case "type_id": // o "type" si el campo se llama "type" en el objeto
-          if (value === null || value === undefined || value === "") {
+        case "warehouse_id": // o "type" si el campo se llama "type" en el objeto
+           if (value === null || value === undefined || value === "") {
             // Si es opcional, devolver null. Si es requerido, lanzar error.
             // return null; // <-- Si es opcional
-            throw new Error("Debes seleccionar un  período"); // <-- Si es requerido
+            throw new Error("Debes seleccionar un estado"); // <-- Si es requerido
           }
-          const typeId = parseInt(value, 10);
-          if (isNaN(typeId) || typeId <= 0) {
-            throw new Error("ID período debe ser un número entero positivo");
+          const warehouseId = parseInt(value, 10);
+          if (isNaN(warehouseId) || warehouseId <= 0) {
+            throw new Error("ID del estado debe ser un número entero positivo");
           }
           // Opcional: Validar que la categoría exista en una lista predefinida
           // Esto dependería de cómo cargues las categorías disponibles.
           // if (this.categories && !this.categories.some(c => c.id === categoryId)) {
           //   throw new Error("La categoría seleccionada no es válida");
           // }
-          return categoryId;
+          return warehouseId;
+
+        case "status_id": // o "type" si el campo se llama "type" en el objeto
+          if (value === null || value === undefined || value === "") {
+            // Si es opcional, devolver null. Si es requerido, lanzar error.
+            // return null; // <-- Si es opcional
+            throw new Error("Debes seleccionar un estado"); // <-- Si es requerido
+          }
+          const statusID = parseInt(value, 10);
+          if (isNaN(statusID) || statusID <= 0) {
+            throw new Error("ID del estado debe ser un número entero positivo");
+          }
+          // Opcional: Validar que la categoría exista en una lista predefinida
+          // Esto dependería de cómo cargues las categorías disponibles.
+          // if (this.categories && !this.categories.some(c => c.id === categoryId)) {
+          //   throw new Error("La categoría seleccionada no es válida");
+          // }
+          return statusID;
 
         case "category_id":
           // Permitir que category_id sea null/undefined si es opcional al inicio
@@ -1344,20 +1412,6 @@ export default {
           return value;
       }
     },
-
-    // Nuevo método para mostrar opciones de tipo
-    async showTypeOptions() {
-      this.chatMessages.push({
-        from: "ai",
-        text: "Selecciona el tipo de transacción:",
-        component: "TypeFinanceOptions",
-        props: {
-          options: this.types,
-          selectedId: this.budgetParameters.type,
-        },
-        timestamp: new Date().toLocaleTimeString(),
-      });
-    },
     fixEncoding(str) {
       try {
         return decodeURIComponent(escape(str));
@@ -1374,8 +1428,8 @@ export default {
         if (container) container.scrollTop = container.scrollHeight;
       });
     },
-    handleTypeSelection(type) {
-      this.budgetParameters.budget_type = type.id;
+    /*handleTypeSelection(type) {
+      this.productParameters.budget_type = type.id;
 
       // Actualizar el mensaje de prioridad existente o crear uno nuevo
       const priorityMessageIndex = this.chatMessages.findIndex(
@@ -1392,7 +1446,7 @@ export default {
       // Si estamos editando, actualizar el resumen
       this.updateSummaryMessage();
     }
-    },
+    },*/
     showAlert(type, message, timeout) {
       this.sb_type = type;
       this.sb_message = message;
@@ -1401,14 +1455,14 @@ export default {
       this.snackbar = true;
     },
 
-    generateBudgetSummary() {
+    generateSummary() {
       let summary = `Resumen del presupuesto:\n\n`;
       
       const parametersToShow = [
         { key: "description", label: "Descripción" },
         { key: "amount", label: "Monto" },
-        //{ key: "start_date", label: "Fecha inicio" },
-        //{ key: "end_date", label: "Fecha fin" },
+        //{ key: "purchase_date", label: "Fecha inicio" },
+        //{ key: "expiration_date", label: "Fecha fin" },
         { key: "currency", label: "Moneda" },
         { key: "budget_type", label: "Tipo" },
         { key: "type_id", label: "Período" },
@@ -1416,7 +1470,7 @@ export default {
       ];
 
       parametersToShow.forEach(({ key, label }) => {
-        const value = this.budgetParameters[key];
+        const value = this.productParameters[key];
         if (value !== null && value !== undefined && value !== "") {
           if (key === "budget_type") {
             const type = this.types.find((t) => t.id === value);
@@ -1437,7 +1491,7 @@ export default {
     },
     completeCreation() {
       this.isTyping = true;
-      this.budgetDataCollectionMode = false;
+      this.productDataCollectionMode = false;
 
       // Eliminar mensajes de resumen y confirmación anteriores si existen
       this.chatMessages = this.chatMessages.filter(msg => 
@@ -1445,7 +1499,7 @@ export default {
       );
 
       // Generar y mostrar resumen actualizado
-      const summary = this.generateBudgetSummary();
+      const summary = this.generateSummary();
       
       this.chatMessages.push({
         from: "ai",
@@ -1491,8 +1545,8 @@ export default {
           "category_id",
           "amount",
           "used_amount",
-          //"start_date",
-          //"end_date",
+          //"purchase_date",
+          //"expiration_date",
           "budget_type",
           "status",
           "description",
@@ -1500,14 +1554,14 @@ export default {
           "type_id",
         ];
 
-        let updatedFields = Object.keys(this.budgetParameters)
+        let updatedFields = Object.keys(this.productParameters)
           .filter(
             (key) =>
               fieldsToUpdate.includes(key) &&
-              this.budgetParameters[key] !== this.defaultItem[key]
+              this.productParameters[key] !== this.defaultItem[key]
           )
           .reduce((obj, key) => {
-            obj[key] = this.budgetParameters[key];
+            obj[key] = this.productParameters[key];
             return obj;
           }, {});
 
@@ -1550,16 +1604,16 @@ export default {
       }
 
       // Resetear
-      this.budgetDataCollectionMode = false;
+      this.productDataCollectionMode = false;
       this.currentIntent = null;
-      this.budgetParameters = {};
+      this.productParameters = {};
       this.scrollToBottom();
       this.handleCancellation();
     },
     handleCancellation() {
       this.waitingForConfirmation = false;
-      this.budgetParameters.people = [];
-      this.budgetParameters = Object.assign({}, this.defaultItem);
+      this.productParameters.people = [];
+      this.productParameters = Object.assign({}, this.defaultItem);
       this.originalItem = Object.assign({}, this.defaultItem);
       // Mensaje con botones de opción
       this.chatMessages.push({
@@ -1596,14 +1650,14 @@ export default {
       this.chatMessages = [];
 
       // Reiniciar todas las variables de estado relacionadas con tareas
-      this.budgetDataCollectionMode = false;
+      this.productDataCollectionMode = false;
       this.currentIntent = null;
-      this.budgetParameters = {
+      this.productParameters = {
         budget_type: null,
         amount: null,
         description: null,
-        start_date: null,
-        end_date: null,
+        purchase_date: null,
+        expiration_date: null,
         category_id: null,
         currency: "CLP",
         status: "Activo",
@@ -1640,7 +1694,7 @@ export default {
       }
 
       // Actualizar el valor en el modelo
-      this.budgetParameters[field] = value;
+      this.productParameters[field] = value;
       
       // Actualizar el mensaje en el chat
       const messageIndex = this.chatMessages.findIndex(m => m.fieldKey === field);

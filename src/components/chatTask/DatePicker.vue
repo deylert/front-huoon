@@ -26,7 +26,7 @@ export default {
     fieldType: {
       type: String,
       required: true,
-      validator: value => ['start_date', 'end_date', 'date', 'purchase_date', 'expiration_date'].includes(value)
+      validator: value => ['start_date', 'end_date', 'date', 'purchase_date', 'expiration_date', 'end'].includes(value)
     },
     minDate: {
       type: String,

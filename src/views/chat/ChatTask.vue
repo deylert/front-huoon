@@ -23,7 +23,9 @@
                 <v-avatar v-if="message.from === 'ai'" size="28" class="mb-2 mr-3">
                   <v-img src="@/assets/logo-verde.png" alt="Imagen de perfil" />
                 </v-avatar>
-
+                <v-avatar v-else size="28" class="mb-2 ml-3">
+                  <v-img :src="`${this.$axios.defaults.baseURL}images/${imageUrl}`" alt="Imagen de usuario"></v-img>
+                </v-avatar>
                 <div :class="[
             'rounded-xl',
             message.from === 'user' 
@@ -221,6 +223,34 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+  <v-dialog v-model="dialogChatProduct" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-text>
+        <!-- Pasamos los parámetros al componente ChatTask -->
+        <ChatProduct :productData="currentProduct" @close-dialog="closeDialgChat()"
+          @close-all-dialogs="closeAllDialogs($event)" />
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn text @click="closeDialgChat()">Cerrar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <v-dialog v-model="dialogChatDesire" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-text>
+        <!-- Pasamos los parámetros al componente ChatTask -->
+        <ChatDesire :desireData="currentDesire" @close-dialog="closeDialgChat()"
+          @close-all-dialogs="closeAllDialogs($event)" />
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn text @click="closeDialgChat()">Cerrar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
@@ -260,6 +290,9 @@ export default {
     ChatBudget: defineAsyncComponent(() => import('./ChatBudget.vue')),
     ChatFinance: defineAsyncComponent(() => import('./ChatFinance.vue')),
     ChatWarehouse: defineAsyncComponent(() => import('./ChatWarehouse.vue')),
+    ChatDesire: defineAsyncComponent(() => import('./ChatDesire.vue')),
+    ChatProduct: defineAsyncComponent(() => import('./ChatProduct.vue')),
+
   },
   data() {
     return {
@@ -267,9 +300,13 @@ export default {
        dialogChatFinance: false,
         dialogChatBudget: false,
         dialogChatWarehouse: false,
+        dialogChatDesire: false,
+      dialogChatProduct: false,
       currentBudget: null,
       currentFinance: null,
       currentWarehouse: null,
+      currentDesire: null,
+      currentProduct: null,
       editingFieldKey: null,
        editingFieldIndex: null,
       currentIntentFinance: null,
@@ -640,7 +677,7 @@ export default {
               },
             });
             this.isTyping = false;
-        const { intentDetected, intent, task, answer, finances, budget, warehouse } = response.data;
+        const { intentDetected, intent, task, answer, finances, budget, warehouse, product, desire } = response.data;
             if (intentDetected && intent) {
 
               this.data = { home_id: this.home_id };
@@ -714,12 +751,12 @@ export default {
               this.currentFinance = null;
               this.$nextTick(() => {
                 const financeData =
-                  typeof response.data.finances === "string"
-                    ? JSON.parse(response.data.finances)
-                    : response.data.finances;
+                  typeof finances === "string"
+                    ? JSON.parse(finances)
+                    : finances;
 
               
-                if(financeData.spent <= 0)
+                if(Number(financeData.spent) <= 0)
                 {
                 this.chatMessages.push({
                 from: "ai",
@@ -730,7 +767,7 @@ export default {
               });
             }else{
                 this.currentFinance = _.cloneDeep(financeData);
-                this.currentIntentFinance = response.data.intent;
+                this.currentIntentFinance = "Gasto";
                 this.dialogChatFinance = true;
                 this.scrollToBottom();
             }
@@ -741,12 +778,12 @@ export default {
               this.currentFinance = null;
               this.$nextTick(() => {
                 const financeData =
-                  typeof response.data.finances === "string"
-                    ? JSON.parse(response.data.finances)
-                    : response.data.finances;
+                  typeof finances === "string"
+                    ? JSON.parse(finances)
+                    : finances;
 
               
-                if(financeData.income <= 0)
+                if(Number(financeData.income) <= 0)
                 {
                 this.chatMessages.push({
                 from: "ai",
@@ -757,7 +794,7 @@ export default {
               });
             }else{
                 this.currentFinance = _.cloneDeep(financeData);
-                this.currentIntentFinance = response.data.intent;
+                this.currentIntentFinance = "Ingreso";
                 this.dialogChatFinance = true;
                 this.scrollToBottom();
             }
@@ -768,10 +805,10 @@ export default {
               this.currentBudget = null;
               this.$nextTick(() => {
                 const budgetData =
-                  typeof response.data.budget === "string"
-                    ? JSON.parse(response.data.budget)
-                    : response.data.budget;
-                if(budgetData.amount <= 0)
+                  typeof budget === "string"
+                    ? JSON.parse(budget)
+                    : budget;
+                if(Number(budgetData.amount) <= 0)
                 {
                 this.chatMessages.push({
                 from: "ai",
@@ -797,6 +834,42 @@ export default {
 
                 this.currentWarehouse = _.cloneDeep(warehouseData);
                 this.dialogChatWarehouse = true;
+                this.scrollToBottom();
+              });
+              break;
+            
+            case "Producto":
+              this.currentProduct = null;
+              this.$nextTick(() => {
+                const productData =
+                  typeof product === "string"
+                    ? JSON.parse(product)
+                    : product;
+                 if (isNaN(productData.quantity) || isNaN(productData.unit_price) || productData.quantity <= 0 || productData.unit_price <= 0) {
+                    this.messages.push({
+                      from: "ai",
+                      text: "⚠️ Parece que aún no has especificado bien la **cantidad** o el **precio unitario** del producto. Ambos deben ser valores numéricos mayores a cero. ¿Podrías revisarlo y corregirlo, por favor?",
+                      timestamp: new Date().toLocaleTimeString(),
+                    });
+                    return; // Detener el flujo hasta que se corrijan
+                  }else{
+                this.currentProduct = _.cloneDeep(productData);
+                this.dialogChatProduct = true;
+                this.scrollToBottom();
+              }
+              });
+              break;
+
+              case "Deseo":
+              this.currentDesire = null;
+              this.$nextTick(() => {
+                const desireData =
+                  typeof desire === "string"
+                    ? JSON.parse(desire)
+                    : desire;
+
+                this.currentDesire = _.cloneDeep(desireData);
+                this.dialogChatDesire = true;
                 this.scrollToBottom();
               });
               break;

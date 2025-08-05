@@ -37,115 +37,19 @@
           ]" style="min-width: 0; max-width: 100%; width: fit-content">
                   <!-- Campo editable con componente -->
                   <template v-if="message.isEditable && message.isEditing">
-                    <div v-if="message.fieldKey === 'category_id'">
-                      <v-autocomplete v-model="message.editValue" :items="message.availableCategories || categories"
-                        :label="message.fieldLabel" item-title="nameCategory" variant="outlined" item-value="id" density="comfortable"
-                        style="width: auto; min-width: 20em" return-object hide-details
-                        @update:modelValue="onCategorySelected(index, $event)" @blur="onCategoryBlur(index)"
-                        @click:clear="onCategoryClear(index)">
-                        <!-- Templates de item y selection (mantener igual) -->
-                        <template v-slot:item="{ props, item }">
-                          <v-list-item v-bind="props">
-                            <template v-slot:prepend>
-                              <v-avatar size="24">
-                                <template v-if="isImage(item.raw.iconCategory)">
-                                  <img :src="`${$axios.defaults.baseURL}images/${
-                                item.raw.iconCategory
-                              }?t=${Date.now()}`" alt="icon" />
-                                </template>
-                                <template v-else>
-                                  <v-icon>{{
-                                    getIconName(item.raw.iconCategory)
-                                    }}</v-icon>
-                                </template>
-                              </v-avatar>
-                            </template>
-                            <v-list-item-subtitle class="d-flex flex-column">
-                              <div>Descripción: {{ item.raw.descriptionCategory }}</div>
-                            </v-list-item-subtitle>
-                          </v-list-item>
-                        </template>
-                        <template v-slot:selection="{ item }">
-                          <div class="d-flex align-center">
-                            <v-avatar size="20" start>
-                              <template v-if="isImage(item.raw.iconCategory)">
-                                <img :src="`${$axios.defaults.baseURL}images/${
-                              item.raw.iconCategory
-                            }?t=${Date.now()}`" alt="icon" />
-                              </template>
-                              <template v-else>
-                                <v-icon small>{{
-                                  getIconName(item.raw.iconCategory)
-                                  }}</v-icon>
-                              </template>
-                            </v-avatar>
-                            <span>{{ item.raw.nameCategory }}</span>
-                          </div>
-                        </template>
-                      </v-autocomplete>
-                    </div>
-                    <div v-else-if="message.fieldKey === 'status_id'">
-                      <v-autocomplete v-model="message.editValue" :items="message.availableStatus || status"
-                        :label="message.fieldLabel" item-title="nameStatus" item-value="id" variant="outlined"
-                        density="comfortable" style="width: auto; min-width: 20em" return-object hide-details
-                        @update:modelValue="onStatusSelected(index, $event)" @blur="onStatusBlur(index)"
-                        @click:clear="onStatusClear(index)">
-                        <template v-slot:item="{ props, item }">
-                          <v-list-item v-bind="props">
-                            <template v-slot:prepend>
-                              <v-avatar size="24">
-                                <v-icon>{{ item.raw.iconStatus }}</v-icon>
-                              </v-avatar>
-                            </template>
-                          </v-list-item>
-                        </template>
-                      </v-autocomplete>
-                    </div>
-                    <div v-else-if="message.fieldKey === 'warehouse_id'">
-                      <v-autocomplete v-model="message.editValue" :items="message.availableWarehouses || warehouses"
-                        :label="$t('warehouse.fields.warehouse')" item-title="title" item-value="warehouse_id"
-                        variant="outlined" density="comfortable" style="width: auto; min-width: 20em" return-object
-                        hide-details @update:modelValue="onWarehouseSelected(index, $event)"
-                        @blur="onWarehouseBlur(index)" @click:clear="onWarehouseClear(index)">
-                        <template v-slot:item="{ props, item }">
-                          <v-list-item v-bind="props">
-                            <v-list-item-subtitle class="d-flex flex-column">
-                              <v-tooltip location="top right">
-                                <template v-slot:activator="{ props }">
-                                  <div class="description-text" v-bind="props" :title="item.raw.description">
-                                    {{ $t("warehouse.fields.description") }}:
-                                    {{ item.raw.description }}
-                                  </div>
-                                </template>
-                                <span>{{ item.raw.description }}</span>
-                              </v-tooltip>
-                              <v-tooltip location="top right">
-                                <template v-slot:activator="{ props }">
-                                  <div class="description-text" v-bind="props" :title="item.raw.location">
-                                    {{ $t("warehouse.fields.home_location") }}:
-                                    {{ item.raw.location }}
-                                  </div>
-                                </template>
-                                <span>{{ item.raw.location }}</span>
-                              </v-tooltip>
-                            </v-list-item-subtitle>
-                          </v-list-item>
-                        </template>
-                      </v-autocomplete>
-                    </div>
-                    <div v-else-if="['purchase_date', 'expiration_date'].includes(message.fieldKey)">
+                    <div v-if="['date', 'end'].includes(message.fieldKey)">
                       <v-locale-provider>
                         <v-menu v-model="message.showDatePicker" :close-on-content-click="false"
                           transition="scale-transition" offset-y location="bottom"
                           @update:modelValue="handleMenuClose(message, index)">
                           <template #activator="{ props }">
-                            <v-text-field v-bind="props" :model-value="productParameters[message.fieldKey]"
+                            <v-text-field v-bind="props" :model-value="desireParameters[message.fieldKey]"
                               :label="message.fieldLabel" variant="outlined" density="comfortable"
                               style="width: auto; min-width: 10em" no-resize
                               @click:appendInner="message.showDatePicker = true" />
                           </template>
 
-                          <DatePicker :dateValue="productParameters[message.fieldKey]" :fieldType="message.fieldKey"
+                          <DatePicker :dateValue="desireParameters[message.fieldKey]" :fieldType="message.fieldKey"
                             @date-updated="
                         handleDateSelection(message.fieldKey, $event)
                       " />
@@ -154,7 +58,7 @@
                     </div>
                     <!-- Para campos de hora -->
 
-                    <v-textarea v-else-if="['title', 'additional_notes', 'purchase_place'].includes(message.fieldKey)"
+                    <v-textarea v-else-if="['name', 'description',].includes(message.fieldKey)"
                       v-model="message.editValue" :label="message.fieldLabel" variant="outlined" density="comfortable"
                       style="width: auto; min-width: 50em" :ref="(el) => setTextFieldRef(el, index)" autofocus auto-grow
                       rows="2" no-resize @keyup.enter="saveFieldEdit(index)"></v-textarea>
@@ -193,7 +97,8 @@
 
                   <!-- Componente dinámico -->
                   <component v-if="message.component && !message.isEditing" :is="message.component"
-                    v-bind="message.props" @date-updated="updateDate($event)" />
+                    v-bind="message.props" @date-updated="updateDate($event)" @priority-selected="handlePrioritySelection($event)" 
+                     @type-selected="handleTypeSelection($event)"/>
                 </div>
               </div>
             </div>
@@ -314,11 +219,11 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <v-dialog v-model="dialogChatDesire" fullscreen transition="dialog-bottom-transition">
+  <v-dialog v-model="dialogChatProduct" fullscreen transition="dialog-bottom-transition">
     <v-card>
       <v-card-text>
         <!-- Pasamos los parámetros al componente ChatTask -->
-        <ChatDesire :desireData="currentDesire" @close-dialog="closeDialgChat()"
+        <ChatProduct :productData="currentProduct" @close-dialog="closeDialgChat()"
           @close-all-dialogs="closeAllDialogs($event)" />
       </v-card-text>
       <v-divider></v-divider>
@@ -332,6 +237,8 @@
 
 <script>
 import DatePicker from "@/components/chatTask/DatePicker.vue";
+import PriorityOptions from "@/components/chatTask/PriorityOptions.vue";
+import TypePersonalOptions from "@/components/chatTask/TypePersonalOptions.vue";
 import LocalStorageService from "@/LocalStorageService";
 import { handleRequest } from "@/utils/api";
 import _ from "lodash";
@@ -344,19 +251,21 @@ export default {
       type: String,
       default: "",
     },
-    productData: {
+    desireData: {
       type: Object,
       default: null,
     },
   },
   components: {
     DatePicker,
+    PriorityOptions,
+    TypePersonalOptions,
     
     ChatBudget: defineAsyncComponent(() => import('./ChatBudget.vue')),
     ChatFinance: defineAsyncComponent(() => import('./ChatFinance.vue')),
     ChatWarehouse: defineAsyncComponent(() => import('./ChatWarehouse.vue')),
     ChatTask: defineAsyncComponent(() => import('./ChatTask.vue')),
-    ChatDesire: defineAsyncComponent(() => import('./ChatDesire.vue')),
+    ChatProduct: defineAsyncComponent(() => import('./ChatProduct.vue')),
   },
   data() {
     return {
@@ -364,75 +273,59 @@ export default {
        dialogChatFinance: false,
         dialogChatBudget: false,
         dialogChatWarehouse: false,
+        dialogChatProduct: false,
         dialogChatTask: false,
-      dialogChatDesire: false,
         editingFieldKey: null,
         editingFieldIndex: null,
       currentBudget: null,
       currentFinance: null,
       currentWarehouse: null,
+      curreentProduct: null,
       currentTask: null,
-      currentDesire: null,
       currentIntentFinance: null,
       isInitialCategorySelection: false,
       isInitialStatusSelection: false,
       isInitialWarehouseSelection: false,
       textoTemporal: "",
-      productDataCollectionMode: false,
-      currentProductIntent: null,
+      desireDataCollectionMode: false,
+      currentDesireIntent: null,
       editingField: null,
       escuchando: false,
       recognition: null,
       cargando: false,
       compatible: true,
       tools: [],
-      productParameters: {
-         name: null,
-        quantity: null,
-        unit_price: null,
-        total_price: null,
-        purchase_place: null,
-        purchase_date: null,
-        expiration_date: null,
-        additional_notes: null,
-        warehouse_id: null,
-        category_id: null,
-        status_id: null
+      desireParameters: {
+         name: "",
+      date: null,
+      end: null,
+      description: "",
+      type: "",
+      priority_id: "",
       },
       originalItem: {
-        name: null,
-        quantity: null,
-        unit_price: null,
-        total_price: null,
-        purchase_place: null,
-        purchase_date: null,
-        expiration_date: null,
-        additional_notes: null,
-        warehouse_id: null,
-        category_id: null,
-        status_id: null
+        name: "",
+      date: null,
+      end: null,
+      description: "",
+      type: "",
+      priority_id: "",
       },
       defaultItem: {
-        name: null,
-        quantity: null,
-        unit_price: null,
-        total_price: null,
-        purchase_place: null,
-        purchase_date: null,
-        expiration_date: null,
-        additional_notes: null,
-        warehouse_id: null,
-        category_id: null,
-        status_id: null
+        name: "",
+      date: null,
+      end: null,
+      description: "",
+      type: "",
+      priority_id: "",
       },
       textFieldRefs: [],
       currentParameterIndex: 0,
       waitingForConfirmation: false,
       collectingPeople: false,
       currentRoleSelection: null,
-      categories: [],
-      warehouses: [],
-      status: [],
+      priorities: [],
+      types: [],
       isTyping: false,
       imageUrl: "",
       data: {},
@@ -513,61 +406,61 @@ export default {
       this.escuchando = false;
       this.textoTemporal = "";
     };
-    let productData = this.productData;
+    let desireData = this.desireData;
   
   // Si es string, parsearlo
-  if (typeof productData === 'string') {
+  if (typeof desireData === 'string') {
     try {
-      productData = JSON.parse(productData);
+      desireData = JSON.parse(desireData);
     } catch (error) {
-      console.error("Error parsing productData:", error);
+      console.error("Error parsing desireData:", error);
       return;
     }
   }
   
-  console.log("Datos recibidos del componente padre (productData):", productData);
+  console.log("Datos recibidos del componente padre (desireData):", desireData);
     this.name = JSON.parse(LocalStorageService.getItem("name"));
     this.user = JSON.parse(LocalStorageService.getItem("user"));
     this.user_id = JSON.parse(LocalStorageService.getItem("user_id"));
     this.home_id = JSON.parse(LocalStorageService.getItem("home_id"));
     this.imageUrl = LocalStorageService.getItem("image").replace(/['"]+/g, "");
-    if (this.productData) {
+    if (this.desireData) {
       try {
         await this.loadRequiredData();
         // Copiar los datos de la tarea
-          this.productParameters = {
-                          ...this.productParameters,
-                          ...productData,
+          this.desireParameters = {
+                          ...this.desireParameters,
+                          ...desireData,
                         };
-          this.productDataCollectionMode = true;
-          this.currentProductIntent = "Producto";
-        if (isNaN(productData.quantity) || isNaN(productData.unit_price) || productData.quantity <= 0 || productData.unit_price <= 0) {
+          this.desireDataCollectionMode = true;
+          this.currentDesireIntent = "Deseo";
+        /*if (isNaN(desireData.quantity) || isNaN(desireData.unit_price) || desireData.quantity <= 0 || desireData.unit_price <= 0) {
                     this.chatMessages.push({
                       from: "ai",
                       text: "⚠️ Parece que aún no has especificado bien la **cantidad** o el **precio unitario** del producto. Ambos deben ser valores numéricos mayores a cero. ¿Podrías revisarlo y corregirlo, por favor?",
                       timestamp: new Date().toLocaleTimeString(),
                     });
                     return; // Detener el flujo hasta que se corrijan
-                  }
-                  else{
+                  }*/
+                  //else{
                     
         // Mostrar en el chat
         this.chatMessages.push({
           from: "ai",
-          text: `Datos del  ${this.currentProductIntent} recibidos. Puedes editarlos antes de confirmar.`,
+          text: `Datos del  ${this.currentDesireIntent} recibidos. Puedes editarlos antes de confirmar.`,
           timestamp: new Date().toLocaleTimeString(),
         });
 
         // Iniciar flujo de edición
         
   
-      await this.showInitialData(productData);
-                  }
+      await this.showInitialData(desireData);
+                  //}
       } catch (error) {
         this.showAlert("error", "Error al cargar datos: " + error.message);
       }
     } else if (this.initialMessage) {
-      // Si no hay productData, pero hay initialMessage, simular envío
+      // Si no hay desireData, pero hay initialMessage, simular envío
       this.newMessage = this.initialMessage;
       this.sendMessage();
     }
@@ -578,7 +471,7 @@ export default {
       this.dialogChatFinance = false;
       this.dialogChatBudget = false;
       this.dialogChatWarehouse = false;
-      this.dialogChatDesire = false;
+      this.dialogProduct = false;
 
       this.texto = "";
       this.textoTemporal = "";
@@ -586,125 +479,9 @@ export default {
       this.currentFinance = null;
       this.currentBudget = null;
       this.currentWarehouse = null;
-      this.currentDesire = null;
-      this.$emit("close-all-dialogs", "ChatProduct");
+      this.currenProduct = null;
+      this.$emit("close-all-dialogs", "ChatDesire");
       //this.initialize();
-    },
-    isImage(icon) {
-      // Validar si el valor es una URL válida (puedes personalizar esta lógica)
-      return (
-        typeof icon === "string" &&
-        (icon.startsWith("http") || /\.(png|jpe?g|gif|svg|webp)$/i.test(icon))
-      );
-    },
-    getIconName(icon) {
-      if (!icon) return "mdi-help-circle"; // Ícono por defecto si no hay valor
-      // Si el ícono tiene el prefijo "MdiIcons.", extraer solo el nombre
-      if (icon.startsWith("MdiIcons.")) {
-        return `mdi-${icon.split(".")[1].toLowerCase()}`;
-      }
-      // Si el ícono ya está en formato "mdi-*", devolverlo tal cual
-      if (icon.startsWith("mdi-")) {
-        return icon;
-      }
-      // En otros casos, devolver un ícono por defecto
-      return "mdi-help-circle";
-    },
-    onCategorySelected(index, selectedBudget) {
-      console.log("Categoría seleccionada:", selectedBudget);
-      this.chatMessages[index].editValue = selectedBudget;
-      
-      // Si es selección inicial, guardar inmediatamente
-      if (this.isInitialCategorySelection) {
-        this.saveFieldEdit(index);
-      }
-      // Si es edición, esperará a blur o acción explícita
-    },
-    onStatusSelected(index, selectedStatus) {
-      console.log("Estado seleccionada:", selectedStatus);
-      this.chatMessages[index].editValue = selectedStatus;
-      
-      // Si es selección inicial, guardar inmediatamente
-      if (this.isInitialStatusSelection) {
-        this.saveFieldEdit(index);
-      }
-      // Si es edición, esperará a blur o acción explícita
-    },
-    onWarehouseSelected(index, selectedWarehouse) {
-      console.log("Almacén seleccionado:", selectedWarehouse);
-      this.chatMessages[index].editValue = selectedWarehouse;
-      
-      // Si es selección inicial, guardar inmediatamente
-      if (this.isInitialWarehouseSelection) {
-        this.saveFieldEdit(index);
-      }
-      // Si es edición, esperará a blur o acción explícita
-    },
-    onCategoryBlur(index) {
-      setTimeout(() => {
-        const message = this.chatMessages[index];
-        if (message && message.isEditing) {
-          // Solo guardar si no es selección inicial (ya que esa se maneja en onCategorySelected)
-          if (!this.isInitialCategorySelection) {
-            this.saveFieldEdit(index);
-          }
-        }
-      }, 200);
-    },
-
-    onStatusBlur(index) {
-      setTimeout(() => {
-        const message = this.chatMessages[index];
-        if (message && message.isEditing) {
-          // Solo guardar si no es selección inicial (ya que esa se maneja en onCategorySelected)
-          if (!this.isInitialStatusSelection) {
-            this.saveFieldEdit(index);
-          }
-        }
-      }, 200);
-    },
-
-    onWarehouseBlur(index) {
-      setTimeout(() => {
-        const message = this.chatMessages[index];
-        if (message && message.isEditing) {
-          // Solo guardar si no es selección inicial (ya que esa se maneja en onCategorySelected)
-          if (!this.isInitialWarehouseSelection) {
-            this.saveFieldEdit(index);
-          }
-        }
-      }, 200);
-    },
-
-    onCategoryClear(index) {
-      console.log("Selección de la categoría limpiada");
-      const message = this.chatMessages[index];
-      // Establecer editValue a null
-      message.editValue = null;
-      // Guardar inmediatamente el valor null
-      if (!this.isInitialCategorySelection) {
-            this.saveFieldEdit(index);
-          }
-    },
-    onStatusClear(index) {
-      console.log("Selección del estado limpiada");
-      const message = this.chatMessages[index];
-      // Establecer editValue a null
-      message.editValue = null;
-      // Guardar inmediatamente el valor null
-     if (!this.isInitialStatusSelection) {
-            this.saveFieldEdit(index);
-          }
-    },
-    onWarehouseClear(index) {
-      console.log("Selección del almacen limpiada");
-      const message = this.chatMessages[index];
-      // Establecer editValue a null
-      message.editValue = null;
-      // Guardar inmediatamente el valor null
-     if (!this.isInitialWarehouseSelection) {
-            this.saveFieldEdit(index);
-          }
     },
      toggleDictado() {
       if (!this.recognition) return;
@@ -741,7 +518,7 @@ export default {
       message.isEditing = true;
       message.editValue = message.currentValue;
 
-      if (["purchase_date", "expiration_date"].includes(message.fieldKey)) {
+      if (["date", "end"].includes(message.fieldKey)) {
         this.$nextTick(() => {
           this.chatMessages[index].showDatePicker = true;
         });
@@ -754,7 +531,7 @@ export default {
         });
       }
     },
-   async saveFieldEdit(index) {
+   /*async saveFieldEdit(index) {
       console.log("saveFieldEdit", index);
       const message = this.chatMessages[index];
       console.log("Mensaje a guardar:", message);
@@ -781,7 +558,7 @@ export default {
         }
 
         const validatedValue = this.validateField(message.fieldKey, valueToValidate);
-        this.productParameters[message.fieldKey] = validatedValue;
+        this.desireParameters[message.fieldKey] = validatedValue;
 
         // 2. Actualizar la visualización del mensaje
         let displayValue = validatedValue;
@@ -801,11 +578,11 @@ export default {
 
         // 3. Recalcular total_price si se editó quantity o unit_price
         if (["quantity", "unit_price"].includes(message.fieldKey)) {
-          const quantity = parseFloat(this.productParameters.quantity) || 0;
-          const unitPrice = parseFloat(this.productParameters.unit_price) || 0;
+          const quantity = parseFloat(this.desireParameters.quantity) || 0;
+          const unitPrice = parseFloat(this.desireParameters.unit_price) || 0;
           const totalPrice = (quantity * unitPrice).toFixed(2);
 
-          this.productParameters.total_price = parseFloat(totalPrice);
+          this.desireParameters.total_price = parseFloat(totalPrice);
 
           // Actualizar el mensaje de total_price si existe
           const totalMessageIndex = this.chatMessages.findIndex(m => m.fieldKey === "total_price");
@@ -834,7 +611,7 @@ export default {
 
       await this.startAutomaticDataCollection();
     }
-    else if (this.productDataCollectionMode) {
+    else if (this.desireDataCollectionMode) {
       // Modo automático: seguir recolectando
       await this.startAutomaticDataCollection();
     }
@@ -859,26 +636,54 @@ export default {
         message.isEditing = false;
         this.editingFieldIndex = null;
       }
+    },*/
+    async saveFieldEdit(index) {
+      const message = this.chatMessages[index];
+      try {
+        const validatedValue = this.validateField(message.fieldKey, message.editValue);
+        this.desireParameters[message.fieldKey] = validatedValue;
+        message.currentValue = validatedValue;
+        message.text = `• ${message.fieldLabel}: ${validatedValue}`;
+        message.isEditing = false;
+         if (this.desireDataCollectionMode) {
+          // Modo automático: seguir recolectando
+          await this.startAutomaticDataCollection();
+        }
+        else {
+          // Modo edición (después de haber completado)
+          // Pero: ¿todavía faltan campos obligatorios?
+          if (this.isFormComplete()) {
+            this.updateSummaryMessage(); // Todo bien, actualiza resumen
+          } else {
+            // ❌ Aún faltan campos obligatorios: NO mostrar resumen
+            // Solo actualiza el mensaje editado, pero no avances
+            console.log("Aún faltan campos obligatorios. No se actualiza el resumen completo.");
+            // Opcional: puedes mostrar un mensaje al usuario
+            // this.showAlert("error", "Faltan campos obligatorios por completar", 2000);
+          }
+        }
+        this.scrollToBottom();
+        this.editingFieldIndex = null;
+        this.editingFieldKey = null;
+      } catch (error) {
+        this.showAlert("error", error.message, 2000);
+        message.editValue = message.currentValue;
+        message.isEditing = false;
+        this.editingFieldIndex = null;
+        this.editingFieldKey = null;
+      }
     },
     isFormComplete() {
       const requiredFields = [
         "name",
-        "quantity",
-        "unit_price",
-        "purchase_date",
-        "status_id",
-        "category_id"
+        "description",
+        "date",
+        "end",
+        "priority_id"
         // Añade más si "warehouse_id" es obligatorio cuando hay categoría
       ];
-
-      // Si hay categoría, warehouse_id también es obligatorio
-      const hasCategory = this.productParameters.category_id;
-      if (hasCategory) {
-        requiredFields.push("warehouse_id");
-      }
-
       return requiredFields.every(field => {
-        const value = this.productParameters[field];
+        const value = this.desireParameters[field];
         return value !== null && value !== undefined && value !== "";
       });
     },
@@ -924,7 +729,7 @@ export default {
                 lastAIMessage.fieldName,
                 tempMessage
               );
-              this.productParameters[lastAIMessage.fieldName] = validatedValue;
+              this.desireParameters[lastAIMessage.fieldName] = validatedValue;
              this.startAutomaticDataCollection();
               return;
             } catch (error) {
@@ -950,7 +755,7 @@ export default {
             return;
           }
 
-          if (!this.productDataCollectionMode) {
+          if (!this.desireDataCollectionMode) {
             const response = await handleRequest({
               endpoint: "ask-ai-task",
               method: "POST",
@@ -996,7 +801,7 @@ export default {
                     : finances;
 
               
-                if(Number(financeData.spent) <= 0)
+                if(Number(financeData).spent <= 0)
                 {
                 this.chatMessages.push({
                 from: "ai",
@@ -1020,7 +825,7 @@ export default {
                 const financeData =
                   typeof finances === "string"
                     ? JSON.parse(finances)
-                    : finances;
+                    : response.data.finances;
 
               
                 if(Number(financeData.income) <= 0)
@@ -1078,13 +883,34 @@ export default {
               });
               break;
 
-              case "Producto":
+              case "Deseo":
               this.$nextTick(async () => {
-                  this.productParameters = {
-                    ...this.productParameters,
-                    ...product,
+                  this.desireParameters = {
+                    ...this.desireParameters,
+                    ...desire,
                   };
-                if (isNaN(product.quantity) || isNaN(product.unitPrice) || product.quantity <= 0 || product.unitPrice <= 0) {
+                   this.currentIntent = intent;
+                   this.currentDesireIntent = "Deseo";
+                  this.desireDataCollectionMode = true;
+                  this.chatMessages.push({
+                    from: "ai",
+                    text: `Datos del  ${this.currentIntent} recibidos. Puedes editarlos antes de confirmar.`,
+                    timestamp: new Date().toLocaleTimeString(),
+                  });
+                  await this.loadRequiredData();
+                  await this.showInitialData(desire);
+                  this.scrollToBottom();
+                });
+              break;
+
+              case "Producto":
+              this.currentProduct = null;
+              this.$nextTick(() => {
+                const productData =
+                  typeof product === "string"
+                    ? JSON.parse(product)
+                    : product;
+                if (isNaN(productData.quantity) || isNaN(productData.unit_price) || productData.quantity <= 0 || productData.unit_price <= 0) {
                     this.chatMessages.push({
                       from: "ai",
                       text: "⚠️ Parece que aún no has especificado bien la **cantidad** o el **precio unitario** del producto. Ambos deben ser valores numéricos mayores a cero. ¿Podrías revisarlo y corregirlo, por favor?",
@@ -1092,31 +918,10 @@ export default {
                     });
                     return; // Detener el flujo hasta que se corrijan
                   }else{
-                  this.currentIntent = intent;
-                  this.productDataCollectionMode = true;
-                  this.chatMessages.push({
-                    from: "ai",
-                    text: `Datos del  ${this.currentIntent} recibidos. Puedes editarlos antes de confirmar.`,
-                    timestamp: new Date().toLocaleTimeString(),
-                  });
-                  await this.loadRequiredData();
-                  await this.showInitialData(product);
-                  this.scrollToBottom();
-                }
-                });
-              break;
-
-            case "Deseo":
-              this.currentDesire = null;
-              this.$nextTick(() => {
-                const desireData =
-                  typeof desire === "string"
-                    ? JSON.parse(desire)
-                    : desire;
-
-                this.currentDesire = _.cloneDeep(desireData);
-                this.dialogChatDesire = true;
+                this.currentProduct = _.cloneDeep(productData);
+                this.dialogChatProduct = true;
                 this.scrollToBottom();
+              }
               });
               break;
 
@@ -1143,14 +948,14 @@ export default {
               });
           }
               /*if (response.data.task) {
-                this.productParameters = {
-                  ...this.productParameters,
+                this.desireParameters = {
+                  ...this.desireParameters,
                   ...response.data.task,
                 };
               }
               await this.loadRequiredData();
-              this.currentProductIntent = response.data.intent;
-              this.productDataCollectionMode = true;
+              this.currentDesireIntent = response.data.intent;
+              this.desireDataCollectionMode = true;
               await this.showInitialData(response.data.task);*/
             } else {
               this.chatMessages.push({
@@ -1176,19 +981,17 @@ export default {
       this.data.home_id = this.home_id;
       try {
         const result = await handleRequest({
-          endpoint: "productcategory-productstatus-apk",
+          endpoint: "status-priority-type-apk",
           method: "POST",
           data: this.data
         });
 
         if (result.success) {
-          this.categories = result.data.productcategories || [];
-          this.status = result.data?.productstatus || [];
-          this.warehouses = result.data?.productwarehouses || [];
+          this.priorities = result.data?.wishpriorities || [];
+          this.types = result.data?.wishtype || [];
         } else {
-          this.categories = [];
-          this.status = [];
-          this.warehouses = [];
+          this.priorities = [];
+          this.types = [];
         }
       } catch (error) {
         this.showAlert(
@@ -1200,27 +1003,13 @@ export default {
         this.isLoading = false;
       }
     },
-    async showInitialData(productData) {
-      if (!productData) return;
-       this.isInitialCategorySelection = (
-        productData.category_id === null || 
-        productData.category_id === undefined
-      );
-      this.isInitialStatusSelection = (
-        productData.status_id === null || 
-        productData.status_id === undefined
-      );
-
-      this.isInitialWarehouseSelection = (
-        productData.warehouse_id === null || 
-        productData.warehouse_id === undefined
-      );
-      
-      this.isInitialDataCollection = !productData;
-          await this.showSummary(productData);
+    async showInitialData(desireData) {
+         
+      this.isInitialDataCollection = !desireData;
+          await this.showSummary(desireData);
           await this.startAutomaticDataCollection();
     },
-    /*async showSummary(productData) {
+    /*async showSummary(desireData) {
         const fieldsToShow = [
         { key: "name", label: "Nombre del producto" },
         { key: "quantity", label: "Cantidad" },
@@ -1238,7 +1027,7 @@ export default {
 
       // Mostrar campos normales como texto
       fieldsToShow.forEach((field) => {
-        const value = productData[field.key];
+        const value = desireData[field.key];
         if (value !== null && value !== undefined && value !== "") {
           let displayValue = value;
           let additionalData = {}; // Para pasar datos adicionales necesarios para la edición
@@ -1287,69 +1076,50 @@ export default {
         }
       });
     },*/
-   async showSummary(productData) {
+   async showSummary(desireData) {
   const fieldsToShow = [
-    { key: "name", label: "Nombre del producto" },
-    { key: "quantity", label: "Cantidad" },
-    { key: "unit_price", label: "Precio unitario" },
-    { key: "total_price", label: "Importe total", editable: false },
-    { key: "purchase_place", label: "Lugar de compra", optional: true },
-    { key: "purchase_date", label: "Fecha de compra" },
-    { key: "expiration_date", label: "Fecha de vencimiento", optional: true, dateField: true },
-    { key: "additional_notes", label: "Notas adicionales", optional: true },
-    { key: "status_id", label: "Estado del producto" },
-    { key: "category_id", label: "Categoría" },
-    { key: "warehouse_id", label: "Almacén asociado" }
+    { key: "name", label: "Nombre" },
+    { key: "description", label: "Descripción" },
+    { key: "type", label: "Tipo" },
+    { key: "date", label: "Fecha de inicio" },
+    { key: "end", label: "Fecha de realización", optional: true, dateField: true },
   ];
 
   for (const field of fieldsToShow) {
-    const value = productData[field.key];
+    const value = desireData[field.key];
 
-    // ✅ 1. Validar dependencias antes de mostrar
-    if (field.key === "warehouse_id" && !productData.category_id) {
-      // No mostrar almacén si no hay categoría seleccionada
-      continue;
-    }
-
-    // ✅ 2. No mostrar campos obligatorios vacíos que aún no pueden editarse
+   // ✅ 2. No mostrar campos obligatorios vacíos que aún no pueden editarse
     if (!field.optional && (value === null || value === undefined || value === "")) {
       // No lo mostramos en el chat todavía
       // Solo lo mostraremos cuando el flujo lo requiera
       continue;
     }
-
+    if (field.key === "type") {
+      this.chatMessages.push({
+        from: "ai",
+        text: "• Tipo:",
+        component: "TypePersonalOptions",
+        props: {
+          options: this.types,
+          selectedId: desireData.type,
+        },
+        timestamp: new Date().toLocaleTimeString(),
+        isEditable: false,
+        fieldKey: "type",
+        fieldLabel: "Tipo",
+        currentValue: desireData.type,
+        editValue: desireData.type,
+        isEditing: false
+      });
+      this.shownChatFields.add("type");
+      continue;
+    }
     // ✅ 3. Ahora procesamos el valor para mostrar
     let displayValue = value;
     let additionalData = {};
     let isEmpty = false;
 
-    if (field.key === "category_id") {
-      const categoryInfo = this.categories.find((b) => b.id === value);
-      displayValue = categoryInfo ? categoryInfo.nameCategory : "(Seleccionar categoría)";
-      additionalData.availableCategories = this.categories;
-      isEmpty = !value;
-    } 
-    else if (field.key === "warehouse_id") {
-      const warehouse = this.warehouses
-        .filter(w => w.category_id === productData.category_id) // ✅ Filtrar por categoría
-        .find(w => w.warehouse_id === value);
-
-      const warehouseOptions = this.warehouses.filter(w => w.category_id === productData.category_id);
-      additionalData.availableWarehouses = warehouseOptions;
-
-      displayValue = warehouse ? warehouse.title : "(Seleccionar almacén)";
-      isEmpty = !value;
-    }
-    else if (field.key === "status_id") {
-      const status = this.status.find((b) => b.id === value);
-      displayValue = status ? status.nameStatus : "(Seleccionar estado)";
-      additionalData.availableStatus = this.status;
-      isEmpty = !value;
-    }
-    else if (field.key === "total_price") {
-      displayValue = value ? `$${parseFloat(value).toFixed(2)}` : "$0.00";
-    }
-    else if (field.dateField) {
+    if (field.dateField) {
       displayValue = value || "(Seleccionar fecha)";
       additionalData.showDatePicker = !value;
       isEmpty = !value;
@@ -1374,24 +1144,32 @@ export default {
       isEmpty: isEmpty,
       ...additionalData
     });
-
     this.shownChatFields.add(field.key);
   }
+  if (desireData.priority_id) {
+        this.chatMessages.push({
+          from: "ai",
+          text: "Prioridad actual:",
+          component: "PriorityOptions",
+          props: {
+            options: this.priorities,
+            selectedId: desireData.priority_id,
+          },
+          timestamp: new Date().toLocaleTimeString(),
+        });
+         // Marcar este campo como ya mostrado en el chat
+        this.shownChatFields.add("priority_id");
+      }
 },
 
     async startAutomaticDataCollection() {
   const parametersOrder = [
     "name",
-    "quantity",
-    "unit_price",
-    "total_price",
-    "purchase_place",
-    "purchase_date",
-    "expiration_date",
-    "additional_notes",
-    "status_id",
-    "category_id",
-    "warehouse_id"
+    "description",
+    "type",
+    "date",
+    "end",
+    "priority_id"
   ];
 
   // ✅ Buscar el primer campo que:
@@ -1399,23 +1177,21 @@ export default {
   // - No ha sido mostrado
   // - Y sus dependencias están resueltas
   const nextField = parametersOrder.find(field => {
-    const value = this.productParameters[field];
+    const value = this.desireParameters[field];
     const hasValue = value !== null && value !== undefined && value !== "";
 
     if (hasValue || this.shownChatFields.has(field)) {
       return false;
     }
-
-    // ✅ Dependencia: warehouse_id requiere category_id
-    if (field === "warehouse_id" && !this.productParameters.category_id) {
-      return false;
-    }
-
     return true;
   });
 
   this.updateExistingSummary();
-
+   if (nextField === "type") {
+        await this.showTypeOptions();
+      } else if (nextField === "priority_id") {
+        await this.showPriorityOptions();
+      }
   if (!nextField) {
     if (this.isFormComplete()) {
     this.completeCreation();
@@ -1459,64 +1235,16 @@ export default {
     },
     async showFieldInput(field) {
       const fieldLabels = {
-         name: "Nombre del producto",
-                quantity: "Cantidad",
-                unit_price: "Precio unitario",
-                total_price: "Precio total",
-                purchase_place: "Lugar de compra",
-                purchase_date: "Fcha de compra (YYYY-MM-DD)",
-                expiration_date: "Fecha de vencimiento (YYYY-MM-DD)",
-                additional_notes: "Notas adicionales",
-                warehouse_id: "Almacén",
-                category_id: "Categoría del producto",
-                status_id: "Estado del producto"
+         name: "Nombre",
+                description: "Descripción",
+                type: "Typo",
+                date: "Fecha de inicio",
+                end: "Fcha de realización",
+                priority_id: "Prioridad"
       };
       let additionalData = {};
-      if (field === "category_id") {
-        this.isInitialCategorySelection = (
-          this.productParameters[field] === null || 
-          this.productParameters[field] === undefined
-        );
-        additionalData.availableCategories = this.categories; 
-        this.chatMessages.push({
-          from: "ai",
-          text: `Por favor, selecciona la ${fieldLabels[field] || field}:`,
-          timestamp: new Date().toLocaleTimeString(),
-          isEditable: true,
-          fieldKey: field,
-          fieldLabel: fieldLabels[field] || field,
-          currentValue: this.productParameters[field], // Puede ser null
-          editValue: this.productParameters[field],   // Puede ser null
-          isEditing: true, // Iniciar en modo edición directamente
-          showDatePicker: false,
-          ...additionalData, // Pasar las categorías para el autocomplete
-        });
-        return; // Salir para no ejecutar el código posterior
-      }
-
-      if (field === "status_id") {
-        // Verificar si es la primera vez (valor null/undefined)
-        this.isInitialStatusSelection = (
-          this.productParameters[field] === null || 
-          this.productParameters[field] === undefined
-        );
-          // Si es la primera vez, mostrar el mensaje de selección
-        this.chatMessages.push({
-          from: "ai",
-          text: `Por favor, selecciona el ${fieldLabels[field] || field}:`,
-          timestamp: new Date().toLocaleTimeString(),
-          isEditable: true,
-          fieldKey: field,
-          fieldLabel: fieldLabels[field] || field,
-          currentValue: this.productParameters[field], // Puede ser null
-          editValue: this.productParameters[field],   // Puede ser null
-          isEditing: true, // Iniciar en modo edición directamente
-          showDatePicker: false,
-          availableStatus: this.status, // Pasar las categorías para el autocomplete
-        });
-        return; // Salir para no ejecutar el código posterior
-      }
-      if (field === "purchase_date" || field === "expiration_date") {
+     
+      if (field === "date" || field === "end") {
         this.chatMessages.push({
           from: "ai",
           text: `Selecciona ${fieldLabels[field]}:`,
@@ -1524,12 +1252,17 @@ export default {
           isEditable: true,
           fieldKey: field,
           fieldLabel: fieldLabels[field],
-          currentValue: this.productParameters[field] || "",
-          editValue: this.productParameters[field] || "",
+          currentValue: this.desireParameters[field] || "",
+          editValue: this.desireParameters[field] || "",
           //isEditing: true, // Para activar el componente visual
           showDatePicker: true, // ← ¡Aquí activas el menú del datepicker!
         });
         return;
+      }
+      else if (field === "type") {
+        await this.showTypeOptions();
+      } else if (field === "priority_id") {
+        await this.showPriorityOptions();
       }
       else {
       // Para campos de texto normales
@@ -1540,17 +1273,17 @@ export default {
         isEditable: true,
         fieldKey: field,
         fieldLabel: fieldLabels[field] || field,
-        currentValue: this.productParameters[field] || "",
-        editValue: this.productParameters[field] || "",
+        currentValue: this.desireParameters[field] || "",
+        editValue: this.desireParameters[field] || "",
         //isEditing: true // Activar edición directamente
       });
     }
     },
-    validateField(field, value) {
-  console.log("Validando campo de producto:", field, "con valor:", value);
+   validateField(field, value) {
+  console.log("Validando campo de deseo:", field, "con valor:", value);
   
   // Definir campos opcionales
-  const optionalFields = ["purchase_place", "expiration_date", "additional_notes"];
+  const optionalFields = ["end", "description"];
   
   // Si es campo opcional y está vacío, retornar null
   if (optionalFields.includes(field) && (value === undefined || value === null || value === "")) {
@@ -1558,61 +1291,69 @@ export default {
   }
 
   const fieldLabels = {
-    name: "nombre del producto",
-    quantity: "cantidad",
-    unit_price: "precio unitario",
-    total_price: "precio total",
-    purchase_place: "lugar de compra",
-    purchase_date: "fecha de compra",
-    expiration_date: "fecha de vencimiento",
-    additional_notes: "notas adicionales",
-    warehouse_id: "almacén",
-    category_id: "categoría",
-    status_id: "estado"
+    name: "nombre del deseo",
+    date: "fecha de creación",
+    end: "fecha límite",
+    description: "descripción",
+    type: "tipo de deseo",
+    priority_id: "prioridad"
   };
 
   switch (field) {
     case "name":
-    case "purchase_place":
       if (!value || value.trim().length === 0) {
         throw new Error(`El ${fieldLabels[field]} es requerido`);
       }
+      if (value.trim().length > 100) {
+        throw new Error(`El ${fieldLabels[field]} no puede exceder los 100 caracteres`);
+      }
       return value.trim();
 
-    case "quantity":
-    case "unit_price":
-    case "total_price":
-      const num = parseFloat(value);
-      if (isNaN(num) || num < 0) {
-        throw new Error(`El ${fieldLabels[field]} debe ser un número positivo`);
+    case "description":
+      if (value && value.length > 500) {
+        throw new Error(`La ${fieldLabels[field]} no puede exceder los 500 caracteres`);
       }
-      return num;
+      return value ? value.trim() : null;
 
-    case "purchase_date":
-    case "expiration_date":
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    case "date":
+    case "end":
+      if (field === "date" && (!value || value === null)) {
+        throw new Error(`La ${fieldLabels[field]} es requerida`);
+      }
+      if (value && !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
         throw new Error(`Formato de ${fieldLabels[field]} inválido (YYYY-MM-DD)`);
       }
-      const dateObj = new Date(value);
-      if (isNaN(dateObj.getTime())) {
-        throw new Error(`Fecha inválida para ${fieldLabels[field]}`);
+      if (value) {
+        const dateObj = new Date(value);
+        if (isNaN(dateObj.getTime())) {
+          throw new Error(`Fecha inválida para ${fieldLabels[field]}`);
+        }
       }
       return value;
 
-    case "warehouse_id":
-    case "category_id":
-    case "status_id":
+    case "type":
+      if (!value || value.trim().length === 0) {
+        throw new Error(`El ${fieldLabels[field]} es requerido`);
+      }
+      const validTypes = ["Personal", "Profesional", "Hogar", "Otro"]; // Ajustar según necesidades
+      if (!validTypes.includes(value)) {
+        throw new Error(`Tipo de deseo inválido. Valores permitidos: ${validTypes.join(", ")}`);
+      }
+      return value;
+
+    case "priority_id":
       if (value === null || value === undefined || value === "") {
-        throw new Error(`Debes seleccionar un ${fieldLabels[field]}`);
+        throw new Error(`Debes seleccionar una ${fieldLabels[field]}`);
       }
       const id = parseInt(value, 10);
-      if (isNaN(id) || id <= 0) {
+      if (isNaN(id)) {
         throw new Error(`ID de ${fieldLabels[field]} inválido`);
       }
+      // Validar que el ID de prioridad esté en un rango esperado (ej. 1-5)
+      if (id < 1 || id > 5) {
+        throw new Error(`La ${fieldLabels[field]} debe estar entre 1 y 5`);
+      }
       return id;
-
-    case "additional_notes":
-      return value ? value.trim() : null;
 
     default:
       return value;
@@ -1643,8 +1384,8 @@ export default {
     },
     cancelSelection() {
       // Limpiar selección de personas
-      this.productParameters.people = [];
-      this.productParameters = Object.assign({}, this.defaultItem);
+      this.desireParameters.people = [];
+      this.desireParameters = Object.assign({}, this.defaultItem);
       this.originalItem = Object.assign({}, this.defaultItem);
       this.chatMessages.push({
         from: "ai",
@@ -1654,7 +1395,7 @@ export default {
     },
        completeCreation() {
       this.isTyping = true;
-      this.productDataCollectionMode = false;
+      this.desireDataCollectionMode = false;
 
       // ✅ Aquí sí: crear o actualizar el resumen
       this.updateOrCreateSummary();
@@ -1665,7 +1406,7 @@ export default {
       // ✅ Mostrar confirmación
       this.chatMessages.push({
         from: "ai",
-        text: `¿Deseas crear esta ${this.currentProductIntent.toLowerCase()} con los datos proporcionados?`,
+        text: `¿Deseas crear esta ${this.currentDesireIntent.toLowerCase()} con los datos proporcionados?`,
         timestamp: new Date().toLocaleTimeString(),
         isConfirmation: true,
         buttons: [
@@ -1693,46 +1434,34 @@ export default {
       this.scrollToBottom();
     },
    generateSummary() {
-      let summary = `Resumen del producto:\n\n`;
+      let summary = `Resumen del deseo:\n\n`;
 
       // Definir campos y sus labels (extraídos de showSummary)
       const parameterLabels = {
-        name: "Nombre del producto",
-        quantity: "Cantidad",
-        unit_price: "Precio unitario",
-        total_price: "Importe total",
-        purchase_place: "Lugar de compra",
-        purchase_date: "Fecha de compra",
-        expiration_date: "Fecha de vencimiento",
-        additional_notes: "Notas adicionales",
-        status_id: "Estado del producto",
-        category_id: "Categoría",
-        warehouse_id: "Almacén asociado"
+        name: "Nombre",
+        description: "Descripción",
+        date: "Fecha de inicio",
+        end: "Fecha de finalización",
+        type: "Tipo",
+        priority_id: "Priodidad"
       };
 
       // Recorrer todos los campos posibles del producto
       Object.keys(parameterLabels).forEach((key) => {
-        const value = this.productParameters[key];
+        const value = this.desireParameters[key];
         
         // Solo mostrar campos con valor
         if (value !== null && value !== undefined && value !== "") {
           let displayValue = value;
           
           // Manejar campos especiales (relaciones)
-          if (key === "category_id") {
-            const category = this.categories.find(c => c.id === value);
-            displayValue = category?.nameCategory || `ID: ${value}`;
+          if (key === "type") {
+            const type = this.types.find(c => c.id === value);
+            displayValue = type?.name || `ID: ${value}`;
           } 
-          else if (key === "status_id") {
-            const status = this.status.find(s => s.id === value);
-            displayValue = status?.nameStatus || `ID: ${value}`;
-          }
-          else if (key === "warehouse_id") {
-            const warehouse = this.warehouses.find(w => w.warehouse_id === value);
-            displayValue = warehouse?.title || `ID: ${value}`;
-          }
-          else if (["unit_price", "total_price"].includes(key)) {
-            displayValue = `$${parseFloat(value).toFixed(2)}`;
+          else if (key === "priority_id") {
+            const priority = this.priorities.find(s => s.id === value);
+            displayValue = priority?.namePriority || `ID: ${value}`;
           }
 
           summary += `• ${parameterLabels[key]}: ${displayValue}\n`;
@@ -1752,15 +1481,12 @@ export default {
         const fieldKey = this.chatMessages.find(m => m.isEditing)?.fieldKey;
         if (fieldKey) {
           const fieldLabel = {
-            type: "Tipo",
-            title: "Título",
+            name: "Nombre",
             description: "Descripción",
             priority_id: "Prioridad",
-            recurrence: "Recurrencia",
-            purchase_date: "Fecha inicio",
-            expiration_date: "Fecha fin",
-            estimated_time: "Duración estimada",
-            geo_location: "Ubicación",
+            type: "Tipo",
+            date: "Fecha inicio",
+            end: "Fecha finalización",
           }[fieldKey];
 
           if (fieldLabel) {
@@ -1770,25 +1496,22 @@ export default {
             if (fieldMessageIndex !== -1) {
               const displayValue = this.getDisplayValueForField(fieldKey);
               this.chatMessages[fieldMessageIndex].text = `• ${fieldLabel}: ${displayValue}`;
-              this.chatMessages[fieldMessageIndex].currentValue = this.productParameters[fieldKey];
+              this.chatMessages[fieldMessageIndex].currentValue = this.desireParameters[fieldKey];
             }
           }
         }
       }
     },
     getDisplayValueForField(fieldKey) {
-      const value = this.productParameters[fieldKey];
+      const value = this.desireParameters[fieldKey];
       if (!value) return value;
 
-      if (fieldKey === "category_id") {
-        const category = this.categories.find(b => b.id === value);
-        return category?.nameCategory || `ID: ${value}`;
-      } else if (fieldKey === "status_id") {
-        const type = this.status.find(t => t.id === value);
-        return type?.nameStatus || `ID: ${value}`;
-      }else if (fieldKey === "warehouse_id") {
-        const type = this.warehouses.find(t => t.id === value);
-        return type?.title || `ID: ${value}`;
+      if (fieldKey === "prioriry_id") {
+        const priority = this.priorities.find(b => b.id === value);
+        return priority?.namePriority || `ID: ${value}`;
+      } else if (fieldKey === "type") {
+        const type = this.types.find(t => t.id === value);
+        return type?.name || `ID: ${value}`;
       }
       return value;
     },
@@ -1807,56 +1530,42 @@ export default {
           }
         }
         const fieldsToUpdate = [
-          "id",
           "home_id",
-          "warehouse_id",
-          "product_id",
-          "status_id",
-          "category_id",
           "name",
-          "unit_price",
-          "quantity",
-          "total_price",
-          "purchase_date",
-          "purchase_place",
-          "expiration_date",
-          "brand",
-          "additional_notes",
-          "maintenance_date",
-          "due_date",
-          "frequency",
+          "location",
+          "end",
+          "date",
+          "description",
+          "status_id",
+          "priority_id",
+          "parent_id",
           "type",
         ];
 
-        let updatedFields = Object.keys(this.productParameters)
+        let updatedFields = Object.keys(this.desireParameters)
           .filter(
             (key) =>
               fieldsToUpdate.includes(key) &&
-              this.productParameters[key] !== this.originalItem[key]
+              this.desireParameters[key] !== this.originalItem[key]
           )
           .reduce((obj, key) => {
-            obj[key] = this.productParameters[key];
+            obj[key] = this.desireParameters[key];
             return obj;
           }, {});
         if (Object.keys(updatedFields).length > 0) {
           updatedFields.home_id = this.home_id;
-          const formData = new FormData();
-          for (let key in updatedFields) {
-            formData.append(key, updatedFields[key]);
-          }
-
           try {
             const result = await handleRequest({
-              endpoint: "person-home-warehouse-product",
+              endpoint: "wish",
               method: "POST",
-              data: formData,
+              data: updatedFields,
             });
 
             // Manejo de la respuesta según el resultado
             if (result.success) {
               this.chatMessages.push({
                 from: "ai",
-                text: `✅ ${this.currentProductIntent} creado exitosamente!`,
+                text: `✅ ${this.currentDesireIntent} creado exitosamente!`,
                 timestamp: new Date().toLocaleTimeString(),
               });
               
@@ -1865,7 +1574,7 @@ export default {
           } catch (error) {
             this.chatMessages.push({
               from: "ai",
-              text: `❌ Error al crear la ${this.currentProductIntent}: ${error.message}`,
+              text: `❌ Error al crear la ${this.currentDesireIntent}: ${error.message}`,
               timestamp: new Date().toLocaleTimeString(),
             });
           } finally {
@@ -1883,9 +1592,9 @@ export default {
       }
 
       // Resetear
-      this.productDataCollectionMode = false;
-      this.currentProductIntent = null;
-      this.productParameters = {};
+      this.desireDataCollectionMode = false;
+      this.currentDesireIntent = null;
+      this.desireParameters = {};
       this.scrollToBottom();
     },
     handleCancellation() {
@@ -1897,7 +1606,7 @@ export default {
           }
         }
       this.waitingForConfirmation = false;
-          this.productParameters = Object.assign({}, this.defaultItem);
+          this.desireParameters = Object.assign({}, this.defaultItem);
           this.originalItem = Object.assign({}, this.defaultItem);
 
           const existingOptionMessage = this.chatMessages.find(
@@ -1946,9 +1655,9 @@ export default {
       this.chatMessages = [];
       
       // Reiniciar todas las variables de estado relacionadas con tareas
-      this.productDataCollectionMode = false;
-      this.currentProductIntent = null;
-      this.productParameters = {
+      this.desireDataCollectionMode = false;
+      this.currentDesireIntent = null;
+      this.desireParameters = {
          name: null,
         quantity: null,
         unit_price: null,
@@ -1983,14 +1692,14 @@ export default {
       this.chatMessages = [];
       // Emitir evento para cerrar el diálogo (ajusta según tu implementación)
       this.$emit('close-dialog');
-      this.$emit("close-all-dialogs", "ChatProduct");
+      this.$emit("close-all-dialogs", "ChatDesire");
 
     },
     async handleDateSelection(field, dateEvent) {
       const { value } = dateEvent;
 
-      // Actualizar el valor en productParameters
-      this.productParameters[field] = value;
+      // Actualizar el valor en desireParameters
+      this.desireParameters[field] = value;
 
       // Encontrar el mensaje correspondiente
       const message = this.chatMessages.find((m) => m.fieldKey === field);
@@ -2004,6 +1713,65 @@ export default {
 
       // Continuar con el flujo automático
       await this.startAutomaticDataCollection();
+    },
+    async showPriorityOptions() {
+      this.isTyping = true;
+      setTimeout(() => {
+        this.chatMessages.push({
+          from: "ai",
+          text: "Selecciona la prioridad:",
+          component: "PriorityOptions",
+          props: {
+            options: this.priorities,
+            selectedId: this.desireParameters.priority_id,
+          },
+          timestamp: new Date().toLocaleTimeString(),
+        });
+        this.isTyping = false;
+        this.scrollToBottom();
+      }, 100);
+    },
+    handlePrioritySelection(priority) {
+      this.desireParameters.priority_id = priority.id;
+
+      // Actualizar el mensaje de prioridad existente o crear uno nuevo
+      const priorityMessageIndex = this.chatMessages.findIndex(
+        (m) => m.from === "ai" && m.component === "PriorityOptions"
+      );
+
+      if (priorityMessageIndex !== -1) {
+        this.chatMessages[priorityMessageIndex].props.selectedId = priority.id;
+      }
+
+      this.startAutomaticDataCollection();
+    },
+    async showTypeOptions() {
+      this.chatMessages.push({
+        from: "ai",
+        text: "Selecciona el tipo:",
+        component: "TypePersonalOptions",
+        props: {
+          options: this.types,
+          selectedId: this.desireParameters.type,
+        },
+        timestamp: new Date().toLocaleTimeString(),
+      });
+    },
+     handleTypeSelection(type) {
+      this.desireParameters.type = type.id;
+
+      // Actualizar el mensaje de prioridad existente o crear uno nuevo
+      const priorityMessageIndex = this.chatMessages.findIndex(
+        (m) => m.from === "ai" && m.component === "TypePersonalOptions"
+      );
+
+      if (priorityMessageIndex !== -1) {
+        this.chatMessages[priorityMessageIndex].props.selectedId = type.id;
+      }
+
+      //if (this.isInitialBudgetSelection) {
+        this.startAutomaticDataCollection();
+      //}
     },
   },
 };

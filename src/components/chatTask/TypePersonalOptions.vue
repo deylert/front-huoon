@@ -1,7 +1,7 @@
 <template>
   <div class="type-options-container">
     <v-slide-group show-arrows class="pa-2">
-      <v-slide-group-item v-for="option in options" :key="option.id">
+      <v-slide-group-item v-for="option in filteredOptions" :key="option.id">
         <div class="me-3">
           <v-card
             class="pa-3 d-flex align-center"
@@ -17,11 +17,11 @@
             <v-avatar
               size="40"
               class="me-3"
-              :color="option.id === 'Personal' ? 'deep-purple-lighten-1' : 'teal-lighten-1'"
+              :color="avatarColor(option)"
               variant="tonal"
             >
-              <v-icon :color="option.id === 'Personal' ? 'deep-purple-darken-2' : 'teal-darken-2'">
-                {{ option.id === 'Personal' ? 'mdi-account' : 'mdi-home' }}
+              <v-icon :color="iconColor(option)">
+                {{ option.icon || defaultIcon(option) }}
               </v-icon>
             </v-avatar>
             <div>
@@ -45,18 +45,64 @@ export default {
     options: {
       type: Array,
       required: true,
+      validator: (value) => {
+        return value.every(option => 
+          option.id && option.name && option.description
+        )
+      }
     },
     selectedId: {
-      type: [String],
-      default: null,
+      type: [String, Number],
+      default: null
     },
+    excludeTypes: {
+      type: Array,
+      default: () => []
+    }
+  },
+  computed: {
+    filteredOptions() {
+      return this.options.filter(option => 
+        !this.excludeTypes.includes(option.id)
+      )
+    }
   },
   methods: {
     selectType(option) {
       this.$emit('type-selected', option);
     },
-  },
-};
+    defaultIcon(option) {
+      // Iconos por defecto basados en el tipo de opción
+      const iconMap = {
+        'Personal': 'mdi-account',
+        'Profesional': 'mdi-briefcase',
+        'Home': 'mdi-home',
+        'Business': 'mdi-office-building'
+      }
+      return iconMap[option.id] || 'mdi-checkbox-marked-circle-outline'
+    },
+    avatarColor(option) {
+      // Colores de avatar por defecto
+      const colorMap = {
+        'Personal': 'deep-purple-lighten-1',
+        'Profesional': 'blue-lighten-1',
+        'Home': 'teal-lighten-1',
+        'Business': 'indigo-lighten-1'
+      }
+      return option.avatarColor || colorMap[option.id] || 'primary-lighten-1'
+    },
+    iconColor(option) {
+      // Colores de icono por defecto
+      const colorMap = {
+        'Personal': 'deep-purple-darken-2',
+        'Profesional': 'blue-darken-2',
+        'Home': 'teal-darken-2',
+        'Business': 'indigo-darken-2'
+      }
+      return option.iconColor || colorMap[option.id] || 'primary-darken-2'
+    }
+  }
+}
 </script>
 
 <style scoped>

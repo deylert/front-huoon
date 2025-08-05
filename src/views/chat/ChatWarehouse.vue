@@ -31,7 +31,9 @@
                 <v-avatar v-if="message.from === 'ai'" size="28" class="mb-2 mr-3">
                   <v-img src="@/assets/logo-verde.png" alt="Imagen de perfil" />
                 </v-avatar>
-
+                <v-avatar v-else size="28" class="mb-2 ml-3">
+                  <v-img :src="`${this.$axios.defaults.baseURL}images/${imageUrl}`" alt="Imagen de usuario"></v-img>
+                </v-avatar>
                 <div :class="[
             'rounded-xl',
             message.from === 'user' 
@@ -335,6 +337,20 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+  <v-dialog v-model="dialogChatDesire" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-text>
+        <!-- Pasamos los parámetros al componente ChatTask -->
+        <ChatDesire :desireData="currentDesire" @close-dialog="closeDialgChat()"
+          @close-all-dialogs="closeAllDialogs($event)" />
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn text @click="closeDialgChat()">Cerrar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
@@ -362,6 +378,7 @@ export default {
     ChatTask: defineAsyncComponent(() => import("./ChatTask.vue")),
     ChatFinance: defineAsyncComponent(() => import("./ChatFinance.vue")),
      ChatProduct: defineAsyncComponent(() => import("./ChatProduct.vue")), 
+    ChatDesire: defineAsyncComponent(() => import("./ChatDesire.vue")),
   },
   data() {
     return {
@@ -551,12 +568,14 @@ export default {
       this.dialogChatFinance = false;
       this.dialogChatBudget = false;
       this.dialogChatProduct = false;
+      this.dialogChatDesire = false;
       this.texto = "";
       this.textoTemporal = "";
       this.currentTask = null;
       this.currentFinance = null;
       this.currentBudget = null;
       this.currentProduct = null;
+      this.currentDesire = null;
       this.$emit("close-all-dialogs", "ChatWarehouse");
       //this.initialize();
     },
@@ -732,7 +751,8 @@ export default {
               answer,
               finances,
               budget,
-              product
+              product,
+              desire
             } = response.data;
 
             if (intentDetected && intent) {
@@ -786,12 +806,12 @@ export default {
               this.currentFinance = null;
               this.$nextTick(() => {
                 const financeData =
-                  typeof response.data.finances === "string"
-                    ? JSON.parse(response.data.finances)
-                    : response.data.finances;
+                  typeof finances === "string"
+                    ? JSON.parse(finances)
+                    : finances;
 
               
-                if(financeData.spent <= 0)
+                if(Number(financeData.spent) <= 0)
                 {
                 this.chatMessages.push({
                 from: "ai",
@@ -802,7 +822,7 @@ export default {
               });
             }else{
                 this.currentFinance = _.cloneDeep(financeData);
-                this.currentIntentFinance = response.data.intent;
+                this.currentIntentFinance = "Gasto";
                 this.dialogChatFinance = true;
                 this.scrollToBottom();
             }
@@ -813,12 +833,12 @@ export default {
               this.currentFinance = null;
               this.$nextTick(() => {
                 const financeData =
-                  typeof response.data.finances === "string"
-                    ? JSON.parse(response.data.finances)
-                    : response.data.finances;
+                  typeof finances === "string"
+                    ? JSON.parse(finances)
+                    : finances;
 
               
-                if(financeData.income <= 0)
+                if(Number(financeData.income) <= 0)
                 {
                 this.chatMessages.push({
                 from: "ai",
@@ -829,7 +849,7 @@ export default {
               });
             }else{
                 this.currentFinance = _.cloneDeep(financeData);
-                this.currentIntentFinance = response.data.intent;
+                this.currentIntentFinance = "Ingreso";
                 this.dialogChatFinance = true;
                 this.scrollToBottom();
             }
@@ -843,7 +863,7 @@ export default {
                   typeof budget === "string"
                     ? JSON.parse(budget)
                     : budget;
-                if(budgetData.amount <= 0)
+                if(Number(budgetData.amount) <= 0)
                 {
                 this.chatMessages.push({
                 from: "ai",
@@ -880,6 +900,21 @@ export default {
               }
               });
                   break;
+
+                case "Deseo":
+              this.currentDesire = null;
+              this.$nextTick(() => {
+                const desireData =
+                  typeof desire === "string"
+                    ? JSON.parse(desire)
+                    : desire;
+
+                this.currentDesire = _.cloneDeep(desireData);
+                this.dialogChatDesire = true;
+                this.scrollToBottom();
+              });
+              break;
+
                 case "salud":
                   this.currentHealthData = _.cloneDeep(task || {});
                   this.dialogChatHealth = true;

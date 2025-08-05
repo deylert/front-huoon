@@ -19,32 +19,145 @@
       </v-col>
     </v-row>
   </v-snackbar>
-  <v-container class="pa-4">
-    <v-card elevation="6" class="mx-2">
-      <v-toolbar color="#03626C">
-        <v-row align="center">
-          <v-col cols="12" md="8" class="grow ml-4">
-            <span class="text-subtitle-1"
-              ><strong>{{ $t("wishes.listing.title") }}</strong></span
-            >
-          </v-col>
-          <v-col cols="12" md="3" class="text-right">
-            <v-btn
-              class="text-subtitle-1 ml-12"
-              color="white"
-              variant="tonal"
-              elevation="2"
-              prepend-icon="mdi-plus-circle"
-              @click="showAdd"
-            >
-              {{ $t("wishes.listing.addButton") }}
-            </v-btn>
-          </v-col>
+  <v-container>
+    <v-card class="pa-4" elevation="4" rounded="lg">
+        <v-card-text>
+        <v-row justify="space-between" align="center" class="mb-6">
+           <h2 class="text-body-2 font-weight-bold">{{ $t("wishes.listing.title") }}</h2>
+          <v-btn icon color="deep-purple-accent-4" variant="flat" class="elevation-3" @click="showAdd" :title=" this.$t('wishes.listing.addButton')">
+            <v-icon>mdi-plus</v-icon>
+          </v-btn>
         </v-row>
-      </v-toolbar>
+      <v-row justify="space-between" align="center" class="mb-6">
+      <v-col cols="12" class="ma-0 pt-6" style="max-height: 60vh; min-height: 40vh; overflow-y: auto">
+      <template v-if="wishes.length > 0">
+              <v-card v-for="(wish, index) in wishes" :key="index" class="mb-4 rounded-lg pa-2"
+                density="comfortable" elevation="2">
+                <v-row>
+                  <!-- Barra lateral de color e info -->
+                  <v-col cols="1" class="d-flex justify-start">
+                    <div class="icono-concavo d-flex flex-column justify-center justify-start"
+                      :class="`bg-${getTypeColor(wish.type)}`">
+                      <div class="date-display">
+                        {{ formatIntuitiveDate(wish.date) }}
+                      </div>
+                    </div>
+                  </v-col>
+                  <v-col cols="5" class="d-flex align-center justify-start">
+                    <v-row align="center" class="gap-3">
+                      <div>
+                        <div class="font-weight-bold text-body-2">
+                          {{ wish.name }}
+                        </div>
+                        <div class="text-body-2 d-flex align-center text-grey-darken-1">
+                          {{ wish.description }}
+                          <v-tooltip activator="parent" location="bottom" max-width="350px">
+                            <span style="white-space: normal; word-break: break-word">
+                              {{ $t("wishes.fields.description") }}: {{ wish.description }}
+                            </span>
+                          </v-tooltip>
+                        </div>
+                        <div class="text-body-2 d-flex align-center text-grey-darken-1">
+                          {{ wish.location }}
+                          <v-tooltip activator="parent" location="bottom" max-width="350px">
+                            <span style="white-space: normal; word-break: break-word">
+                              {{ $t("wishes.fields.location") }}: {{ wish.location }}
+                            </span>
+                          </v-tooltip>
+                        </div>
+                      </div>
+                    </v-row>
+                  </v-col>
+                  <v-col cols="1" class="d-flex align-center justify-start text-truncate">
+                    <div>
+                      <span class="text-body-2">
+                        {{ wish.type }}</span>
+                      <v-tooltip activator="parent" location="bottom" max-width="350px">
+                        <span style="white-space: normal; word-break: break-word">
+                          {{ $t("wishes.fields.type") }}: {{ wish.type }}
+                        </span>
+                      </v-tooltip>
+                    </div>
+                  </v-col>
+                  <v-col cols="1" class="d-flex align-center justify-start text-truncate">
+                    <div>
+                      <span class="text-body-2">
+                        {{ wish.namePriority }}</span>
+                      <v-tooltip activator="parent" location="bottom" max-width="350px">
+                        <span style="white-space: normal; word-break: break-word">
+                          {{ $t("wishes.fields.priority") }}: {{ wish.namePriority }}
+                        </span>
+                      </v-tooltip>
+                    </div>
+                  </v-col>
+                  <v-col cols="1" class="d-flex align-center justify-start text-truncate">
+                    <div>
+                      <span class="text-body-2">
+                        {{ wish.nameStatus }}</span>
+                      <v-tooltip activator="parent" location="bottom" max-width="350px">
+                        <span style="white-space: normal; word-break: break-word">
+                          {{ $t("wishes.fields.status") }}: {{ wish.nameStatus }}
+                        </span>
+                      </v-tooltip>
+                    </div>
+                  </v-col>
+                  <v-col cols="1" class="d-flex align-center ml-auto pe-4" style="margin-left: auto !important">
+                    <v-btn icon variant="text" color="green-darken-2" size="small" @click="editItem(wish)">
+                      <v-icon>mdi-pencil</v-icon>
+                    </v-btn>
+                    <v-btn icon variant="text" color="red-darken-2" size="small" @click="deleteItem(wish)">
+                      <v-icon>mdi-delete</v-icon>
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-card>
+              <!--<v-col v-for="product in paginatedProducts" :key="product.id" cols="3" class="ml-2">
+                  <v-card class="rounded-lg" max-width="35vh">
+                    <v-img height="25vh" :src="`${$axios.defaults.baseURL}images/${product.image}`" cover></v-img>
 
-      <v-card-text>
-        <v-tabs v-model="tab" vertical>
+                    <v-card-title>
+                      <v-tooltip bottom location="top" class="custom-tooltip">
+                        <template v-slot:activator="{ props }">
+                          <span v-bind="props">{{ product.productName }}</span>
+                        </template>
+                        {{ product.productName }}
+                      </v-tooltip>
+                    </v-card-title>
+
+                    <v-card-subtitle>
+                      <v-tooltip bottom location="top">
+                        <template v-slot:activator="{ props }">
+                          <span v-bind="props">
+                            {{ $t("product.listing.description") }}: {{ product.additionalNotes }}
+                          </span>
+                        </template>
+                        {{ product.additionalNotes }}
+                      </v-tooltip>
+                    </v-card-subtitle>
+
+                    <v-card-text>
+                      {{ $t("product.listing.quantity") }}: {{ product.quantity }}
+                    </v-card-text>
+
+                    <v-card-actions justify="end" class="w-100">
+                      <v-btn color="#DA7171" @click="deleteItem(product)">
+                        {{ $t("product.listing.delete") }}
+                      </v-btn>
+                      <v-btn color="#03626C" @click="editItem(product)" :loading="loadingProductEdit">
+                        {{ $t("product.listing.edit") }}
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-col>-->
+            </template>
+            <template v-else>
+              <v-col cols="12" class="text-center py-8">
+                {{ $t("wishes.listing.noData") }}
+              </v-col>
+            </template>
+      </v-col>      
+      </v-row>
+        <!--<v-tabs v-model="tab" vertical>
           <v-tab value="personal" :class="tab === 'personal' ? 'selected-tab' : ''">{{
             $t("wishes.listing.types.personal")
           }}</v-tab>
@@ -222,7 +335,7 @@
               </template>
             </v-data-table>
           </v-window-item>
-        </v-window>
+        </v-window>-->
       </v-card-text>
     </v-card>
   </v-container>
@@ -744,6 +857,59 @@ export default {
     this.initialize();
   },
   methods: {
+    getTypeColor(type) {
+      const colorMap = {
+        Personal: "deep-purple",      // Color morado para asuntos personales
+        Profesional: "indigo",       // Color índigo para temas profesionales
+        Hogar: "teal",               // Color verde azulado para el hogar
+        // Puedes agregar más tipos si es necesario
+        Regalo: "pink",              // Ejemplo adicional
+        Otro: "blue-grey"            // Color neutral para otros tipos
+      };
+      
+      // Retorna el color correspondiente o un color por defecto (primary)
+      return colorMap[type] || "secondary";
+    },
+    formatIntuitiveDate(dateString) {
+      if (!dateString) return "Sin fecha";
+
+      // 1. Parsear la fecha de entrada (formato YYYY-MM-DD)
+      const [year, month, day] = dateString.split("-");
+      const inputDate = new Date(year, month - 1, day); // Mes es 0-based
+
+      // 2. Obtener fecha actual (sin horas/minutos/segundos)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // 3. Normalizar ambas fechas a UTC para evitar problemas de zona horaria
+      const inputUTC = Date.UTC(
+        inputDate.getFullYear(),
+        inputDate.getMonth(),
+        inputDate.getDate()
+      );
+      const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+
+      // 4. Calcular diferencia en días
+      const diffDays = Math.floor((inputUTC - todayUTC) / (1000 * 60 * 60 * 24));
+
+      // 5. Determinar el texto a mostrar
+      switch (diffDays) {
+        case 0:
+          return "Hoy";
+        case 1:
+          return "Mañana";
+        case -1:
+          return "Ayer";
+        default:
+          return inputDate
+            .toLocaleDateString("es-ES", {
+              weekday: "short",
+              day: "numeric",
+              month: "short",
+            })
+            .replace(/\./g, "");
+      }
+    },
     nextStep() {
       if (this.step < this.steps.length - 1) {
         this.step++;
@@ -1172,5 +1338,41 @@ export default {
   /* Texto blanco */
   border-radius: 4px;
   /* Esquinas redondeadas, opcional */
+}
+.icono-concavo {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  margin-right: 2px;
+  color: white;
+  /* Mantenemos solo el efecto cóncavo en el ícono 
+  box-shadow: inset;*/
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+   z-index: 1;
+}
+
+.icono-concavo::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  border-radius: 8px;
+  background: transparent;
+}
+.icono-concavo:hover .img-concava {
+  filter: brightness(1.1);
+}
+
+.modal-imagen {
+  background: transparent !important;
+  box-shadow: none !important;
 }
 </style>

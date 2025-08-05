@@ -401,6 +401,20 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+  <v-dialog v-model="dialogChatDesire" fullscreen transition="dialog-bottom-transition">
+    <v-card>
+      <v-card-text>
+        <!-- Pasamos los parámetros al componente ChatTask -->
+        <ChatDesire :desireData="currentDesire" @close-dialog="closeDialgChat()"
+          @close-all-dialogs="closeAllDialogs($event)" />
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn text @click="closeDialgChat()">Cerrar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
@@ -414,6 +428,7 @@ import ChatFinance from "./chat/ChatFinance.vue";
 import ChatBudget from "./chat/ChatBudget.vue";
 import ChatWarehouse from "./chat/ChatWarehouse.vue";
 import ChatProduct from "./chat/ChatProduct.vue";
+import ChatDesire from "./chat/ChatDesire.vue";
 
 /*import { Line as LineChart } from 'vue-chartjs'
 
@@ -426,7 +441,8 @@ export default {
     ChatTask,
     ChatBudget,
     ChatWarehouse,
-    ChatProduct
+    ChatProduct,
+    ChatDesire
   },
   //components: { LineChart },
   data() {
@@ -437,12 +453,14 @@ export default {
       dialogChatBudget: false,
       dialogChatWarehouse: false,
       dialogChatProduct: false,
+      dialogChatDesire: false,
       currentTask: null,
       currentFinance: null,
       currentBudget: null,
       currentWarehouse: null,
       currentIntentFinance: null,
       currentProduct: null,
+      currentDesire: null,
       selected2: null,
       texto: "", // texto confirmado y editable
       textoTemporal: "", // texto dictado en vivo (solo para mostrar)
@@ -867,19 +885,8 @@ export default {
       this.dialogChatFinance = false;
       this.dialogChatBudget = false;
       this.dialogChatWarehouse = false;
-      this.texto = "";
-      this.textoTemporal = "";
-      this.currentTask = null;
-      this.currentFinance = null;
-      this.currentBudget = null;
-      this.currentWarehouse = null;
-    },
-    closeDialgChat() {
-      this.dialogChatTask = false;
-      this.dialogChatFinance = false;
-      this.dialogChatBudget = false;
-      this.dialogChatWarehouse = false;
       this.dialogChatProduct = false;
+      this.dialogChatDesire = false;
       this.texto = "";
       this.textoTemporal = "";
       this.currentTask = null;
@@ -887,6 +894,23 @@ export default {
       this.currentBudget = null;
       this.currentWarehouse = null;
       this.currentProduct = null;
+      this.currentDesire = null;
+    },
+    closeDialgChat() {
+      this.dialogChatTask = false;
+      this.dialogChatFinance = false;
+      this.dialogChatBudget = false;
+      this.dialogChatWarehouse = false;
+      this.dialogChatProduct = false;
+      this.dialogChatDesire = false;
+      this.texto = "";
+      this.textoTemporal = "";
+      this.currentTask = null;
+      this.currentFinance = null;
+      this.currentBudget = null;
+      this.currentWarehouse = null;
+      this.currentProduct = null;
+      this.currentDesire = null;
       this.initialize();
     },
     formatIntuitiveDate(dateString) {
@@ -977,7 +1001,7 @@ export default {
           },
         });
         this.isTyping = false;
-        const { intentDetected, intent, task, answer, finances, budget, warehouse, product } = response.data;
+        const { intentDetected, intent, task, answer, finances, budget, warehouse, product, desire } = response.data;
 
         if (intentDetected && intent) {
           // Preparar datos comunes
@@ -1135,6 +1159,20 @@ export default {
                 this.dialogChatProduct = true;
                 this.scrollToBottom();
               }
+              });
+              break;
+
+              case "Deseo":
+              this.currentDesire = null;
+              this.$nextTick(() => {
+                const desireData =
+                  typeof desire === "string"
+                    ? JSON.parse(desire)
+                    : desire;
+
+                this.currentDesire = _.cloneDeep(desireData);
+                this.dialogChatDesire = true;
+                this.scrollToBottom();
               });
               break;
 

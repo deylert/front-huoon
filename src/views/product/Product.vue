@@ -65,9 +65,8 @@
             </h2>
           </v-col>
           <!-- Productos del almacén seleccionado -->
-          <v-col cols="12" class="pa-0 pt-4">
-            <v-row>
-              <template v-if="paginatedProducts.length > 0">
+          <v-col cols="12" class="ma-0 pt-6" style="max-height: 60vh; min-height: 40vh; overflow-y: auto">
+            <!--<template v-if="paginatedProducts.length > 0">
                 <v-col v-for="product in paginatedProducts" :key="product.id" cols="3" class="ml-2">
                   <v-card class="rounded-lg" max-width="35vh">
                     <v-img height="25vh" :src="`${$axios.defaults.baseURL}images/${product.image}`" cover></v-img>
@@ -106,18 +105,185 @@
                     </v-card-actions>
                   </v-card>
                 </v-col>
-              </template>
-              <template v-else>
-                <v-col cols="12" class="text-center py-8">
-                  {{ $t("product.listing.noProducts") }}
-                </v-col>
-              </template>
+              </template>-->
+            <template v-if="paginatedProducts.length > 0">
+              <v-card v-for="(product, index) in paginatedProducts" :key="index" class="mb-4 rounded-lg pa-2"
+                density="comfortable" elevation="2">
+                <v-row>
+                  <!-- Barra lateral de color e info -->
+                  <v-col cols="1" class="d-flex justify-start">
+                    <div class="icono-concavo d-flex flex-column justify-center justify-start"
+                      :class="`bg-${getTypeColor(product.nameStatus)}`">
+                      <div class="date-display">
+                        {{ formatIntuitiveDate(product.purchase_date) }}
+                      </div>
+                    </div>
+                  </v-col>
+                   <v-col cols="1" class="d-flex justify-start">
+                    <v-dialog max-width="500" class="rounded-lg">
+                      <!-- Activator: La imagen que abre el diálogo -->
+                      <template v-slot:activator="{ props: activatorProps }">
+                        <div 
+                          v-bind="activatorProps"
+                          class="icono-concavo"
+                        >
+                          <v-img
+                            :src="`${$axios.defaults.baseURL}images/${product.image}`"
+                            cover
+                            class="img-concava"
+                          />
+                        </div>
+                      </template>
 
-              <!-- Paginación -->
-              <v-col cols="12" class="text-center">
-                <v-pagination v-model="currentPage" :length="pageCount" :total-visible="5"></v-pagination>
+                      <!-- Contenido del diálogo -->
+                      <template v-slot:default="{ isActive }">
+                        <v-card class="modal-imagen">
+                          <v-img
+                            :src="`${$axios.defaults.baseURL}images/${product.image}`"
+                            max-height="500"
+                            contain
+                          />
+                          <v-card-actions>
+                            <v-spacer></v-spacer>
+                            <v-btn
+                              text="Cerrar"
+                              variant="flat"
+                              @click="isActive.value = false"
+                            ></v-btn>
+                          </v-card-actions>
+                        </v-card>
+                      </template>
+                    </v-dialog>
+                  </v-col>
+                  <v-col cols="3" class="d-flex align-center justify-start">
+                    <v-row align="center" class="gap-3">
+                      <div>
+                        <div class="font-weight-bold text-body-2">
+                          {{ product.productName }}
+                        </div>
+                        <div class="text-body-2 d-flex align-center text-grey-darken-1">
+                          {{ product.quantity }}
+                          <v-tooltip activator="parent" location="bottom" max-width="350px">
+                            <span style="white-space: normal; word-break: break-word">
+                              {{ $t("product.fields.quantity") }}: {{ product.quantity }}
+                            </span>
+                          </v-tooltip>
+                        </div>
+                        <div class="text-body-2 d-flex align-center text-grey-darken-1">
+                          {{ product.total_price }}
+                          <v-tooltip activator="parent" location="bottom" max-width="350px">
+                            <span style="white-space: normal; word-break: break-word">
+                              {{ $t("product.fields.total_price") }}: {{ product.total_price }}
+                            </span>
+                          </v-tooltip>
+                        </div>
+                      </div>
+                    </v-row>
+                  </v-col>
+                  <v-col cols="1" class="d-flex align-center justify-start text-truncate">
+                    <div>
+                      <span class="text-body-2">
+                        {{ product.nameCategory }}</span>
+                      <v-tooltip activator="parent" location="bottom" max-width="350px">
+                        <span style="white-space: normal; word-break: break-word">
+                          {{ $t("product.fields.category") }}: {{ product.nameCategory }}
+                        </span>
+                      </v-tooltip>
+                    </div>
+                  </v-col>
+                  <v-col cols="1" class="d-flex align-center justify-start text-truncate">
+                    <div>
+                      <span class="text-body-2">
+                        {{ product.brand }}</span>
+                      <v-tooltip activator="parent" location="bottom" max-width="350px">
+                        <span style="white-space: normal; word-break: break-word">
+                          {{ $t("product.fields.brand") }}: {{ product.brand }}
+                        </span>
+                      </v-tooltip>
+                    </div>
+                  </v-col>
+                  <v-col cols="2" class="d-flex align-center justify-start text-truncate">
+                    <div>
+                      <span class="text-body-2">
+                        {{ product.additional_notes }}</span>
+                      <v-tooltip activator="parent" location="bottom" max-width="350px">
+                        <span style="white-space: normal; word-break: break-word">
+                          {{ $t("product.fields.additional_notes") }}: {{ product.additional_notes }}
+                        </span>
+                      </v-tooltip>
+                    </div>
+                  </v-col>
+                  <v-col cols="2" class="d-flex align-center justify-start text-truncate">
+                    <div>
+                      <span class="text-body-2 text-truncate">
+                        {{ product.purchase_place }}</span>
+                      <v-tooltip activator="parent" location="bottom" max-width="350px">
+                        <span style="white-space: normal; word-break: break-word">
+                          {{ $t("product.fields.purchase_place") }}: {{ product.purchase_place }}
+                        </span>
+                      </v-tooltip>
+                    </div>
+                  </v-col>
+                  <v-col cols="1" class="d-flex align-center ml-auto pe-4" style="margin-left: auto !important">
+                    <v-btn icon variant="text" color="green-darken-2" size="small" @click="editItem(product)">
+                      <v-icon>mdi-pencil</v-icon>
+                    </v-btn>
+                    <v-btn icon variant="text" color="red-darken-2" size="small" @click="deleteItem(product)">
+                      <v-icon>mdi-delete</v-icon>
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-card>
+              <!--<v-col v-for="product in paginatedProducts" :key="product.id" cols="3" class="ml-2">
+                  <v-card class="rounded-lg" max-width="35vh">
+                    <v-img height="25vh" :src="`${$axios.defaults.baseURL}images/${product.image}`" cover></v-img>
+
+                    <v-card-title>
+                      <v-tooltip bottom location="top" class="custom-tooltip">
+                        <template v-slot:activator="{ props }">
+                          <span v-bind="props">{{ product.productName }}</span>
+                        </template>
+                        {{ product.productName }}
+                      </v-tooltip>
+                    </v-card-title>
+
+                    <v-card-subtitle>
+                      <v-tooltip bottom location="top">
+                        <template v-slot:activator="{ props }">
+                          <span v-bind="props">
+                            {{ $t("product.listing.description") }}: {{ product.additionalNotes }}
+                          </span>
+                        </template>
+                        {{ product.additionalNotes }}
+                      </v-tooltip>
+                    </v-card-subtitle>
+
+                    <v-card-text>
+                      {{ $t("product.listing.quantity") }}: {{ product.quantity }}
+                    </v-card-text>
+
+                    <v-card-actions justify="end" class="w-100">
+                      <v-btn color="#DA7171" @click="deleteItem(product)">
+                        {{ $t("product.listing.delete") }}
+                      </v-btn>
+                      <v-btn color="#03626C" @click="editItem(product)" :loading="loadingProductEdit">
+                        {{ $t("product.listing.edit") }}
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-col>-->
+            </template>
+            <template v-else>
+              <v-col cols="12" class="text-center py-8">
+                {{ $t("product.listing.noProducts") }}
               </v-col>
-            </v-row>
+            </template>
+
+            <!-- Paginación -->
+            <v-col cols="12" class="text-center">
+              <v-pagination v-model="currentPage" :length="pageCount" :total-visible="5"></v-pagination>
+            </v-col>
+
           </v-col>
         </v-row>
       </v-card-text>
@@ -125,170 +291,6 @@
   </v-container>
 
   <!-- Crear/Editar Producto -->
-  <!--<v-dialog v-model="dialog" max-width="800px">
-      <v-form ref="form" v-model="valid">
-        <v-card>
-          <v-toolbar color="#03626C">
-            <span class="text-subtitle-2 ml-4">{{ formTitle }}</span>
-          </v-toolbar>
-
-          <v-card-text>
-
-            <v-tabs v-model="tab" vertical>
-
-              <v-tab value="general" :class="tab === 'general' ? 'selected-tab' : ''">Generales</v-tab>
-              <v-tab value="purchase" :class="tab === 'purchase' ? 'selected-tab' : ''">Compra</v-tab>
-            </v-tabs>
-
-            <v-window v-model="tab" min-height="50vh">
-
-              <v-window-item value="general">
-                <v-row>
-                  <v-col cols="12" md="6">
-                    <v-text-field v-model="editedItem.name" clearable label="Nombre" prepend-icon="mdi-tag-outline"
-                      variant="underlined" :rules="nameRules"></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="6">
-                    <v-text-field v-model="editedItem.brand" clearable label="Marca" prepend-icon="mdi-tag-outline"
-                      variant="underlined"></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="6">
-                    <v-file-input clearable v-model="file" ref="fileInput" label="Imagen del Producto"
-                      variant="underlined" density="compact" name="file" accept=".png, .jpg, .jpeg"
-                      @change="onFileSelected">
-                    </v-file-input>
-                  </v-col>
-                  <v-col cols="12" md="6">
-                    <v-card elevation="6" class="mx-auto" max-width="210" max-height="120">
-                      <img v-if="imagenDisponible()" :src="imgedit" height="120" width="210">
-                    </v-card>
-
-
-                  </v-col>
-                  <v-col cols="12" md="12">
-                    <v-textarea v-model="editedItem.additional_notes" clearable label="Notas Adicionales"
-                      prepend-icon="mdi-note" variant="underlined"></v-textarea>
-                  </v-col>
-                </v-row>
-              </v-window-item>
-
-              <v-window-item value="purchase">
-                <v-row>
-                  <v-col cols="12" md="4">
-                    <v-text-field v-model="editedItem.unit_price" clearable label="Precio Unitario"
-                      prepend-icon="mdi-currency-usd" variant="underlined" type="number" :rules="price"></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="4">
-                    <v-text-field v-model="editedItem.quantity" clearable label="Cantidad" prepend-icon="mdi-numeric"
-                      variant="underlined" type="number" :rules="price"></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="4">
-                    <v-text-field v-model="editedItem.total_price" clearable label="Precio Total"
-                      prepend-icon="mdi-currency-usd" variant="underlined" type="number" disabled="true"
-                      :value="calculatedTotalPrice"></v-text-field>
-                  </v-col>
-                </v-row>
-                <v-row>
-                  <v-col cols="12" md="6">
-                    <v-autocomplete :no-data-text="'No hay datos disponibles'" v-model="editedItem.status_id"
-                      :items="status" label="Estados" prepend-icon="mdi-lock-outline" item-title="nameStatus"
-                      item-value="id" variant="underlined" density="compact" :rules="selectRules">
-                      <template v-slot:item="{ props, item }">
-                      <v-list-item v-bind="props">
-                        <template v-slot:prepend>
-                          <v-avatar size="24">
-                            <v-icon>{{ item.raw.iconStatus }}</v-icon>
-                          </v-avatar>
-                        </template>
-                      </v-list-item>
-                    </template>
-                    </v-autocomplete>
-                  </v-col>
-                  <v-col cols="12" md="6">
-                    <v-autocomplete :no-data-text="'No hay datos disponibles'" v-model="editedItem.category_id"
-                      :items="categories" label="Categorías" prepend-icon="mdi-tag-outline" item-title="nameCategory"
-                      item-value="id" variant="underlined" density="compact" :rules="selectRules">
-                      <template v-slot:item="{ props, item }">
-                        <v-list-item v-bind="props">
-                          <template v-slot:prepend>
-                            <v-avatar size="24">
-
-                              <template v-if="isImage(item.raw.iconCategory)">
-                                <img
-                                  :src="`${this.$axios.defaults.baseURL}images/${item.raw.iconCategory}?t=${Date.now()}`"
-                                  alt="icon" />
-                              </template>
-                              <template v-else>
-                                <v-icon>{{ getIconName(item.raw.iconCategory) }}</v-icon>
-                              </template>
-                            </v-avatar>
-                          </template>
-                        </v-list-item>
-                      </template>
-                    </v-autocomplete>
-                  </v-col>
-                  <v-col cols="12" md="6">
-                    <v-menu v-model="menu" :close-on-content-click="false" :nudge-right="40"
-                      transition="scale-transition" offset-y min-width="290px">
-                      <template v-slot:activator="{ props }">
-                        <v-text-field v-bind="props" :modelValue="dateFormatted" variant="underlined"
-                          prepend-icon="mdi-calendar" label="Fecha de Compra"></v-text-field>
-                      </template>
-                      <v-locale-provider locale="es">
-                        <v-date-picker header="Calendario" title="Seleccione la fecha" color="#03626C"
-                          :modelValue="input" @update:model-value="updateDate" format="yyyy-MM-dd"
-                          :max="dateFormatted2"></v-date-picker>
-                      </v-locale-provider>
-                    </v-menu>
-                  </v-col>
-
-                  <v-col cols="12" sm="6" md="6">
-                    <v-menu v-model="menu2" :close-on-content-click="false" :nudge-right="40"
-                      transition="scale-transition" offset-y min-width="290px">
-                      <template v-slot:activator="{ props }">
-                        <v-text-field v-bind="props" :modelValue="dateFormatted2" variant="underlined"
-                          prepend-icon="mdi-calendar" label="Fecha de Expiración"></v-text-field>
-                      </template>
-                      <v-locale-provider locale="es">
-                        <v-date-picker header="Calendario" title="Seleccione la fecha" color="#03626C"
-                          :modelValue="input2" format="yyyy-MM-dd" :min="dateFormatted"
-                          @update:model-value="updateDate1"></v-date-picker>
-                      </v-locale-provider>
-                    </v-menu>
-                  </v-col>
-                </v-row>
-                <v-row>
-                  <v-col cols="12" md="6">
-                    <v-text-field v-model="editedItem.frequency" clearable label="Frecuencia (hrs)"
-                      prepend-icon="mdi-timer-outline" variant="underlined" type="number"></v-text-field>
-                  </v-col>
-
-                  <v-col cols="12" md="6">
-                    <v-select v-model="editedItem.type" :items="['Invierno', 'Verano']" clearable label="Tipo"
-                      prepend-icon="mdi-weather-partly-snowy" variant="underlined">
-                    </v-select>
-                  </v-col>
-                </v-row>
-                <v-row>
-                  <v-col cols="12" md="12">
-                    <v-text-field v-model="editedItem.purchase_place" clearable label="Lugar de Compra"
-                      prepend-icon="mdi-store-outline" variant="underlined"></v-text-field>
-                  </v-col>
-                </v-row>
-              </v-window-item>
-            </v-window>
-          </v-card-text>
-
-          <v-divider></v-divider>
-
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn color="#DA7171" variant="flat" @click="close">Cancelar</v-btn>
-            <v-btn color="#03626C" variant="flat" :loading="loading" @click="save" :disabled="!valid">Aceptar</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-form>
-    </v-dialog>-->
   <v-dialog v-model="dialog" fullscreen persistent transition="dialog-bottom-transition"
     content-class="fullscreen-dialog">
     <v-form ref="form" v-model="valid" class="h-100">
@@ -664,6 +666,8 @@ export default {
     loading: false,
     loadingProduct: false,
     loadingProductEdit: false,
+    dialogImg: false,
+    currentImage: '',
     file: null,
     imgMiniatura: "",
     // Datos de prueba: almacenes y productos
@@ -674,7 +678,7 @@ export default {
     home_id: "",
     // Paginación
     currentPage: 1,
-    itemsPerPage: 6,
+    itemsPerPage: 10,
     dialog: false,
     dialogDelete: false,
     isEditing: false,
@@ -1041,6 +1045,64 @@ export default {
     this.showPersonProducts();
   },
   methods: {
+     openModal() {
+      this.dialogImg = true;
+      console.log("Diálogo abierto:", this.dialogImg); // Debug
+    },
+    closeModal() {
+      // Pequeño delay para evitar que se cierre al mover el mouse hacia el modal
+      setTimeout(() => {
+        this.dialogImg = false
+      }, 100)
+    },
+    getTypeColor(type) {
+      const colorMap = {
+        Tarea: "warning",
+        Meta: "purple",
+        // Agrega más tipos si es necesario
+      };
+      return colorMap[type] || "error"; // Color por defecto
+    },
+    formatIntuitiveDate(dateString) {
+      if (!dateString) return "Sin fecha";
+
+      // 1. Parsear la fecha de entrada (formato YYYY-MM-DD)
+      const [year, month, day] = dateString.split("-");
+      const inputDate = new Date(year, month - 1, day); // Mes es 0-based
+
+      // 2. Obtener fecha actual (sin horas/minutos/segundos)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // 3. Normalizar ambas fechas a UTC para evitar problemas de zona horaria
+      const inputUTC = Date.UTC(
+        inputDate.getFullYear(),
+        inputDate.getMonth(),
+        inputDate.getDate()
+      );
+      const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+
+      // 4. Calcular diferencia en días
+      const diffDays = Math.floor((inputUTC - todayUTC) / (1000 * 60 * 60 * 24));
+
+      // 5. Determinar el texto a mostrar
+      switch (diffDays) {
+        case 0:
+          return "Hoy";
+        case 1:
+          return "Mañana";
+        case -1:
+          return "Ayer";
+        default:
+          return inputDate
+            .toLocaleDateString("es-ES", {
+              weekday: "short",
+              day: "numeric",
+              month: "short",
+            })
+            .replace(/\./g, "");
+      }
+    },
     nextStepW() {
       if (this.stepW < this.stepsW.length - 1) {
         this.stepW++;
@@ -1271,6 +1333,7 @@ export default {
         const result = await handleRequest({
           endpoint: "productcategory-productstatus-apk",
           method: "POST",
+          data: this.data,
         });
 
         if (result.success) {
@@ -1369,7 +1432,7 @@ export default {
             // Manejo de la respuesta según el resultado
             if (result.success) {
               this.showAlert("success", result.message, 3000);
-              this.initialize();
+              this.showPersonProducts();
             } else {
               this.showAlert("warning", result.message, 3000);
             }
@@ -1442,7 +1505,7 @@ export default {
             // Manejo de la respuesta según el resultado
             if (result.success) {
               this.showAlert("success", result.message, 3000);
-              this.initialize();
+              this.showPersonProducts();
             } else {
               this.showAlert("warning", result.message, 3000);
             }
@@ -1488,7 +1551,8 @@ export default {
       try {
         const result = await handleRequest({
           endpoint: "productcategory-productstatus-apk",
-          method: "GET",
+          method: "POST",
+          data: this.data
         });
 
         if (result.success) {
@@ -1541,7 +1605,7 @@ export default {
         if (result.success) {
           this.showAlert("success", result.message, 3000);
           this.loading = false;
-          this.initialize();
+          this.showPersonProducts();
         } else {
           this.showAlert("warning", result.message, 3000);
         }
@@ -1610,6 +1674,42 @@ export default {
 };
 </script>
 <style scoped>
+.icono-concavo {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  margin-right: 2px;
+  color: white;
+  /* Mantenemos solo el efecto cóncavo en el ícono 
+  box-shadow: inset;*/
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+   z-index: 1;
+}
+
+.icono-concavo::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  border-radius: 8px;
+  background: transparent;
+}
+.icono-concavo:hover .img-concava {
+  filter: brightness(1.1);
+}
+
+.modal-imagen {
+  background: transparent !important;
+  box-shadow: none !important;
+}
 .selected-tab {
   background-color: #03626c;
   /* Color de fondo */

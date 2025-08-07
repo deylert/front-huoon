@@ -95,9 +95,9 @@ const english = {
         title: "Suggestions",
         description: "Recommendations and proposals",
       },
-      history: {
-        title: "Medical History",
-        description: "Health records and medical evolution",
+      health: {
+        title: "Health",
+        description: "Medical records and health evolution",
       },
     },
     viewTitles: {
@@ -935,6 +935,7 @@ const english = {
           view: "View file",
           edit: "Edit",
           delete: "Delete",
+          download: "Download File"
         },
         types: {
           personal: "Personal",
@@ -1104,7 +1105,10 @@ const english = {
     },
     home: {
       create: {
-        title: "Create a new home",
+        title: "Associated Households",  // O "Linked Homes" si prefieres
+        empty: "No households registered",
+        search: "Search households...",
+        adddButton: "Create a new home",
         instructions: "Please fill in all required fields to create your home",
         steps: {
           basic: {
@@ -1130,6 +1134,7 @@ const english = {
           residents: "Number of residents",
           image: "Home image",
           status: "Status",
+          ranking: "Household ranking"
         },
         membersTable: {
           avatar: "Avatar",
@@ -1142,7 +1147,8 @@ const english = {
           cancel: "Cancel",
           previous: "Previous",
           next: "Next",
-          create: "Create Home",
+          create: "Create Household",
+          edit: "Edit Household",
           addMembers: "Add Members",
         },
         validation: {

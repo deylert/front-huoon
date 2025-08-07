@@ -94,9 +94,9 @@ const portuguese = {
         title: "Sugestões",
         description: "Recomendações e propostas",
       },
-      history: {
-        title: "Histórico Médico",
-        description: "Registros de saúde e evolução médica",
+      health: {
+        title: "Saúde", // PT-BR: mesma grafia
+        description: "Registros médicos e evolução de saúde",
       },
     },
     viewTitles: {
@@ -933,6 +933,7 @@ const portuguese = {
           view: "Ver arquivo",
           edit: "Editar",
           delete: "Excluir",
+          download: "Baixar Arquivo"
         },
         types: {
           personal: "Pessoal",
@@ -1102,7 +1103,10 @@ const portuguese = {
     },
     home: {
       create: {
-        title: "Criar um novo lar",
+        title: "Lares associados",  // PT-PT | PT-BR: "Lares vinculados" o "Domicílios associados"
+        empty: "Nenhum lar registrado",  // PT-BR: "Nenhum domicílio cadastrado"
+        search: "Pesquisar lares...", 
+        addButton: "Criar um novo lar",
         instructions:
           "Preencha todos os campos obrigatórios para criar seu lar",
         steps: {
@@ -1129,6 +1133,7 @@ const portuguese = {
           residents: "Número de residentes",
           image: "Imagem do lar",
           status: "Estado",
+          ranking: "Ranking do lar" 
         },
         membersTable: {
           avatar: "Foto",
@@ -1141,7 +1146,8 @@ const portuguese = {
           cancel: "Cancelar",
           previous: "Anterior",
           next: "Próximo",
-          create: "Criar Lar",
+           create: "Criar Lar",         // PT-BR: "Criar Residência"
+            edit: "Editar Lar",  
           addMembers: "Adicionar Membros",
         },
         validation: {

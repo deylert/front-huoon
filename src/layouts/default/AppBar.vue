@@ -1,4 +1,5 @@
 <template>
+  <div>
   <v-snackbar
     class="mt-12"
     location="right top"
@@ -718,6 +719,7 @@
       </v-card>
     </v-form>
   </v-dialog>
+  </div>
 </template>
 
 <script>

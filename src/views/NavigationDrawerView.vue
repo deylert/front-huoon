@@ -87,7 +87,7 @@ export default {
     ],
 
     salud : [
-      ['Historias Clínicas', 'mdi-clipboard-text-outline', '/history'],
+      ['Historias Clínicas', 'mdi-clipboard-text-outline', '/salud'],
       ['Consultas Médicas', 'mdi-stethoscope', '/consultation'],
       ['Exámenes Médicos', 'mdi-microscope', '/exam'],
       ['Emergencias Médicas', 'mdi-alert-circle-outline', '/emergency'],

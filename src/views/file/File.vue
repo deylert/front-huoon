@@ -19,312 +19,140 @@
       </v-col>
     </v-row>
   </v-snackbar>
-  <v-container class="pa-4">
-    <v-card elevation="6" class="mx-2">
-      <v-toolbar color="#03626C">
-        <v-row align="center">
-          <v-col cols="12" md="8" class="grow ml-4">
-            <span class="text-subtitle-1"
-              ><strong>{{ $t("files.listing.title") }}</strong></span
-            >
-          </v-col>
-          <v-col cols="12" md="3" class="text-right">
-            <v-btn
-              class="text-subtitle-1 ml-12"
-              color="white"
-              variant="tonal"
-              elevation="2"
-              prepend-icon="mdi-plus-circle"
-              @click="showAdd"
-            >
-              {{ $t("files.listing.addButton") }}
-            </v-btn>
+  <v-container>
+    <v-card class="pa-4" elevation="4" rounded="lg">
+      <v-card-text>
+        <v-row justify="space-between" align="center" class="mb-6">
+        <v-col cols="12" class="d-flex justify-space-between align-center">
+          <h2 class="text-body-2 font-weight-bold">{{ $t("files.listing.title") }}</h2>
+
+          <v-btn
+            icon
+            color="deep-purple-accent-4"
+            variant="flat"
+            class="elevation-3"
+            @click="showAdd"
+            :title="this.$t('files.listing.addButton')"
+          >
+            <v-icon>mdi-plus</v-icon>
+          </v-btn></v-col>
+        </v-row>
+        <v-row justify="space-between" align="center" class="mb-6">
+          <v-col
+            cols="12"
+            class="pt-6"
+            style="max-height: 60vh; min-height: 40vh; overflow-y: auto"
+          >
+            <template v-if="files.length > 0">
+              <v-card
+                v-for="(file, index) in files"
+                :key="index"
+                class="mb-4 rounded-lg pa-2"
+                density="comfortable"
+                elevation="2"
+              >
+                <v-row>
+                  <v-col cols="1" class="d-flex justify-start">
+                    <div
+                      class="icono-concavo d-flex flex-column justify-center justify-start"
+                      :class="`bg-${getTypeColor(file.type)}`"
+                    >
+                      <div class="date-display">
+                        {{ formatIntuitiveDate(file.date) }}
+                      </div>
+                    </div>
+                  </v-col>
+                  <v-col cols="7" class="d-flex align-center justify-start">
+                    <v-row align="center" class="gap-3">
+                      <div>
+                        <div class="font-weight-bold text-body-2">
+                          {{ file.name }}
+                        </div>
+                        <div
+                          class="text-body-2 d-flex align-center text-grey-darken-1 text-truncate"
+                        >
+                          {{ file.description }}
+                          <v-tooltip
+                            activator="parent"
+                            location="bottom"
+                            max-width="350px"
+                          >
+                            <span style="white-space: normal; word-break: break-word">
+                              {{ $t("files.fields.description") }}: {{ file.description }}
+                            </span>
+                          </v-tooltip>
+                        </div>
+                      </div>
+                    </v-row>
+                  </v-col>
+                  <v-col cols="2" class="d-flex align-center justify-start">
+                    <div class="d-flex align-center">
+                      <v-avatar color="#03626C" size="32" class="mr-2">
+                        <v-icon
+                          :icon="file.personal ? 'mdi-account' : 'mdi-home'"
+                          color="white"
+                        ></v-icon>
+                      </v-avatar>
+                      <span>{{ file.personal ? "Personal" : "Hogar" }}</span>
+                      <v-tooltip activator="parent" location="bottom" max-width="350px">
+                        <span style="white-space: normal; word-break: break-word">
+                          {{ $t("files.fields.type") }}:
+                          {{ file.personal ? "Personal" : "Hogar" }}
+                        </span>
+                      </v-tooltip>
+                    </div>
+                  </v-col>
+
+                  <v-col cols="1" class="d-flex align-center justify-start text-truncate">
+                    <v-btn
+                      density="comfortable"
+                      :icon="getFileIcon(file)"
+                      :color="getFileColor(file)"
+                      :title="getTooltip(file)"
+                      variant="tonal"
+                      elevation="1"
+                      class="mr-1 mt-1 mb-1"
+                      @click="handleFileClick(file)"
+                    ></v-btn>
+                  </v-col>
+                  <v-col
+                    cols="1"
+                    class="d-flex align-center ml-auto pe-4"
+                    style="margin-left: auto !important"
+                  >
+                    <v-btn
+                      icon
+                      variant="text"
+                      color="green-darken-2"
+                      size="small"
+                      @click="editItem(file)"
+                    >
+                      <v-icon>mdi-pencil</v-icon>
+                    </v-btn>
+                    <v-btn
+                      icon
+                      variant="text"
+                      color="red-darken-2"
+                      size="small"
+                      @click="deleteItem(file)"
+                    >
+                      <v-icon>mdi-delete</v-icon>
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-card>
+            </template>
+            <template v-else>
+              <v-col cols="12" class="text-center py-8">
+                {{ $t("files.listing.noData") }}
+              </v-col>
+            </template>
           </v-col>
         </v-row>
-      </v-toolbar>
-
-      <v-card-text>
-        <v-tabs v-model="tab" vertical>
-          <v-tab value="personal" :class="tab === 'personal' ? 'selected-tab' : ''">{{
-            $t("files.listing.types.personal")
-          }}</v-tab>
-          <v-tab value="hogar" :class="tab === 'hogar' ? 'selected-tab' : ''">{{
-            $t("files.listing.types.home")
-          }}</v-tab>
-          <v-tab value="todas" :class="tab === 'todas' ? 'selected-tab' : ''">{{
-            $t("files.listing.types.all")
-          }}</v-tab>
-        </v-tabs>
-
-        <v-window v-model="tab" min-height="50vh" class="mt-2">
-          <v-window-item value="personal">
-            <v-text-field
-              class="mt-1 mb-1"
-              v-model="search"
-              append-icon="mdi-magnify"
-              :label="$t('files.listing.types.search')"
-              single-line
-            >
-            </v-text-field>
-            <v-data-table
-              :headers="translatedHeaders"
-              :search="search"
-              :items="filteredPersonalFiles"
-              class="elevation-1"
-              style="max-height: 68vh; overflow-y: auto"
-              :loading="loading"
-            >
-              <template v-slot:item.actions="{ item }">
-                <v-btn
-                  density="comfortable"
-                  icon="mdi-pencil"
-                  @click="editItem(item)"
-                  color="#1976D2"
-                  variant="tonal"
-                  elevation="1"
-                  title="Editar Archivo"
-                ></v-btn>
-                <v-btn
-                  density="comfortable"
-                  icon="mdi-delete"
-                  @click="deleteItem(item)"
-                  color="#DA7171"
-                  variant="tonal"
-                  elevation="1"
-                  title="Eliminar Archivo"
-                ></v-btn>
-              </template>
-              <template v-slot:item.archive="{ item }">
-                <v-btn
-                  density="comfortable"
-                  icon="mdi-eye"
-                  color="green"
-                  v-if="item.archive && item.archive !== 'files/default.jpg'"
-                  @click="openModal(item.archive)"
-                  variant="tonal"
-                  elevation="1"
-                  class="mr-1 mt-1 mb-1"
-                  title="Ver detalles"
-                ></v-btn>
-              </template>
-              <template v-slot:item.personal="{ item }">
-                <div class="d-flex align-center">
-                  <v-avatar color="#03626C" size="32" class="mr-2">
-                    <v-icon
-                      :icon="item.personal ? 'mdi-account' : 'mdi-home'"
-                      color="white"
-                    ></v-icon>
-                  </v-avatar>
-                  <span>{{ item.personal ? "Personal" : "Hogar" }}</span>
-                </div>
-              </template>
-            </v-data-table>
-          </v-window-item>
-          <v-window-item value="hogar" class="mt-4">
-            <v-text-field
-              class="mt-1 mb-1"
-              v-model="search"
-              append-icon="mdi-magnify"
-              label="Buscar"
-              single-line
-              hide-details
-            >
-            </v-text-field>
-            <v-data-table
-              :headers="translatedHeaders"
-              :search="search"
-              :items="filteredHomeFiles"
-              class="elevation-1"
-              style="max-height: 68vh; overflow-y: auto"
-              :loading="loading"
-            >
-              <template v-slot:item.actions="{ item }">
-                <v-btn
-                  density="comfortable"
-                  icon="mdi-pencil"
-                  @click="editItem(item)"
-                  color="#1976D2"
-                  variant="tonal"
-                  elevation="1"
-                  title="Editar Archivo"
-                ></v-btn>
-                <v-btn
-                  density="comfortable"
-                  icon="mdi-delete"
-                  @click="deleteItem(item)"
-                  color="#DA7171"
-                  variant="tonal"
-                  elevation="1"
-                  title="Eliminar Archivo"
-                ></v-btn>
-              </template>
-              <template v-slot:item.archive="{ item }">
-                <v-btn
-                  density="comfortable"
-                  icon="mdi-eye"
-                  color="green"
-                  v-if="item.archive && item.archive !== 'files/default.jpg'"
-                  @click="openModal(item.archive)"
-                  variant="tonal"
-                  elevation="1"
-                  class="mr-1 mt-1 mb-1"
-                  title="Ver detalles"
-                ></v-btn>
-              </template>
-              <template v-slot:item.personal="{ item }">
-                <div class="d-flex align-center">
-                  <v-avatar color="#03626C" size="32" class="mr-2">
-                    <v-icon
-                      :icon="item.personal ? 'mdi-account' : 'mdi-home'"
-                      color="white"
-                    ></v-icon>
-                  </v-avatar>
-                  <span>{{ item.personal ? "Personal" : "Hogar" }}</span>
-                </div>
-              </template>
-            </v-data-table>
-          </v-window-item>
-          <v-window-item value="todas">
-            <v-text-field
-              class="mt-1 mb-1"
-              v-model="search"
-              append-icon="mdi-magnify"
-              label="Buscar"
-              single-line
-              hide-details
-            >
-            </v-text-field>
-            <v-data-table
-              :headers="translatedHeaders"
-              :search="search"
-              :items="files"
-              class="elevation-1"
-              style="max-height: 68vh; overflow-y: auto"
-              :loading="loading"
-            >
-              <template v-slot:item.actions="{ item }">
-                <v-btn
-                  density="comfortable"
-                  icon="mdi-pencil"
-                  @click="editItem(item)"
-                  color="#1976D2"
-                  variant="tonal"
-                  elevation="1"
-                  title="Editar Archivo"
-                ></v-btn>
-                <v-btn
-                  density="comfortable"
-                  icon="mdi-delete"
-                  @click="deleteItem(item)"
-                  color="#DA7171"
-                  variant="tonal"
-                  elevation="1"
-                  title="Eliminar Archivo"
-                ></v-btn>
-              </template>
-              <template v-slot:item.archive="{ item }">
-                <v-btn
-                  density="comfortable"
-                  icon="mdi-eye"
-                  color="green"
-                  v-if="item.archive && item.archive !== 'files/default.jpg'"
-                  @click="openModal(item.archive)"
-                  variant="tonal"
-                  elevation="1"
-                  class="mr-1 mt-1 mb-1"
-                  title="Ver detalles"
-                ></v-btn>
-              </template>
-              <template v-slot:item.personal="{ item }">
-                <div class="d-flex align-center">
-                  <v-avatar color="#03626C" size="32" class="mr-2">
-                    <v-icon
-                      :icon="item.personal ? 'mdi-account' : 'mdi-home'"
-                      color="white"
-                    ></v-icon>
-                  </v-avatar>
-                  <span>{{ item.personal ? "Personal" : "Hogar" }}</span>
-                </div>
-              </template>
-            </v-data-table>
-          </v-window-item>
-        </v-window>
       </v-card-text>
     </v-card>
   </v-container>
-  <!--<v-dialog v-model="dialog" max-width="600px">
-    <v-form ref="form" v-model="valid" enctype="multipart/form-data">
-      <v-card>
-        <v-toolbar color="#03626C">
-          <span class="text-subtitle-2 ml-4">{{ formTitle }}</span>
-        </v-toolbar>
-        <v-card-text>
-          <v-container>
-            <v-row>
-              <v-col cols="12" md="12">
-                <v-text-field v-model="editedItem.name" clearable label="Nombre" prepend-icon="mdi-note"
-                  variant="underlined"></v-text-field>
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-menu v-model="menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
-                  offset-y min-width="290px">
-                  <template v-slot:activator="{ props }">
-                    <v-text-field v-bind="props" :modelValue="dateFormatted" variant="underlined"
-                      prepend-icon="mdi-calendar" label="Fecha" density="compact"></v-text-field>
-                  </template>
-                  <v-locale-provider locale="es">
-                    <v-date-picker header="Calendario" title="Seleccione la fecha" color="#03626C" :modelValue="input"
-                      @update:model-value="updateDate" format="yyyy-MM-dd"
-                      :min="new Date().toISOString().split('T')[0]"></v-date-picker>
-                  </v-locale-provider>
-                </v-menu>
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-select v-model="editedItem.personal" :items="Options" item-value="id" item-title="name" label="Tipo"
-                  prepend-icon="mdi-check-circle" variant="underlined" density="compact">
-                  <template v-slot:item="{ props, item }">
-                    <v-list-item v-bind="props">
-                      <template v-slot:prepend>
-                        <v-avatar size="30" color="#03626C" class="mr-2">
-                          <v-icon>{{ item.raw.icon }}</v-icon>
-                        </v-avatar>
-                      </template>
-                    </v-list-item>
-                  </template>
-                </v-select>
-              </v-col>
-              <v-col cols="12" md="12">
-                <v-textarea v-model="editedItem.description" clearable label="Descripción" prepend-icon="mdi-note"
-                  variant="underlined"></v-textarea>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="12" md="6">
-                <v-file-input clearable v-model="file" ref="fileInput" label="Archivo" variant="underlined"
-                  density="compact" name="file" accept=".png, .jpg, .jpeg, .docx, .pdf" @change="onFileSelected">
-                </v-file-input>
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-card elevation="6" class="mx-auto" max-width="210" max-height="120">
-                  <img v-if="imagenDisponible() && this.showImage" :src="imgedit" height="120" width="210">
-                  <v-icon v-else class="d-flex align-center justify-center"
-                    style="height: 120px; width: 210px; font-size: 120px;">{{ this.icono }}</v-icon>
-                </v-card>
 
-
-              </v-col>
-            </v-row>
-          </v-container>
-        </v-card-text>
-        <v-divider></v-divider>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="#DA7171" variant="flat" @click="close">Cancelar</v-btn>
-          <v-btn color="#03626C" variant="flat" @click="save" :disabled="!valid" :loading="loading">Aceptar</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-form>
-  </v-dialog>-->
   <v-dialog
     v-model="dialog"
     fullscreen
@@ -472,7 +300,7 @@
                     variant="underlined"
                     density="compact"
                     name="file"
-                    :prepend-icon="false"
+                    prepend-icon=""
                     @change="onFileSelected"
                   ></v-file-input>
                 </v-col>
@@ -530,64 +358,79 @@
   <v-dialog v-model="dialogDelete" max-width="500px">
     <v-card>
       <v-toolbar color="#DA7171">
-        <span class="text-subtitle-2 ml-4"> {{ $t('deleteDialog.title', { item: $t(`deleteDialog.items.file`) }) }}</span>
+        <span class="text-subtitle-2 ml-4">
+          {{ $t("deleteDialog.title", { item: $t(`deleteDialog.items.file`) }) }}</span
+        >
       </v-toolbar>
 
-      <v-card-text class="mt-2 mb-2">
-       {{ $t('deleteDialog.message') }}</v-card-text
-      >
+      <v-card-text class="mt-2 mb-2"> {{ $t("deleteDialog.message") }}</v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="#DA7171" variant="flat" @click="closeDelete"> {{ $t('taskForm.buttons.cancel') }} </v-btn>
-        <v-btn color="#03626C" variant="flat" @click="deleteItemConfirm"> {{ $t('taskForm.buttons.confirmDelete') }} </v-btn>
+        <v-btn color="grey" variant="flat" @click="closeDelete">
+          {{ $t("taskForm.buttons.cancel") }}
+        </v-btn>
+        <v-btn color="#03626C" variant="flat" @click="deleteItemConfirm">
+          {{ $t("taskForm.buttons.confirmDelete") }}
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <v-dialog v-model="dialogPhoto" persistent max-width="600px">
-  <v-card>
-    <v-toolbar color="#03626C">
-      <span class="text-subtitle-2 ml-4">Detalle</span> 
-      <v-spacer></v-spacer>
-      <v-btn icon @click="dialogPhoto = false">
-        <v-icon>mdi-close</v-icon>
-      </v-btn>
-    </v-toolbar>
+  <v-dialog v-model="dialogPhoto" max-width="500" @click:outside="closeModal">
+    <v-card>
+      <v-toolbar color="#03626C" dark>
+        <v-toolbar-title class="text-body-2 font-weight-bold">{{
+          fileTitle
+        }}</v-toolbar-title>
+        <v-spacer></v-spacer>
+        <v-btn icon @click="downloadFile" v-if="selectedFile">
+          <v-icon>mdi-download</v-icon>
+        </v-btn>
+        <v-btn icon @click="closeModal">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-toolbar>
 
-    <v-card-text>
-      <template v-if="loadingImage">
-        <div class="d-flex justify-center align-center" style="min-height: 200px">
-          <v-progress-circular
-            indeterminate
-            color="#03626C"
-            size="64"
-          ></v-progress-circular>
-        </div>
-      </template>
-      <template v-else-if="selectedImageUrl">
-        <v-img 
-          :src="selectedImageUrl" 
-          max-height="500"
+      <v-card-text class="text-center pa-6">
+        <!-- Cargando -->
+        <v-skeleton-loader
+          v-if="loadingImage"
+          type="image"
+          height="500"
+        ></v-skeleton-loader>
+
+        <!-- Imagen -->
+        <v-img
+          v-else-if="isImage"
+          :src="selectedImageUrl"
+          alt="Imagen"
+          max-height="700"
           contain
-          class="mx-auto"
+          class="ma-auto"
         ></v-img>
-      </template>
-      <template v-else>
-        <div class="d-flex flex-column align-center justify-center py-8">
-          <v-icon color="error" size="64">mdi-alert-circle-outline</v-icon>
-          <p class="text-subtitle-1 mt-4">No se pudo cargar la imagen</p>
-          <v-btn 
-            color="#03626C" 
-            class="mt-4"
-            @click="openModal(lastOpenedImage)"
-          >
-            Reintentar
+
+        <!-- Vista para archivos no imágenes -->
+        <div v-else-if="selectedFile && !isImage" class="pa-8">
+          <v-icon size="100" color="#03626C" class="mb-4">
+            {{ getFileIcon }}
+          </v-icon>
+          <div class="text-body-1 mb-4">
+            {{ selectedFile.name }} ({{ formatFileSize(selectedFile.size) }})
+          </div>
+          <v-btn color="#03626C" @click="downloadFile" :loading="this.dowloading">
+            <v-icon start class="text-body-2 font-weight-bold">mdi-download</v-icon>
+            {{ $t("files.listing.actions.download") }}
           </v-btn>
         </div>
-      </template>
-    </v-card-text>
-  </v-card>
-</v-dialog>
+
+        <!-- Error -->
+        <div v-else class="pa-8 text-red">
+          <v-icon size="80" color="red">mdi-alert-circle</v-icon>
+          <div class="text-h6 mt-2">No se pudo cargar el archivo</div>
+        </div>
+      </v-card-text>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
@@ -611,6 +454,7 @@ export default {
     tab: null,
     loading: false,
     mostrar: false,
+    dowloading: false,
     file: null,
     showImage: false,
     icono: "mdi-file",
@@ -625,6 +469,7 @@ export default {
     dialogPhoto: false,
     loadingImage: false,
     selectedImageUrl: "",
+    selectedFile: null,
     headers: [
       //{ title: 'Sucursal', value: 'branchName', width: '20%' },
       { title: "files.fields.name", value: "name", width: "20%" },
@@ -684,6 +529,17 @@ export default {
     ],
   }),
   computed: {
+    fileTitle() {
+      return this.selectedFile?.name || "Archivo";
+    },
+    isImage() {
+      if (!this.selectedFile) return false;
+      const imageTypes = ["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"];
+      const ext = this.selectedFile.type.toLowerCase();
+      return imageTypes.includes(ext);
+    },
+
+    // Obtener ícono según tipo de archivo
     translatedHeaders() {
       return this.headers.map((header) => ({
         ...header,
@@ -713,6 +569,54 @@ export default {
     this.initialize();
   },
   methods: {
+    getTypeColor(type) {
+      const colorMap = {
+        Tarea: "warning",
+        Meta: "purple",
+        // Agrega más tipos si es necesario
+      };
+      return colorMap[type] || "indigo"; // Color por defecto
+    },
+    formatIntuitiveDate(dateString) {
+      if (!dateString) return "Sin fecha";
+
+      // 1. Parsear la fecha de entrada (formato YYYY-MM-DD)
+      const [year, month, day] = dateString.split("-");
+      const inputDate = new Date(year, month - 1, day); // Mes es 0-based
+
+      // 2. Obtener fecha actual (sin horas/minutos/segundos)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // 3. Normalizar ambas fechas a UTC para evitar problemas de zona horaria
+      const inputUTC = Date.UTC(
+        inputDate.getFullYear(),
+        inputDate.getMonth(),
+        inputDate.getDate()
+      );
+      const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+
+      // 4. Calcular diferencia en días
+      const diffDays = Math.floor((inputUTC - todayUTC) / (1000 * 60 * 60 * 24));
+
+      // 5. Determinar el texto a mostrar
+      switch (diffDays) {
+        case 0:
+          return "Hoy";
+        case 1:
+          return "Mañana";
+        case -1:
+          return "Ayer";
+        default:
+          return inputDate
+            .toLocaleDateString("es-ES", {
+              weekday: "short",
+              day: "numeric",
+              month: "short",
+            })
+            .replace(/\./g, "");
+      }
+    },
     nextStep() {
       if (this.step < this.steps.length - 1) {
         this.step++;
@@ -747,32 +651,191 @@ export default {
       // 3. Si no hay nombre ni tipo, rechaza el archivo
       return false;
     },
-    openModal(imageUrl) {
-  this.dialogPhoto = true; // Abrir el modal inmediatamente
-  this.loadingImage = true;
-  this.selectedImageUrl = ''; // Limpiar la imagen anterior
-  
-  // Verificar si es una URL válida
-  if (!imageUrl || imageUrl === 'files/default.jpg') {
-    this.loadingImage = false;
-    return;
-  }
+    openModal(file) {
+      this.selectedFile = file;
+      this.dialogPhoto = true;
+      this.loadingImage = true;
+      this.selectedImageUrl = "";
 
-  const img = new Image();
-  const imageSrc = `${this.$axios.defaults.baseURL}images/${imageUrl}`;
-  img.src = imageSrc;
+      const baseUrl = `${this.$axios.defaults.baseURL}`;
+      const fileUrl = `${baseUrl}images/${file.archive}`; // Asumiendo que los archivos están en /images/
 
-  img.onload = () => {
-    this.selectedImageUrl = imageSrc;
-    this.loadingImage = false;
-  };
+      // Validación de archivo por defecto
+      if (!file.archive || file.archive === "files/default.jpg") {
+        this.loadingImage = false;
+        return;
+      }
 
-  img.onerror = () => {
-    this.selectedImageUrl = ''; // Opcional: puedes establecer una imagen de respaldo aquí
-    this.loadingImage = false;
-    // No cerramos el modal, mostramos estado de error
-  };
-},
+      // Si es imagen, cargarla
+      if (this.isImage) {
+        const img = new Image();
+        img.src = fileUrl;
+
+        img.onload = () => {
+          this.selectedImageUrl = fileUrl;
+          this.loadingImage = false;
+        };
+
+        img.onerror = () => {
+          this.loadingImage = false;
+          // No cerramos, se muestra mensaje de error
+        };
+      } else {
+        // No es imagen: solo activamos la vista de archivo
+        this.loadingImage = false;
+      }
+    },
+
+    getFileIcon(file) {
+      const type = file.type?.toLowerCase() || "";
+
+      if (["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"].includes(type)) {
+        return "mdi-image";
+      } else if (type === "pdf") {
+        return "mdi-file-pdf";
+      } else if (["doc", "docx"].includes(type)) {
+        return "mdi-file-word";
+      } else if (["xls", "xlsx"].includes(type)) {
+        return "mdi-file-excel";
+      } else if (["ppt", "pptx"].includes(type)) {
+        return "mdi-file-powerpoint";
+      } else if (["zip", "rar", "7z", "tar"].includes(type)) {
+        return "mdi-zip-box";
+      } else if (["txt", "md"]) {
+        return "mdi-file-document";
+      }
+      return "mdi-file";
+    },
+
+    // Color según tipo
+    getFileColor(file) {
+      const type = file.type?.toLowerCase() || "";
+      if (["jpg", "jpeg", "png", "gif"].includes(type)) return "green";
+      if (type === "pdf") return "red";
+      if (["doc", "docx"].includes(type)) return "blue";
+      if (["xls", "xlsx"].includes(type)) return "green";
+      if (["ppt", "pptx"].includes(type)) return "orange";
+      return "gray";
+    },
+
+    // Tooltip
+    getTooltip(file) {
+      const type = file.type?.toUpperCase() || "Archivo";
+      return `Ver ${type}`;
+    },
+
+    // Manejar el clic: imagen → modal, archivo → descargar
+    handleFileClick(file) {
+      const isImage = ["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"].includes(
+        file.type?.toLowerCase()
+      );
+
+      if (!file.archive || file.archive === "files/default.jpg") {
+        return;
+      }
+
+      if (isImage) {
+        this.openModal(file); // Abre el modal (tu función actual)
+      } else {
+        this.downloadFileDirect(file); // Descarga directamente
+      }
+    },
+
+    // Descargar archivo con nombre correcto (como vimos antes)
+    async downloadFileDirect(file) {
+      const baseUrl = this.$axios.defaults.baseURL;
+      const fileUrl = `${baseUrl}images/${file.archive}`;
+      const ext = file.type?.toLowerCase();
+      const name = file.name;
+      const fileName = name.endsWith(`.${ext}`) ? name : `${name}.${ext}`;
+
+      try {
+        const response = await fetch(fileUrl, {
+          headers: {
+            // Descomenta si necesitas autenticación
+            // 'Authorization': 'Bearer ' + localStorage.getItem('token')
+          },
+        });
+
+        if (!response.ok) throw new Error("Error");
+
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        URL.revokeObjectURL(blobUrl);
+      } catch (error) {
+        console.error("Error al descargar:", error);
+        console.log("No se pudo descargar el archivo.");
+      }
+    },
+
+    // Cerrar modal
+    closeModal() {
+      this.dialogPhoto = false;
+      // Limpiar datos
+      setTimeout(() => {
+        this.selectedFile = null;
+        this.selectedImageUrl = "";
+      }, 300);
+    },
+
+    // Descargar archivo
+    async downloadFile() {
+      this.dowloading = true;
+      if (!this.selectedFile) return;
+
+      const baseUrl = this.$axios.defaults.baseURL;
+      const fileUrl = `${baseUrl}images/${this.selectedFile.archive}`;
+      const fileName = this.selectedFile.name + "." + this.selectedFile.type; // Ej: "Archivo de prueba.docx"
+
+      try {
+        // Usamos fetch para obtener el archivo como blob
+        const response = await fetch(fileUrl, {
+          method: "GET",
+          // Si usas autenticación, añade headers
+          headers: {
+            // 'Authorization': 'Bearer ' + localStorage.getItem('token')
+          },
+        });
+
+        if (!response.ok) throw new Error("Error al descargar el archivo");
+
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+
+        // Crear enlace temporal
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = fileName; // Aquí sí se respeta el nombre
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Liberar memoria
+        URL.revokeObjectURL(blobUrl);
+        this.dowloading = false;
+      } catch (error) {
+        this.dowloading = false;
+        console.error("Error al descargar:", error);
+        console.log("No se pudo descargar el archivo con el nombre deseado.");
+      }
+    },
+
+    // Formatear tamaño de archivo
+    formatFileSize(bytes) {
+      if (!bytes) return "0 Bytes";
+      const k = 1024;
+      const sizes = ["Bytes", "KB", "MB", "GB"];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    },
     formatNumber(value) {
       // Si el valor es menor que 1000, devuelve el valor original con dos decimales
       if (value < 1000) {
@@ -805,6 +868,7 @@ export default {
       this.menu = false;
     },
     async showAdd() {
+      this.step = 0;
       this.dialog = true;
       this.editedItem.home_id = this.home_id;
     },
@@ -841,7 +905,7 @@ export default {
         } else {
           // Si no hay datos, asignamos un array vacío
           this.files = [];
-          this.showAlert("info", "No hay arcjivos disponibles.", 3000);
+          //this.showAlert("info", "No hay archivos disponibles.", 3000);
         }
       } catch (error) {
         this.loading = false;
@@ -1154,6 +1218,43 @@ export default {
 </script>
 
 <style scoped>
+.icono-concavo {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  margin-right: 2px;
+  color: white;
+  /* Mantenemos solo el efecto cóncavo en el ícono 
+  box-shadow: inset;*/
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.icono-concavo::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  border-radius: 8px;
+  background: transparent;
+}
+.icono-concavo:hover .img-concava {
+  filter: brightness(1.1);
+}
+.img-concava {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Asegura que la imagen cubra el espacio */
+  border-radius: 8px; /* Para que coincida con el contenedor */
+}
 .selected-tab {
   background-color: #03626c;
   /* Fondo del tab seleccionado */

@@ -88,8 +88,8 @@ const routes = [
           import(/* webpackChunkName: "home" */ "@/views/task/Tasks.vue"),
       },
       {
-        path: "/history",
-        name: "Historia",
+        path: "/health",
+        name: "Health",
         component: () =>
           import(/* webpackChunkName: "home" */ "@/views/salud/History.vue"),
       },

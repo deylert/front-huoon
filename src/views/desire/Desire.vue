@@ -23,10 +23,12 @@
     <v-card class="pa-4" elevation="4" rounded="lg">
         <v-card-text>
         <v-row justify="space-between" align="center" class="mb-6">
+        <v-col cols="12" class="d-flex justify-space-between align-center">
            <h2 class="text-body-2 font-weight-bold">{{ $t("wishes.listing.title") }}</h2>
           <v-btn icon color="deep-purple-accent-4" variant="flat" class="elevation-3" @click="showAdd" :title=" this.$t('wishes.listing.addButton')">
             <v-icon>mdi-plus</v-icon>
           </v-btn>
+          </v-col>
         </v-row>
       <v-row justify="space-between" align="center" class="mb-6">
       <v-col cols="12" class="ma-0 pt-6" style="max-height: 60vh; min-height: 40vh; overflow-y: auto">
@@ -111,45 +113,7 @@
                   </v-col>
                 </v-row>
               </v-card>
-              <!--<v-col v-for="product in paginatedProducts" :key="product.id" cols="3" class="ml-2">
-                  <v-card class="rounded-lg" max-width="35vh">
-                    <v-img height="25vh" :src="`${$axios.defaults.baseURL}images/${product.image}`" cover></v-img>
-
-                    <v-card-title>
-                      <v-tooltip bottom location="top" class="custom-tooltip">
-                        <template v-slot:activator="{ props }">
-                          <span v-bind="props">{{ product.productName }}</span>
-                        </template>
-                        {{ product.productName }}
-                      </v-tooltip>
-                    </v-card-title>
-
-                    <v-card-subtitle>
-                      <v-tooltip bottom location="top">
-                        <template v-slot:activator="{ props }">
-                          <span v-bind="props">
-                            {{ $t("product.listing.description") }}: {{ product.additionalNotes }}
-                          </span>
-                        </template>
-                        {{ product.additionalNotes }}
-                      </v-tooltip>
-                    </v-card-subtitle>
-
-                    <v-card-text>
-                      {{ $t("product.listing.quantity") }}: {{ product.quantity }}
-                    </v-card-text>
-
-                    <v-card-actions justify="end" class="w-100">
-                      <v-btn color="#DA7171" @click="deleteItem(product)">
-                        {{ $t("product.listing.delete") }}
-                      </v-btn>
-                      <v-btn color="#03626C" @click="editItem(product)" :loading="loadingProductEdit">
-                        {{ $t("product.listing.edit") }}
-                      </v-btn>
-                    </v-card-actions>
-                  </v-card>
-                </v-col>-->
-            </template>
+             </template>
             <template v-else>
               <v-col cols="12" class="text-center py-8">
                 {{ $t("wishes.listing.noData") }}

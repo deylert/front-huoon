@@ -165,7 +165,7 @@
         </v-row>
       </v-col>
 
-      <v-col cols="12" class="ma-0 pt-6" style="max-height: 60vh; min-height: 40vh; overflow-y: auto">
+      <v-col cols="12" class="ma-0 pa-0 pt-6" style="max-height: 60vh; min-height: 40vh; overflow-y: auto">
         <template v-if="tasks.length === 0">
           <v-col cols="12" class="text-center py-8 pa-0">
             <v-icon size="64" color="grey-lighten-1">mdi-check-circle-outline</v-icon>
@@ -584,7 +584,7 @@ export default {
           title: "Historia Clínica",
           description: "Registro médico y bienestar",
           icon: "mdi-heart-pulse",  // Icono de corazón/pulso (típico para salud)
-          to: "/history",            // Ruta sugerida
+          to: "/health",            // Ruta sugerida
           color: "pink",            // Color que asocia con salud
           // Alternativa de color: "red" para algo más estándar
         },

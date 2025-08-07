@@ -17,10 +17,12 @@
       <v-card-text>
     <!-- Encabezado -->
     <v-row justify="space-between" align="center" class="mb-6">
-      <h2 class="text-h5 font-weight-bold">{{ $t("viewTitles.tasks") }}</h2>
+        <v-col cols="12" class="d-flex justify-space-between align-center">
+      <h2 class="text-body-2 font-weight-bold">{{ $t("viewTitles.tasks") }}</h2>
       <v-btn icon color="deep-purple-accent-4" variant="flat" class="elevation-3" @click="showAdd">
         <v-icon>mdi-plus</v-icon>
       </v-btn>
+      </v-col>
     </v-row>
    <div class="d-flex flex-wrap align-center gap-2">
   <v-spacer></v-spacer>

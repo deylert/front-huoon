@@ -1,6 +1,14 @@
 <template>
-  <v-snackbar class="mt-12" location="right top" :timeout="sb_timeout" :color="sb_type" elevation="24"
-    :multi-line="true" vertical v-model="snackbar">
+  <v-snackbar
+    class="mt-12"
+    location="right top"
+    :timeout="sb_timeout"
+    :color="sb_type"
+    elevation="24"
+    :multi-line="true"
+    vertical
+    v-model="snackbar"
+  >
     <v-row>
       <v-col md="2">
         <v-avatar :icon="sb_icon" color="sb_type" size="40"></v-avatar>
@@ -12,263 +20,473 @@
     </v-row>
   </v-snackbar>
   <v-container>
-  <v-card elevation="4" class="mx-2 rounded-lg">
-    <v-toolbar color="#03626C">
-      <v-row align="center">
-        <v-col cols="12" md="8" class="grow ml-4">
-          <span class="text-subtitle-1"><strong>Listado de Hogares</strong></span>
-        </v-col>
-        <v-col cols="12" md="3" class="text-right">
-          <v-btn class="text-subtitle-1 ml-12" color="white" variant="tonal" elevation="2"
-            prepend-icon="mdi-plus-circle" @click="showAdd">
-            Agregar Nuevo Hogar
+    <v-card class="pa-4" elevation="4" rounded="lg">
+      <v-card-text>
+        <v-row justify="space-between" align="center" class="mb-6">
+        <v-col cols="12" class="d-flex justify-space-between align-center">
+          <h2 class="text-body-2 font-weight-bold">{{ $t("home.title") }}</h2>
+          <v-btn
+            icon
+            color="deep-purple-accent-4"
+            variant="flat"
+            class="elevation-3"
+            @click="showAdd"
+            :title="this.$t('home.addButton')"
+          >
+            <v-icon>mdi-plus</v-icon>
           </v-btn>
-        </v-col>
-      </v-row>
-    </v-toolbar>
+          </v-col>
+        </v-row>
+        <v-row justify="space-between" align="center" class="mb-6">
+          <v-col
+            cols="12"
+            class="ma-0 pt-6"
+            style="max-height: 60vh; min-height: 40vh; overflow-y: auto"
+          >
+            <template v-if="homes.length > 0">
+              <v-card
+                v-for="(home, index) in homes"
+                :key="index"
+                class="mb-4 rounded-lg pa-2"
+                density="comfortable"
+                elevation="2"
+              >
+                <v-row>
+                  <v-col cols="1" class="d-flex justify-start">
+                    <v-dialog max-width="500" class="rounded-lg">
+                      <!-- Activator: La imagen que abre el diálogo -->
+                      <template v-slot:activator="{ props: activatorProps }">
+                        <div
+                          v-bind="activatorProps"
+                          class="icono-concavo d-flex flex-column justify-center justify-start"
+                          :class="`bg-${getTypeColor(home.nameStatus)}`"
+                        >
+                          <v-img
+                            :src="`${$axios.defaults.baseURL}images/${home.image}`"
+                            cover
+                            class="img-concava"
+                          />
+                        </div>
+                      </template>
 
-    <v-card-text>
-      <v-text-field class="mt-1 mb-1" v-model="search" append-icon="mdi-magnify" label="Buscar" single-line
-        hide-details>
-      </v-text-field>
-      <v-data-table :headers="headers" :search="search" :items="homes" class="elevation-1"
-        style="max-height: 68vh; overflow-y: auto;" :items-per-page-text="'Elementos por páginas'"
-        no-data-text="No hay datos disponibles" :loading="loading" loading-text="Cargando datos...">
-        <template v-slot:item.actions="{ item }">
-          <v-btn density="comfortable" icon="mdi-pencil" @click="editItem(item)" color="#1976D2" variant="tonal"
-            elevation="1" title="Editar Tarea" :loading="btnLoading"></v-btn>
-          <v-btn density="comfortable" icon="mdi-delete" @click="deleteItem(item)" color="#DA7171" variant="tonal"
-            elevation="1" title="Eliminar Tarea"></v-btn>
-        </template>
-        <template v-slot:item.name="{ item }">
-          <v-avatar class="mr-1" elevation="3" color="grey-lighten-4" size="large">
-            <v-img :src="`${this.$axios.defaults.baseURL}images/${item.image}?t=${Date.now()}`" alt="image"></v-img>
-          </v-avatar><!--+'?$'+Date.now()-->
-          {{ item.name }}
-        </template>
-        <template v-slot:item.percent="{ item }">
-          <v-rating :model-value="item.percent" color="orange-darken-2" density="compact" size="small"
-            readonly></v-rating>
-        </template>
-
-        <template v-slot:item.people="{ item }">
-          <div class="avatar-row">
-            <!-- Mostrar los avatares de las personas con tooltip -->
-            <v-tooltip v-for="person in item.people" :key="person.id" bottom content-class="custom-tooltip">
-              <template v-slot:activator="{ props }">
-                <v-avatar class="avatar-item hover-expand" size="32" elevation="3" v-bind="props">
-                  <v-img :src="`${this.$axios.defaults.baseURL}images/${person.image}?t=${Date.now()}`" alt="image" />
-                </v-avatar>
-              </template>
-              <!-- Información en el tooltip -->
-              <span>{{ person.name }}</span>
-              <v-spacer></v-spacer>
-              <span class="text-secondary">{{ person.roleName }}</span> <!-- Segundo dato -->
-              <!-- Componente de estrellas -->
-              <div class="star-rating">
-                <v-rating :model-value="person.percent" color="orange-darken-2" density="compact" size="small"
-                  readonly></v-rating>
-              </div>
-            </v-tooltip>
-            <!-- Ícono de "más" para agregar una nueva persona -->
-            <v-tooltip bottom content-class="custom-tooltip">
-              <template v-slot:activator="{ props }">
-                <v-btn density="comfortable" icon="mdi-plus" @click="addPeople(item)" bg-color="white" color="#03626C"
-                  size="32" elevation="3" v-bind="props"></v-btn>
-              </template>
-              <span class="text-secondary">Agregar persona</span>
-            </v-tooltip>
-          </div>
-        </template>
-      </v-data-table>
-    </v-card-text>
-  </v-card>
-  </v-container>
-
-  <!--<v-dialog v-model="dialog" max-width="600px">
-    <v-form ref="form" v-model="valid">
-      <v-card>
-        <v-toolbar color="#03626C">
-          <span class="text-subtitle-2 ml-4">{{ formTitle }}</span>
-        </v-toolbar>
-        <v-card-text>
-          <v-container>
-            <v-row>
-              <v-col cols="12" md="6">
-                <v-text-field v-model="editedItem.title" clearable label="Título" prepend-icon="mdi-tag-outline"
-                  variant="underlined" :rules="nameRules"></v-text-field>
-              </v-col>
-              <v-col cols="12" md="12">
-                <v-textarea v-model="editedItem.description" clearable label="Descripción" prepend-icon="mdi-note"
-                  variant="underlined"></v-textarea>
-              </v-col>
-            </v-row>
-            
-            <v-row>
-              <v-col cols="12" md="6">
-                <v-file-input clearable v-model="file" ref="fileInput" label="Imagen de la Tarea" variant="underlined"
-                  density="compact" name="file" accept=".png, .jpg, .jpeg" @change="onFileSelected">
-                </v-file-input>
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-card elevation="6" class="mx-auto" max-width="210" max-height="120">
-                  <img v-if="imagenDisponible()" :src="imgedit" height="120" width="210">
-                </v-card>
-
-
-              </v-col>
-            </v-row>
-          </v-container>
-        </v-card-text>
-        <v-divider></v-divider>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="#DA7171" variant="flat" @click="close">Cancelar</v-btn>
-          <v-btn color="#03626C" variant="flat" :loading="loading" @click="save" :disabled="!valid">Aceptar</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-form>
-  </v-dialog>-->
-
-  <v-dialog v-model="dialog" max-width="800px">
-    <v-form ref="form" v-model="valid">
-      <v-card>
-        <v-toolbar color="#03626C">
-          <span class="text-subtitle-2 ml-4">{{ formTitle }}</span>
-        </v-toolbar>
-
-        <v-card-text>
-          <!-- Pestañas -->
-          <v-tabs v-model="tab" vertical>
-            <!-- Pestañas -->
-            <v-tab value="general" :class="tab === 'general' ? 'selected-tab' : ''">Generales</v-tab>
-            <v-tab value="people" :class="tab === 'people' ? 'selected-tab' : ''">Personas</v-tab>
-          </v-tabs>
-          <!-- Contenido de las pestañas -->
-          <v-window v-model="tab" min-height="50vh" class="mt-2">
-            <!-- Pestaña de Generales -->
-            <v-window-item value="general">
-              <v-row>
-                <v-col cols="12" md="6">
-                  <v-text-field v-model="editedItem.name" clearable label="Nombre" prepend-icon="mdi-account-outline"
-                    variant="underlined" :rules="nameRules"></v-text-field>
-                </v-col>
-                <v-col cols="12" md="6">
-                  <v-text-field v-model="editedItem.address" clearable label="Dirección"
-                    prepend-icon="mdi-map-marker-outline" variant="underlined"></v-text-field>
-                </v-col>
-                <v-col cols="12" :md="editedIndex === -1 ? 4 : 6">
-                  <v-autocomplete :no-data-text="'No hay datos disponibles'" v-model="editedItem.status_id"
-                    :items="status" label="Estado" prepend-icon="mdi-flag-outline" item-title="nameStatus"
-                    item-value="id" variant="underlined" density="compact" :rules="selectRules">
-                    <template v-slot:item="{ props, item }">
-                      <v-list-item v-bind="props">
-                        <template v-slot:prepend>
-                          <v-avatar size="24">
-                            <v-icon>{{ item.raw.iconStatus }}</v-icon>
+                      <!-- Contenido del diálogo -->
+                      <template v-slot:default="{ isActive }">
+                        <v-card class="modal-imagen">
+                          <v-img
+                            :src="`${$axios.defaults.baseURL}images/${home.image}`"
+                            max-height="500"
+                            contain
+                          />
+                          <v-card-actions>
+                            <v-spacer></v-spacer>
+                            <v-btn
+                              text="Cerrar"
+                              variant="flat"
+                              @click="isActive.value = false"
+                            ></v-btn>
+                          </v-card-actions>
+                        </v-card>
+                      </template>
+                    </v-dialog>
+                  </v-col>
+                  <v-col cols="4" class="d-flex align-center justify-start">
+                    <v-row align="center" class="gap-3">
+                      <div>
+                        <div class="font-weight-bold text-body-2">
+                          {{ home.name }}
+                        </div>
+                        <div
+                          class="text-body-2 d-flex align-center text-grey-darken-1 text-truncate"
+                        >
+                          {{ home.address }}
+                          <v-tooltip
+                            activator="parent"
+                            location="bottom"
+                            max-width="350px"
+                          >
+                            <span style="white-space: normal; word-break: break-word">
+                              {{ $t("home.fields.address") }}: {{ home.address }}
+                            </span>
+                          </v-tooltip>
+                        </div>
+                      </div>
+                    </v-row>
+                  </v-col>
+                  <v-col cols="1" class="d-flex align-center justify-start text-truncate">
+                    <div>
+                      <v-rating
+                        :model-value="home.percent"
+                        color="orange-darken-2"
+                        density="compact"
+                        size="small"
+                        readonly
+                      ></v-rating>
+                      <v-tooltip activator="parent" location="bottom" max-width="350px">
+                        <span style="white-space: normal; word-break: break-word">
+                          {{ $t("home.fields.ranking") }}: {{ home.percent }}
+                        </span>
+                      </v-tooltip>
+                    </div>
+                  </v-col>
+                  <v-col cols="3" class="d-flex align-center justify-start">
+                    <div class="avatar-row">
+                      <v-tooltip
+                        v-for="person in home.people"
+                        :key="person.id"
+                        bottom
+                        content-class="custom-tooltip"
+                      >
+                        <template v-slot:activator="{ props }">
+                          <v-avatar
+                            class="avatar-item hover-expand"
+                            size="32"
+                            elevation="3"
+                            v-bind="props"
+                          >
+                            <v-img
+                              :src="`${this.$axios.defaults.baseURL}images/${
+                                person.image
+                              }?t=${Date.now()}`"
+                              alt="image"
+                            />
                           </v-avatar>
                         </template>
-                      </v-list-item>
-                    </template>
-                  </v-autocomplete>
-                </v-col>
-                <v-col cols="12" :md="editedIndex === -1 ? 4 : 6">
-                  <v-select v-model="editedItem.home_type_id" :items="hometypes" item-title="name" item-value="id"
-                    label="Tipo de Hogar" variant="underlined" density="compact" :rules="selectRules"
-                    prepend-icon="mdi-home-outline">
-                    <template v-slot:item="{ props, item }">
-                      <v-list-item v-bind="props" :subtitle="item.raw.description"></v-list-item>
-                    </template>
-                  </v-select>
-                </v-col>
-                <v-col cols="12" md="4" v-if="editedIndex === -1">
-                  <v-text-field v-model="editedItem.code" label="Código" variant="underlined" placeholder="minimum 8 characters"
-          :type="showCode ? 'text' : 'password'" :append-inner-icon="showCode ? 'mdi-eye-off' : 'mdi-eye'" :rules="codeRules"
-          @click:append-inner="showCode = !showCode" density="compact" class="mb-5" prepend-icon="mdi-key-chain-variant"/>
-                </v-col>
-              </v-row>
-              <v-row>
-                <v-col cols="12" md="4">
-                  <v-text-field v-model="editedItem.geo_location" clearable label="Geolocación" prepend-icon="mdi-earth"
-                    density="compact" variant="underlined"></v-text-field>
-                </v-col>
-                <v-col cols="12" md="4">
-                  <v-text-field v-model="editedItem.residents" label="Residentes" type="number" variant="underlined"
-                    density="compact" prepend-icon="mdi-human-male-female">
+                        <span>{{ person.name }}</span>
+                        <v-spacer></v-spacer>
+                        <span class="text-secondary">{{ person.roleName }}</span>
+                        <div class="star-rating">
+                          <v-rating
+                            :model-value="person.percent"
+                            color="orange-darken-2"
+                            density="compact"
+                            size="small"
+                            readonly
+                          ></v-rating>
+                        </div>
+                      </v-tooltip>
+                      <v-tooltip bottom content-class="custom-tooltip">
+                        <template v-slot:activator="{ props }">
+                          <v-btn
+                            density="comfortable"
+                            icon="mdi-plus"
+                            @click="addPeople(home)"
+                            bg-color="white"
+                            color="#03626C"
+                            size="32"
+                            elevation="3"
+                            v-bind="props"
+                          ></v-btn>
+                        </template>
+                        <span> {{ $t("home.actions.addMembers") }}</span>
+                      </v-tooltip>
+                    </div>
+                  </v-col>
+                  <v-col cols="1" class="d-flex align-center justify-start">
+                    <div>
+                      <span class="text-body-2">
+                        {{ home.nameHomeType }}</span>
+                      <v-tooltip activator="parent" location="bottom" max-width="350px">
+                        <span style="white-space: normal; word-break: break-word">
+                          {{ $t("home.fields.type") }}: {{ home.nameHomeType }}
+                        </span>
+                      </v-tooltip>
+                    </div>
+                  </v-col>
+                  <v-col cols="1" class="d-flex align-center justify-start">
+                    <div>
+                      <span class="text-body-2">
+                        {{ home.nameStatus }}</span>
+                      <v-tooltip activator="parent" location="bottom" max-width="350px">
+                        <span style="white-space: normal; word-break: break-word">
+                          {{ $t("home.fields.status") }}: {{ home.nameStatus }}
+                        </span>
+                      </v-tooltip>
+                    </div>
+                  </v-col>
+                  <v-col cols="1" class="d-flex align-center ml-auto pe-4" style="margin-left: auto !important" >
+                    <v-btn
+                      icon
+                      variant="text"
+                      color="green-darken-2"
+                      size="small"
+                      @click="editItem(home)"
+                    >
+                      <v-icon>mdi-pencil</v-icon>
+                    </v-btn>
+                    <v-btn
+                      icon
+                      variant="text"
+                      color="red-darken-2"
+                      size="small"
+                      @click="deleteItem(home)"
+                    >
+                      <v-icon>mdi-delete</v-icon>
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-card>
+            </template>
+            <template v-else>
+              <v-col cols="12" class="text-center py-8">
+                {{ $t("home.empty") }}
+              </v-col>
+            </template>
+          </v-col>
+        </v-row>
+      </v-card-text>
+    </v-card>
+  </v-container>
+
+  <v-dialog v-model="dialog" fullscreen persistent transition="dialog-bottom-transition" content-class="fullscreen-dialog">
+  <v-form ref="form" v-model="valid" class="h-100">
+    <v-card class="pa-10">
+      <v-card-text class="pt-12">
+        <h5 class="text-grey-darken-2 font-weight-medium">
+            {{ $t(`home.actions.${editedIndex === -1 ? "create" : "edit"}`) }}
+          </h5>
+        <p class="text-grey-lighten-1">{{ $t('home.instructions') }}</p>
+        
+        <v-row class="mt-12">
+          <!-- Pasos laterales -->
+          <v-col cols="3">
+            <v-timeline align="start" side="end" dense>
+              <v-timeline-item 
+                v-for="(stepKey, index) in ['basic', 'details', 'members']" 
+                :key="index" 
+                :dot-color="step > index ? 'green' : step === index ? 'deep-purple' : 'grey-lighten-1'" 
+                :icon="step >= index ? (step === index ? `mdi-numeric-${index + 1}` : 'mdi-check') : null" 
+                size="large">
+                <template #opposite>
+                  <div class="text-end">
+                    <strong>{{ $t(`home.steps.${stepKey}.title`) }}</strong>
+                    <div class="text-caption text-grey">
+                      {{ $t(`home.steps.${stepKey}.subtitle`) }}
+                    </div>
+                  </div>
+                </template>
+              </v-timeline-item>
+            </v-timeline>
+          </v-col>
+
+          <!-- Contenido dinámico según paso -->
+          <v-col cols="9">
+            <h3 class="text-deep-purple-accent-3 mb-8">
+              {{ $t(`home.steps.${['basic', 'details', 'members'][step]}.title`) }}
+            </h3>
+
+            <!-- Paso 1: Información Básica -->
+            <v-row dense v-if="step === 0">
+              <v-col cols="12">
+                <v-text-field
+                  v-model="editedItem.name"
+                  :label="$t('home.fields.name')"
+                  variant="underlined"
+                  :rules="nameRules"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12">
+                <v-text-field
+                  v-model="editedItem.address"
+                  :label="$t('home.fields.address')"
+                  variant="underlined"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" v-if="this.editedIndex != -1">
+                <v-autocomplete
+                  :no-data-text="$t('noData')"
+                  v-model="editedItem.status_id"
+                  :items="status"
+                  :label="$t('home.fields.status')"
+                  item-title="nameStatus"
+                  item-value="id"
+                  variant="underlined"
+                  density="compact"
+                  :rules="selectRules"
+                >
+                  <template v-slot:item="{ props, item }">
+                    <v-list-item v-bind="props">
+                      <template v-slot:prepend>
+                        <v-avatar size="24">
+                          <v-icon>{{ item.raw.iconStatus }}</v-icon>
+                        </v-avatar>
+                      </template>
+                    </v-list-item>
+                  </template>
+                </v-autocomplete>
+              </v-col>
+              <v-col cols="12">
+                <v-select
+                  v-model="editedItem.home_type_id"
+                  :items="hometypes"
+                  item-title="name"
+                  item-value="id"
+                  :label="$t('home.fields.type')"
+                  variant="underlined"
+                  density="compact"
+                  :rules="selectRules"
+                >
+                  <template v-slot:item="{ props, item }">
+                    <v-list-item
+                      v-bind="props"
+                      :subtitle="item.raw.description"
+                    ></v-list-item>
+                  </template>
+                </v-select>
+              </v-col>
+              <!--<v-col cols="12" md="6" v-if="editedIndex === -1">
+                <v-text-field
+                  v-model="editedItem.code"
+                  :label="$t('home.fields.code')"
+                  variant="underlined"
+                  :placeholder="$t('home.placeholders.code')"
+                  :type="showCode ? 'text' : 'password'"
+                  :append-inner-icon="showCode ? 'mdi-eye-off' : 'mdi-eye'"
+                  :rules="codeRules"
+                  @click:append-inner="showCode = !showCode"
+                  density="compact"
+                  prepend-icon="mdi-key-chain-variant"
+                />
+              </v-col>-->
+            </v-row>
+
+            <!-- Paso 2: Detalles Adicionales -->
+            <v-row dense v-if="step === 1">
+              <v-col cols="12">
+                <v-text-field
+                  v-model="editedItem.geo_location"
+                  :label="$t('home.fields.geoLocation')"
+                  density="compact"
+                  variant="underlined"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" v-if="this.editedIndex != -1">
+                  <v-text-field
+                    v-model="editedItem.timezone"
+                    :label="$t('home.fields.timezone')"
+                    variant="underlined"
+                    density="compact"
+                  >
                   </v-text-field>
                 </v-col>
-                <v-col cols="12" md="4">
-                  <v-text-field v-model="editedItem.timezone" label="Zono Horaria" variant="underlined"
-                    density="compact" prepend-icon="mdi-clock-outline">
-                  </v-text-field>
-                </v-col>
-              </v-row>
+              <v-col cols="12">
+                <v-text-field
+                  v-model="editedItem.residents"
+                  :label="$t('home.fields.residents')"
+                  type="number"
+                  variant="underlined"
+                  density="compact"
+                ></v-text-field>
+              </v-col>
               <v-row>
                 <v-col cols="12" md="6">
-                  <v-file-input clearable v-model="file" ref="fileInput" label="Imagen del Hogar" variant="underlined"
-                    density="compact" name="file" accept=".png, .jpg, .jpeg" prepend-icon="mdi-image-outline"
-                    @change="onFileSelected">
-                  </v-file-input>
+                  <v-file-input
+                    v-model="file"
+                    ref="fileInput"
+                    :label="$t('home.fields.image')"
+                    variant="underlined"
+                    density="compact"
+                    name="file"
+                    accept=".png, .jpg, .jpeg"
+                    @change="onFileSelected"
+                    prepend-icon=""
+                  ></v-file-input>
                 </v-col>
                 <v-col cols="12" md="6">
                   <v-card elevation="6" class="mx-auto" max-width="210" max-height="120">
-                    <img v-if="imagenDisponible()" :src="imgedit" height="120" width="210">
+                    <img
+                      v-if="imagenDisponible()"
+                      :src="imgedit"
+                      height="120"
+                      width="210"
+                    />
                   </v-card>
                 </v-col>
               </v-row>
-            </v-window-item>
-            <!-- Pestaña de Personas -->
-            <v-window-item value="people">
-              <v-card elevation="3" class="mx-2">
-                <v-toolbar color="#03626C">
-                  <v-row align="center">
-                    <v-col cols="12" md="8" class="grow ml-4">
-                      <span class="text-subtitle-1"><strong>Relación de personas</strong></span>
-                    </v-col>
-                    <v-col cols="12" md="3" class="text-right">
-                      <v-btn class="text-subtitle-1 ml-10" color="white" variant="tonal" elevation="2"
-                        prepend-icon="mdi-plus-circle" @click="showAssiegnedPeople">
-                        Asignar Personas
-                      </v-btn>
-                    </v-col>
-                  </v-row>
-                </v-toolbar>
+            </v-row>
 
-                <v-card-text>
-                  <v-data-table :headers="headersPeople" :items="editedItem.people" class="elevation-1"
-                    style="max-height: 68vh; overflow-y: auto;" :items-per-page-text="'Elementos por páginas'"
-                    no-data-text="No hay datos disponibles" :loading="loading" loading-text="Cargando datos...">
-                    <template v-slot:item.actions="{ item }">
-                      <v-btn density="comfortable" icon="mdi-pencil" @click="editItemPeople(item)" color="#1976D2"
-                        variant="tonal" elevation="1" title="Editar Relación"></v-btn>
-                      <v-btn density="comfortable" icon="mdi-delete" @click="deleteItemPeople(item)" color="#DA7171"
-                        variant="tonal" elevation="1" title="Eliminar Relación"></v-btn>
-                    </template>
-                    <template v-slot:item.name="{ item }">
-                      <v-avatar class="mr-1" elevation="3" color="grey-lighten-4" size="large">
-                        <v-img :src="`${this.$axios.defaults.baseURL}images/${item.image}?t=${Date.now()}`"
-                          alt="image"></v-img>
-                      </v-avatar><!--+'?$'+Date.now()-->
-                      {{ item.name }}
-                    </template>
-                  </v-data-table>
-                </v-card-text>
-              </v-card>
-            </v-window-item>
-          </v-window>
-        </v-card-text>
+            <!-- Paso 3: Miembros del Hogar -->
+            <v-row :dense="roles.length > 4" v-if="step === 2">
+              <v-col
+                  v-for="role in roles"
+                  :key="role.id"
+                  cols="12"
+                  :sm="roles.length >= 2 ? 6 : 12"
+                  :md="getDynamicColSize(roles.length)"
+                >
+                  <v-card class="mx-auto" max-width="98%">
+                    <v-list v-model:selected="selectedItems[role.id]" @update:selected="updateSelection(role, $event)"
+                      select-strategy="leaf" multiple>
+                      <v-list-subheader>{{ role.nameRol }}</v-list-subheader>
+                      <v-list-item v-for="person in filteredPeople(role.id)" :key="`${role.id}-${person.id}`"
+                        :value="person.id" active-class="text-green"
+                        :prepend-avatar="`${$axios.defaults.baseURL}images/${person.imagePerson}`" class="py-3">
+                        <!-- Contenido del ítem - Nueva estructura Vuetify 3 -->
+                        <template v-slot:prepend>
+                          <v-avatar>
+                            <v-img :src="`${$axios.defaults.baseURL}images/${person.imagePerson}`" />
+                          </v-avatar>
+                        </template>
 
-        <v-divider></v-divider>
+                        <!-- Nombre y rol -->
+                        <v-list-item-title>{{ person.namePerson }}</v-list-item-title>
+                        <v-list-item-subtitle class="mb-1 text-high-emphasis opacity-100">
+                          {{ person.roleName }}
+                        </v-list-item-subtitle>
 
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="#DA7171" variant="flat" @click="close">Cancelar</v-btn>
-          <v-btn color="#03626C" variant="flat" :loading="loading" @click="save"
-            :disabled="(!valid || !editedItem.people.length)">Aceptar</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-form>
-  </v-dialog>
+                        <!-- Icono de selección -->
+                        <template v-slot:append>
+                          <v-icon v-if="isPersonSelected(person.id, role.id)" :color="
+                              getRoleIcon(role.id) === 'mdi-star'
+                                ? 'green-darken-3'
+                                : 'green-darken-3'
+                            ">
+                            {{
+                            getRoleIcon(role.id) === "mdi-star"
+                            ? "mdi-star"
+                            : "mdi-circle-slice-8"
+                            }}
+                          </v-icon>
+                          <v-icon v-else class="opacity-30" :color="
+                              getRoleIcon(role.id) === 'mdi-star'
+                                ? 'green-darken-3'
+                                : undefined
+                            ">
+                            {{
+                            getRoleIcon(role.id) === "mdi-star"
+                            ? "mdi-star-outline"
+                            : "mdi-checkbox-blank-circle-outline"
+                            }}
+                          </v-icon>
+                        </template>
+                      </v-list-item>
+                    </v-list>
+                  </v-card>
+                </v-col>
+            </v-row>
+
+            <div class="d-flex justify-space-between mt-8">
+              <v-btn variant="text" class="text-grey-darken-1" @click="step > 0 ? step-- : close()">
+                {{ step === 0 ? $t('buttons.close') : $t('buttons.previous') }}
+              </v-btn>
+
+              <v-btn 
+                variant="text" 
+                class="text-deep-purple-accent-3" 
+                @click="nextStep" 
+                :disabled="!valid || (step === 2 && !editedItem.people.length)">
+                {{
+                  step === 2 
+                    ? $t('buttons.saveAndClose') 
+                    : $t('buttons.next')
+                }}
+              </v-btn>
+            </div>
+          </v-col>
+        </v-row>
+      </v-card-text>
+    </v-card>
+  </v-form>
+</v-dialog>
   <v-dialog v-model="dialogDelete" max-width="500px">
     <v-card>
       <v-toolbar color="#DA7171">
@@ -278,8 +496,14 @@
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="#DA7171" variant="flat" @click="closeDelete">Cancelar</v-btn>
-        <v-btn color="#03626C" variant="flat" :loading="loading" @click="deleteItemConfirm">Aceptar</v-btn>
+        <v-btn color="grey" variant="flat" @click="closeDelete">Cancelar</v-btn>
+        <v-btn
+          color="#03626C"
+          variant="flat"
+          :loading="loading"
+          @click="deleteItemConfirm"
+          >Aceptar</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -294,20 +518,42 @@
           <v-container>
             <v-row>
               <v-col cols="12" md="12">
-                <v-autocomplete :no-data-text="'No hay datos disponibles'" v-model="selectedPerson" :items="people"
-                  label="Personas" prepend-icon="mdi-account" item-title="namePerson" item-value="id"
-                  variant="underlined" :rules="selectRules">
+                <v-autocomplete
+                  :no-data-text="'No hay datos disponibles'"
+                  v-model="selectedPerson"
+                  :items="people"
+                  label="Personas"
+                  prepend-icon="mdi-account"
+                  item-title="namePerson"
+                  item-value="id"
+                  variant="underlined"
+                  :rules="selectRules"
+                >
                   <template v-slot:item="{ props, item }">
-                    <v-list-item v-bind="props"
+                    <v-list-item
+                      v-bind="props"
                       :prepend-avatar="`${this.$axios.defaults.baseURL}images/${item.raw.imagePerson}`"
-                      :title="item.raw.namePerson">
+                      :title="item.raw.namePerson"
+                    >
                     </v-list-item>
                   </template>
                 </v-autocomplete>
-                <v-select v-model="selectedRole" :items="roles" item-title="nameRol" item-value="id" label="Rol"
-                  variant="underlined" density="compact" :rules="selectRules" prepend-icon="mdi-briefcase">
+                <v-select
+                  v-model="selectedRole"
+                  :items="roles"
+                  item-title="nameRol"
+                  item-value="id"
+                  label="Rol"
+                  variant="underlined"
+                  density="compact"
+                  :rules="selectRules"
+                  prepend-icon="mdi-briefcase"
+                >
                   <template v-slot:item="{ props, item }">
-                    <v-list-item v-bind="props" :subtitle="item.raw.descriptionRol"></v-list-item>
+                    <v-list-item
+                      v-bind="props"
+                      :subtitle="item.raw.descriptionRol"
+                    ></v-list-item>
                   </template>
                 </v-select>
               </v-col>
@@ -317,52 +563,102 @@
         <v-divider></v-divider>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="#DA7171" variant="flat" @click="closeAssignedPeople">Cancelar</v-btn>
-          <v-btn color="#03626C" variant="flat" @click="saveAssignedPeople" :disabled="!valid">Aceptar</v-btn>
+          <v-btn color="#DA7171" variant="flat" @click="closeAssignedPeople"
+            >Cancelar</v-btn
+          >
+          <v-btn
+            color="#03626C"
+            variant="flat"
+            @click="saveAssignedPeople"
+            :disabled="!valid"
+            >Aceptar</v-btn
+          >
         </v-card-actions>
       </v-card>
     </v-form>
   </v-dialog>
 
-  <v-dialog v-model="dialogAddPeople" max-width="400px">
+  <v-dialog v-model="dialogAddPeople" max-width="800px">
     <v-form ref="form" v-model="valid" enctype="multipart/form-data">
       <v-card>
         <v-toolbar color="#03626C">
-          <span class="text-subtitle-2 ml-4">Agregar Persona al Hogar</span>
+          <span class="text-subtitle-2 ml-4"
+            ><span> {{ $t("home.steps.members.subtitle") }}</span></span
+          >
         </v-toolbar>
         <v-card-text>
-          <v-container>
-            <v-row>
-              <v-col cols="12" md="12">
-                <v-autocomplete :no-data-text="'No hay datos disponibles'" v-model="person_id" :items="people"
-                  label="Personas" prepend-icon="mdi-account" item-title="namePerson" item-value="id"
-                  variant="underlined" :rules="selectRules">
-                  <template v-slot:item="{ props, item }">
-                    <v-list-item v-bind="props"
-                      :prepend-avatar="`${this.$axios.defaults.baseURL}images/${item.raw.imagePerson}`"
-                      :title="item.raw.namePerson">
-                      <v-list-item-subtitle class="d-flex flex-column" v-if="item.raw.roleName">
-                        <div>Rol: {{ item.raw.roleName }}</div>
-                      </v-list-item-subtitle>
-                    </v-list-item>
-                  </template>
-                </v-autocomplete>
-                <v-select v-model="role_id" :items="roles" item-title="nameRol" item-value="id" label="Rol"
-                  variant="underlined" density="compact" :rules="selectRules" prepend-icon="mdi-briefcase">
-                  <template v-slot:item="{ props, item }">
-                    <v-list-item v-bind="props" :subtitle="item.raw.descriptionRol"></v-list-item>
-                  </template>
-                </v-select>
-              </v-col>
+            <v-row :dense="roles.length > 4">
+              <v-col
+                  v-for="role in roles"
+                  :key="role.id"
+                  cols="12"
+                  :sm="roles.length >= 2 ? 6 : 12"
+                  :md="getDynamicColSize(roles.length)"
+                   style="max-height: 450px; overflow-y: auto;"
+                >
+                  <v-card class="mx-auto" max-width="98%">
+                    <v-list v-model:selected="selectedItems[role.id]" @update:selected="updateSelection(role, $event)"
+                      select-strategy="leaf" multiple>
+                      <v-list-subheader>{{ role.nameRol }}</v-list-subheader>
+                      <v-list-item v-for="person in filteredPeople(role.id)" :key="`${role.id}-${person.id}`"
+                        :value="person.id" active-class="text-green"
+                        :prepend-avatar="`${$axios.defaults.baseURL}images/${person.imagePerson}`" class="py-3">
+                        <!-- Contenido del ítem - Nueva estructura Vuetify 3 -->
+                        <template v-slot:prepend>
+                          <v-avatar>
+                            <v-img :src="`${$axios.defaults.baseURL}images/${person.imagePerson}`" />
+                          </v-avatar>
+                        </template>
+
+                        <!-- Nombre y rol -->
+                        <v-list-item-title>{{ person.namePerson }}</v-list-item-title>
+                        <v-list-item-subtitle class="mb-1 text-high-emphasis opacity-100">
+                          {{ person.roleName }}
+                        </v-list-item-subtitle>
+
+                        <!-- Icono de selección -->
+                        <template v-slot:append>
+                          <v-icon v-if="isPersonSelected(person.id, role.id)" :color="
+                              getRoleIcon(role.id) === 'mdi-star'
+                                ? 'green-darken-3'
+                                : 'green-darken-3'
+                            ">
+                            {{
+                            getRoleIcon(role.id) === "mdi-star"
+                            ? "mdi-star"
+                            : "mdi-circle-slice-8"
+                            }}
+                          </v-icon>
+                          <v-icon v-else class="opacity-30" :color="
+                              getRoleIcon(role.id) === 'mdi-star'
+                                ? 'green-darken-3'
+                                : undefined
+                            ">
+                            {{
+                            getRoleIcon(role.id) === "mdi-star"
+                            ? "mdi-star-outline"
+                            : "mdi-checkbox-blank-circle-outline"
+                            }}
+                          </v-icon>
+                        </template>
+                      </v-list-item>
+                    </v-list>
+                  </v-card>
+                </v-col>
             </v-row>
-          </v-container>
         </v-card-text>
         <v-divider></v-divider>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="#DA7171" variant="flat" @click="closeAddPeople">Cancelar</v-btn>
-          <v-btn color="#03626C" variant="flat" @click="saveAddPeople" :disabled="!valid"
-            :loading="loading">Aceptar</v-btn>
+          <v-btn color="grey" variant="flat" @click="closeAddPeople">Cancelar</v-btn>
+          <v-btn
+            color="#03626C"
+            variant="flat"
+            @click="save()"
+            :disabled="!this.editedItem.people.length > 0"
+            :loading="loading"
+            >Aceptar</v-btn
+          >
         </v-card-actions>
       </v-card>
     </v-form>
@@ -371,16 +667,17 @@
 
 <script>
 import { handleRequest } from "@/utils/api"; // Ruta al archivo
-import _ from 'lodash';
+import LocalStorageService from "@/LocalStorageService";
+import _ from "lodash";
 export default {
   data: () => ({
     snackbar: false,
-    sb_type: '',
-    sb_message: '',
+    sb_type: "",
+    sb_message: "",
     showCode: false,
     sb_timeout: 2000,
-    sb_title: '',
-    sb_icon: '',
+    sb_title: "",
+    sb_icon: "",
     valid: true,
     loading: false,
     btnLoading: false,
@@ -388,7 +685,7 @@ export default {
     dialogAssignedPeople: false,
     dialogDelete: false,
     file: null,
-    imgMiniatura: '',
+    imgMiniatura: "",
     homes: [],
     hometypes: [],
     status: [],
@@ -397,69 +694,71 @@ export default {
     persons: [],
     roles: [],
     data: {},
+    selectedItems: {},
+    step: 0,
     person_id: null,
     role_id: null,
     dialogAddPeople: false,
     selectedPerson: null, // Persona seleccionada en el formulario
-    selectedRole: null,   // Rol seleccionado en el formulario
-    selectedHome: null,   // Rol seleccionado en el formulario
+    selectedRole: null, // Rol seleccionado en el formulario
+    selectedHome: null, // Rol seleccionado en el formulario
     headers: [
-      { title: 'Nombre', value: 'name', width: '20%' },
-      { title: 'Dirección', value: 'address', width: '25%' },
-      { title: 'Ranking', value: 'percent', width: '5%' },
-      { title: 'Personas', value: 'people', width: '15%' },
-      { title: 'Tipo', value: 'nameHomeType', width: '10%' },
-      { title: 'Estado', value: 'nameStatus', width: '10%' },
-      { title: 'Acciones', value: 'actions', sortable: false, width: '15%' },
+      { title: "Nombre", value: "name", width: "20%" },
+      { title: "Dirección", value: "address", width: "25%" },
+      { title: "Ranking", value: "percent", width: "5%" },
+      { title: "Personas", value: "people", width: "15%" },
+      { title: "Tipo", value: "nameHomeType", width: "10%" },
+      { title: "Estado", value: "nameStatus", width: "10%" },
+      { title: "Acciones", value: "actions", sortable: false, width: "15%" },
     ],
     headersPeople: [
-      { title: 'Nombre', value: 'name', width: '60%' },
-      { title: 'Rol', value: 'roleName', width: '20%' },
-      { title: 'Acciones', value: 'actions', sortable: false, width: '20%' },
+      { title: "Nombre", value: "name", width: "60%" },
+      { title: "Rol", value: "roleName", width: "20%" },
+      { title: "Acciones", value: "actions", sortable: false, width: "20%" },
     ],
     editedItem: {
-      id: '',
-      name: '',
-      address: '',
-      home_type_id: '',
-      status_id: '',
+      id: "",
+      name: "",
+      address: "",
+      home_type_id: "",
+      status_id: "",
       person_id: null,
-      residents: '',
-      geo_location: '',
-      timezone: '',
+      residents: "",
+      geo_location: "",
+      timezone: "",
       image: null,
       people: [],
-      code: ''
+      code: "",
     },
 
     defaultItem: {
-      id: '',
-      name: '',
-      address: '',
-      home_type_id: '',
-      status_id: '',
+      id: "",
+      name: "",
+      address: "",
+      home_type_id: "",
+      status_id: "",
       person_id: null,
-      residents: '',
-      geo_location: '',
-      timezone: '',
+      residents: "",
+      geo_location: "",
+      timezone: "",
       image: null,
       people: [],
-      code: ''
+      code: "",
     },
 
     originalItem: {
-      id: '',
-      name: '',
-      address: '',
-      home_type_id: '',
-      status_id: '',
+      id: "",
+      name: "",
+      address: "",
+      home_type_id: "",
+      status_id: "",
       person_id: null,
-      residents: '',
-      geo_location: '',
-      timezone: '',
+      residents: "",
+      geo_location: "",
+      timezone: "",
       image: null,
       people: [],
-      code: ''
+      code: "",
     },
 
     tab: null,
@@ -468,71 +767,97 @@ export default {
     input: null,
     input2: null,
     editedIndex: -1,
-    search: '',
+    search: "",
     nameRules: [
       (v) => !!v || "El campo es requerido",
-      (v) => (v && v.length <= 50) ||
-        "El campo debe tener menos de 51 caracteres",
-      (v) => (v && v.length >= 3) ||
-        "El campo debe tener al menos de 3 caracteres",
+      (v) => (v && v.length <= 50) || "El campo debe tener menos de 51 caracteres",
+      (v) => (v && v.length >= 3) || "El campo debe tener al menos de 3 caracteres",
     ],
     selectRules: [(v) => !!v || "Seleccionar al menos un elemento"],
-     codeRules: [
-      v => !v || v.length >= 8 || 'El código debe tener al menos 8 caracteres',
+    codeRules: [
+      (v) => !v || v.length >= 8 || "El código debe tener al menos 8 caracteres",
       //v => !v || /^[a-zA-Z0-9]+$/.test(v) || 'Solo se permiten letras y números'
     ],
   }),
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? 'Agregar Nuevo Hogar' : 'Editar Hogar';
+      return this.editedIndex === -1 ? "Agregar Nuevo Hogar" : "Editar Hogar";
     },
     formTitlePerson() {
-      return this.tittlePerson === -1 ? 'Asignar Personas al Hogar' : 'Editar rol de la persona';
+      return this.tittlePerson === -1
+        ? "Asignar Personas al Hogar"
+        : "Editar rol de la persona";
     },
     imgedit() {
       return this.imgMiniatura;
     },
   },
   mounted() {
+    this.home_id = JSON.parse(LocalStorageService.getItem("home_id"));
+    this.person_id = JSON.parse(LocalStorageService.getItem("person_id"));
     this.initialize();
   },
   methods: {
+    getDynamicColSize(roleCount) {
+    if (roleCount <= 2) return 6;      // 2 columnas
+    if (roleCount <= 4) return 4;      // 3 columnas
+    if (roleCount <= 6) return 3;      // 4 columnas
+    return 2;                          // Máximo 6 columnas
+  },
+    nextStep() {
+      if (this.step < 2) { // 0=basic, 1=details, 2=members
+        this.step++
+      } else {
+        this.save()
+      }
+    },
+    getTypeColor(type) {
+      const colorMap = {
+        Tarea: "warning",
+        Meta: "purple",
+        // Agrega más tipos si es necesario
+      };
+      return colorMap[type] || "brown"; // Color por defecto
+    },
     isImage(icon) {
       // Validar si el valor es una URL válida (puedes personalizar esta lógica)
-      return typeof icon === "string" &&
-        (icon.startsWith("http") || /\.(png|jpe?g|gif|svg|webp)$/i.test(icon));
+      return (
+        typeof icon === "string" &&
+        (icon.startsWith("http") || /\.(png|jpe?g|gif|svg|webp)$/i.test(icon))
+      );
     },
     getIconName(icon) {
-      if (!icon) return 'mdi-help-circle'; // Ícono por defecto si no hay valor
+      if (!icon) return "mdi-help-circle"; // Ícono por defecto si no hay valor
       // Si el ícono tiene el prefijo "MdiIcons.", extraer solo el nombre
-      if (icon.startsWith('MdiIcons.')) {
-        return `mdi-${icon.split('.')[1].toLowerCase()}`;
+      if (icon.startsWith("MdiIcons.")) {
+        return `mdi-${icon.split(".")[1].toLowerCase()}`;
       }
       // Si el ícono ya está en formato "mdi-*", devolverlo tal cual
-      if (icon.startsWith('mdi-')) {
+      if (icon.startsWith("mdi-")) {
         return icon;
       }
       // En otros casos, devolver un ícono por defecto
-      return 'mdi-help-circle';
+      return "mdi-help-circle";
     },
     async showAssiegnedPeople() {
       this.tittlePerson = -1;
       // Filtrar las personas que no están en editedItem.people usando el 'id' para la comparación
-      this.people = this.people.filter(person => {
+      this.people = this.people.filter((person) => {
         // Verificar si la persona no está en editedItem.people
-        return !this.editedItem.people.some(editedPerson => editedPerson.id === person.id);
+        return !this.editedItem.people.some(
+          (editedPerson) => editedPerson.id === person.id
+        );
       });
       this.dialogAssignedPeople = true;
     },
     async showAdd() {
-      this.file = null,
-        this.editedIndex = -1;
-      this.imgMiniatura = '',
-        this.data = {};
+      this.step = 0;
+      (this.file = null), (this.editedIndex = -1);
+      (this.imgMiniatura = ""), (this.data = {});
       try {
         const result = await handleRequest({
-          endpoint: 'hometype-status-people-apk',
-          method: 'GET'
+          endpoint: "hometype-status-people-apk",
+          method: "GET",
         });
 
         if (result.success) {
@@ -547,11 +872,27 @@ export default {
           this.people = [];
           this.roles = [];
           this.hometypes = [];
-          this.showAlert('info', result.message || 'No hay datos disponibles.', 3000);
+          this.showAlert("info", result.message || "No hay datos disponibles.", 3000);
         }
       } catch (error) {
-        this.showAlert('error', 'Ocurrió un error inesperado al cargar los datos.', 3000);
+        this.showAlert("error", "Ocurrió un error inesperado al cargar los datos.", 3000);
       } finally {
+        // Crear el objeto de persona con el rol "Padre"
+        /*const newMember = {
+          id: this.person_id,
+          roleId: fatherRole.id,
+          roleName: fatherRole.nameRol,
+        };*/
+        const activeStatus = this.status.find(
+            (status) => status.nameStatus === "Activa" || status.nameStatus.toLowerCase() === "activa"
+          );
+
+          if (activeStatus) {
+            this.editedItem.status_id = activeStatus.id;
+          }
+           const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      this.editedItem.timezone = timezone;
+      this.initializeSelections();
         this.dialog = true;
       }
     },
@@ -564,6 +905,87 @@ export default {
       this.file = null;
       this.imgMiniatura = "";
       this.editedIndex = -1;
+      this.dialogAddPeople = false;
+    },
+      filteredPeople(roleId) {
+      return this.people.filter((person) => {
+        const assignedPerson = this.editedItem.people.find((p) => p.id === person.id);
+        return !assignedPerson || assignedPerson.roleId === roleId;
+      });
+    },
+     isPersonSelected(personId, roleId) {
+      return this.editedItem.people.some((p) => p.id === personId && p.roleId === roleId);
+    },
+    getRoleIcon(roleId) {
+      const role = this.roles.find((r) => r.id === roleId);
+      if (!role) return "mdi-account";
+
+      switch (role.name.toLowerCase()) {
+        case "administrador":
+          return "mdi-star";
+        case "miembro":
+          return "mdi-account-group";
+        default:
+          return "mdi-account";
+      }
+    },
+    updateSelection(role, selectedIds) {
+      console.log("Selection changed:", { role, selectedIds });
+
+      // Eliminar personas de este rol que ya no están seleccionadas
+      this.editedItem.people = this.editedItem.people.filter(
+        (p) => p.roleId !== role.id || selectedIds.includes(p.id)
+      );
+
+      // Agregar nuevas selecciones
+      selectedIds.forEach((personId) => {
+        if (
+          !this.editedItem.people.some((p) => p.id === personId && p.roleId === role.id)
+        ) {
+          const person = this.people.find((p) => p.id === personId);
+          if (person) {
+            this.editedItem.people.push({
+              id: person.id,
+              name: person.namePerson,
+              image: person.imagePerson,
+              roleId: role.id,
+              roleName: role.nameRol,
+            });
+          }
+        }
+      });
+
+      console.log("Updated people:", this.editedItem.people);
+    },
+    initializeSelections() {
+      // Verificar si person_id no está en editedItem.people
+      if (
+        this.person_id &&
+        !this.editedItem.people.some((p) => p.id === this.person_id)
+      ) {
+        // Buscar el rol "Responsable" en los roles disponibles
+        const responsableRole = this.roles.find((role) => role.name === "Administrador");
+        // Buscar la persona correspondiente al person_id (asumiendo que tienes acceso a las personas)
+        const person = this.people.find((p) => p.id === this.person_id); // Asegúrate de tener this.people disponible
+
+        if (responsableRole && person) {
+          // Agregar la persona con el rol de Responsable y toda la estructura requerida
+          this.editedItem.people.push({
+            id: person.id,
+            name: person.namePerson,
+            image: person.imagePerson,
+            roleId: responsableRole.id,
+            roleName: responsableRole.nameRol,
+          });
+        }
+      }
+
+      // Inicializar selectedItems para cada rol
+      this.roles.forEach((role) => {
+        this.selectedItems[role.id] = this.editedItem.people
+          .filter((p) => p.roleId === role.id)
+          .map((p) => p.id);
+      });
     },
     closeAssignedPeople() {
       this.dialogAssignedPeople = false;
@@ -573,8 +995,8 @@ export default {
     },
     saveAssignedPeople() {
       if (this.selectedPerson && this.selectedRole) {
-        const person = this.people.find(p => p.id === this.selectedPerson);
-        const role = this.roles.find(r => r.id === this.selectedRole);
+        const person = this.people.find((p) => p.id === this.selectedPerson);
+        const role = this.roles.find((r) => r.id === this.selectedRole);
 
         if (!person || !role) {
           console.error("Persona o rol no encontrado.");
@@ -590,8 +1012,9 @@ export default {
           roleName: role.nameRol,
         };
         // Verificar si la relación ya existe en editedItem.people
-        const existingPersonIndex = this.editedItem.people.findIndex(p =>
-          p.id === newPerson.id);
+        const existingPersonIndex = this.editedItem.people.findIndex(
+          (p) => p.id === newPerson.id
+        );
 
         if (existingPersonIndex === -1) {
           // No existe, por lo tanto, se agrega uno nuevo
@@ -612,7 +1035,7 @@ export default {
       this.tittlePerson = 1;
     },
     deleteItemPeople(item) {
-      const index = this.editedItem.people.findIndex(p => p.id === item.id);
+      const index = this.editedItem.people.findIndex((p) => p.id === item.id);
       if (index !== -1) {
         this.editedItem.people.splice(index, 1);
       }
@@ -622,8 +1045,8 @@ export default {
       try {
         this.loading = true;
         const result = await handleRequest({
-          endpoint: 'person-homes',
-          method: 'POST'
+          endpoint: "person-homes",
+          method: "POST",
         });
 
         if (result.success) {
@@ -632,68 +1055,89 @@ export default {
         } else {
           // Si no hay datos, asignamos un array vacío
           this.homes = [];
-          this.showAlert('success', result.message || 'No hay hogares disponibles.', 3000);
+          this.showAlert(
+            "success",
+            result.message || "No hay hogares disponibles.",
+            3000
+          );
         }
       } catch (error) {
         this.loading = false;
         // Captura de errores no controlados
-        this.showAlert('error', 'Ocurrió un error inesperado al cargar las tareas.', 3000);
+        this.showAlert(
+          "error",
+          "Ocurrió un error inesperado al cargar las tareas.",
+          3000
+        );
       } finally {
         this.loading = false;
       }
     },
     getTypeIcon(type) {
       switch (type) {
-        case 'home':
-          return 'mdi-clipboard-text'; // Ícono para tareas
-        case 'Sistema':
-          return 'mdi-cog'; // Ícono para productos
-        case 'Home':
-          return 'mdi-home'; // Ícono para hogar
+        case "home":
+          return "mdi-clipboard-text"; // Ícono para tareas
+        case "Sistema":
+          return "mdi-cog"; // Ícono para productos
+        case "Home":
+          return "mdi-home"; // Ícono para hogar
         default:
-          return 'mdi-help-circle'; // Ícono por defecto
+          return "mdi-help-circle"; // Ícono por defecto
       }
     },
     getTypeDetails(type) {
       switch (type) {
-        case 'home':
-          return { icon: 'mdi-clipboard-text', name: 'Tarea' }; // Ícono y nombre para tareas
-        case 'Sistema':
-          return { icon: 'mdi-cog', name: 'Sistema' }; // Ícono y nombre para sistema
-        case 'Home':
-          return { icon: 'mdi-home', name: 'Hogar' }; // Ícono y nombre para hogar
+        case "home":
+          return { icon: "mdi-clipboard-text", name: "Tarea" }; // Ícono y nombre para tareas
+        case "Sistema":
+          return { icon: "mdi-cog", name: "Sistema" }; // Ícono y nombre para sistema
+        case "Home":
+          return { icon: "mdi-home", name: "Hogar" }; // Ícono y nombre para hogar
         default:
-          return { icon: 'mdi-help-circle', name: 'Desconocido' }; // Ícono y nombre por defecto
+          return { icon: "mdi-help-circle", name: "Desconocido" }; // Ícono y nombre por defecto
       }
     },
-    getTypeColor(type) {
+    /*getTypeColor(type) {
       switch (type) {
-        case 'Task':
-          return '#FFB300'; // Color sugerente para tareas (amarillo)
-        case 'Sistema':
-          return '#43A047'; // Color sugerente para productos (verde)
-        case 'Home':
-          return '#03626C'; // Color base para hogar
+        case "Task":
+          return "#FFB300"; // Color sugerente para tareas (amarillo)
+        case "Sistema":
+          return "#43A047"; // Color sugerente para productos (verde)
+        case "Home":
+          return "#03626C"; // Color base para hogar
         default:
-          return '#E0E0E0'; // Color gris claro para otros tipos
+          return "#E0E0E0"; // Color gris claro para otros tipos
       }
-    },
+    },*/
     async save() {
       this.loading = true;
       if (this.editedIndex === -1) {
         this.valid = false;
         const fieldsToUpdate = [
-          'name', 'address', 'home_type_id', 'status_id', 'category_id', 'residents', 'geo_location', 'timezone', 'people', 'image'
+          "name",
+          "address",
+          "home_type_id",
+          "status_id",
+          "category_id",
+          "residents",
+          "geo_location",
+          "timezone",
+          "people",
+          "image",
         ];
         let updatedFields = Object.keys(this.editedItem)
-          .filter((key) => fieldsToUpdate.includes(key) && this.editedItem[key] !== this.originalItem[key])
+          .filter(
+            (key) =>
+              fieldsToUpdate.includes(key) &&
+              this.editedItem[key] !== this.originalItem[key]
+          )
           .reduce((obj, key) => {
-            if (key === 'people') {
+            if (key === "people") {
               // Transformar el campo `people`
-              obj[key] = this.editedItem.people.map(person => ({
-                person_id: Number(person.id),       // Asegurar que sea un número
+              obj[key] = this.editedItem.people.map((person) => ({
+                person_id: Number(person.id), // Asegurar que sea un número
                 role_id: Number(person.roleId),
-                roleName: person.roleName
+                roleName: person.roleName,
               }));
             } else {
               obj[key] = this.editedItem[key];
@@ -703,7 +1147,6 @@ export default {
 
         // Agregar campos adicionales si es necesario
         if (Object.keys(updatedFields).length > 0) {
-
           if (this.file) {
             updatedFields.image = this.editedItem.image;
           }
@@ -711,7 +1154,7 @@ export default {
           // Crear el objeto FormData
           const formData = new FormData();
           for (let key in updatedFields) {
-            if (key === 'people') {
+            if (key === "people") {
               // Agregar cada elemento del array `people` al FormData
               updatedFields[key].forEach((person, index) => {
                 for (const [personKey, value] of Object.entries(person)) {
@@ -725,9 +1168,9 @@ export default {
 
           try {
             const result = await handleRequest({
-              endpoint: 'home',
-              method: 'POST',
-              data: formData
+              endpoint: "home",
+              method: "POST",
+              data: formData,
             });
 
             // Manejo de la respuesta según el resultado
@@ -742,7 +1185,11 @@ export default {
           } catch (error) {
             this.loading = false;
             // Este bloque captura errores inesperados fuera del manejo estándar
-            this.showAlert("error", "Ocurrió un error inesperado al procesar la solicitud.", 3000);
+            this.showAlert(
+              "error",
+              "Ocurrió un error inesperado al procesar la solicitud.",
+              3000
+            );
           }
         } else {
           this.loading = false;
@@ -751,21 +1198,33 @@ export default {
       } else {
         this.valid = false;
         const fieldsToUpdate = [
-          'name', 'address', 'home_type_id', 'status_id', 'category_id', 'residents', 'geo_location', 'timezone', 'people', 'image'
+          "name",
+          "address",
+          "home_type_id",
+          "status_id",
+          "category_id",
+          "residents",
+          "geo_location",
+          "timezone",
+          "people",
+          "image",
         ];
 
         let updatedFields = Object.keys(this.editedItem)
-          .filter((key) => fieldsToUpdate.includes(key) && (
-            key !== 'people' ? this.editedItem[key] !== this.originalItem[key] :
-              this.arePeopleDifferent(this.originalItem[key], this.editedItem[key]) // Compara el array people
-          ))
+          .filter(
+            (key) =>
+              fieldsToUpdate.includes(key) &&
+              (key !== "people"
+                ? this.editedItem[key] !== this.originalItem[key]
+                : this.arePeopleDifferent(this.originalItem[key], this.editedItem[key])) // Compara el array people
+          )
           .reduce((obj, key) => {
-            if (key === 'people') {
+            if (key === "people") {
               // Transformar el campo `people`
-              obj[key] = this.editedItem.people.map(person => ({
-                person_id: person.id ? Number(person.id) : Number(person.id),       // Asegurar que sea un número
-                role_id: Number(person.roleId),            // Asegurar que sea un número
-                roleName: person.roleName
+              obj[key] = this.editedItem.people.map((person) => ({
+                person_id: person.id ? Number(person.id) : Number(person.id), // Asegurar que sea un número
+                role_id: Number(person.roleId), // Asegurar que sea un número
+                roleName: person.roleName,
               }));
             } else {
               obj[key] = this.editedItem[key];
@@ -779,7 +1238,7 @@ export default {
           }
           const formData = new FormData();
           for (let key in updatedFields) {
-            if (key === 'people') {
+            if (key === "people") {
               // Agregar cada elemento del array `people` al FormData
               updatedFields[key].forEach((person, index) => {
                 for (const [personKey, value] of Object.entries(person)) {
@@ -792,9 +1251,9 @@ export default {
           }
           try {
             const result = await handleRequest({
-              endpoint: 'home-update',
-              method: 'POST',
-              data: formData
+              endpoint: "home-update",
+              method: "POST",
+              data: formData,
             });
 
             // Manejo de la respuesta según el resultado
@@ -811,7 +1270,11 @@ export default {
             this.loading = false;
             this.editedIndex = -1;
             // Este bloque captura errores inesperados fuera del manejo estándar
-            this.showAlert("error", "Ocurrió un error inesperado al procesar la solicitud.", 3000);
+            this.showAlert(
+              "error",
+              "Ocurrió un error inesperado al procesar la solicitud.",
+              3000
+            );
           }
         } else {
           this.editedIndex = -1;
@@ -831,6 +1294,7 @@ export default {
     async editItem(item) {
       this.editedIndex = 1;
       this.btnLoading = true;
+      this.step = 0;
       // Filtrar las personas que tengan 'select' igual a 1
       //const selectedPeople = item.people.filter(person => person.select === 1);
 
@@ -852,14 +1316,14 @@ export default {
           // Asignar la imagen cargada a imgMiniatura
           this.imgMiniatura = `${this.$axios.defaults.baseURL}images/${item.image}`;
         } catch (error) {
-          this.showAlert('error', 'Error al cargar la imagen.', 3000);
+          this.showAlert("error", "Error al cargar la imagen.", 3000);
         }
       };
       this.data = {};
       try {
         const result = await handleRequest({
-          endpoint: 'hometype-status-people-apk',
-          method: 'GET'
+          endpoint: "hometype-status-people-apk",
+          method: "GET",
         });
 
         if (result.success) {
@@ -875,12 +1339,17 @@ export default {
           this.roles = [];
           this.hometypes = [];
           this.btnLoading = false;
-          this.showAlert('info', result.message || 'No hay datos disponibles.', 3000);
+          this.showAlert("info", result.message || "No hay datos disponibles.", 3000);
         }
       } catch (error) {
         this.btnLoading = false;
-        this.showAlert('error', 'Ocurrió un error inesperado al cargar los datos.', 3000);
+        this.showAlert("error", "Ocurrió un error inesperado al cargar los datos.", 3000);
       } finally {
+        if (this.editedItem.timezone === null) {
+         const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          this.editedItem.timezone = timezone; 
+        }
+        this.initializeSelections();
         this.dialog = true;
         this.btnLoading = false;
       }
@@ -891,22 +1360,22 @@ export default {
       this.dialogDelete = true;
     },
     closeDelete() {
-      this.dialogDelete = false
+      this.dialogDelete = false;
       this.$nextTick(() => {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.originalItem = Object.assign({}, this.defaultItem);
-      })
+      });
     },
     async deleteItemConfirm() {
       this.loading = true;
       try {
         let request = {
-          id: this.editedItem.id
+          id: this.editedItem.id,
         };
         const result = await handleRequest({
-          endpoint: 'home-destroy',
-          method: 'POST',
-          data: request
+          endpoint: "home-destroy",
+          method: "POST",
+          data: request,
         });
 
         // Manejo de la respuesta según el resultado
@@ -919,7 +1388,11 @@ export default {
         }
       } catch (error) {
         // Este bloque captura errores inesperados fuera del manejo estándar
-        this.showAlert("error", "Ocurrió un error inesperado al procesar la solicitud.", 3000);
+        this.showAlert(
+          "error",
+          "Ocurrió un error inesperado al procesar la solicitud.",
+          3000
+        );
       } finally {
         this.loading = false;
         this.closeDelete();
@@ -947,7 +1420,7 @@ export default {
       this.snackbar = true;
     },
     imagenDisponible() {
-      if (this.imgedit !== undefined && this.imgedit !== '') {
+      if (this.imgedit !== undefined && this.imgedit !== "") {
         // Intenta cargar la imagen en un elemento oculto para verificar si está disponible
         let img = new Image();
         img.src = this.imgedit;
@@ -960,7 +1433,7 @@ export default {
       // Validar el tamaño del archivo (500 KB máximo)
       const maxSize = 500 * 1024; // 500 KB en bytes
       if (file && file.size > maxSize) {
-        this.showAlert('warning', 'El archivo de imagen debe ser de máximo 500 KB', 3000);
+        this.showAlert("warning", "El archivo de imagen debe ser de máximo 500 KB", 3000);
         return; // Detener el proceso si el archivo es demasiado grande
       }
       this.editedItem.image = file;
@@ -971,16 +1444,20 @@ export default {
       let reader = new FileReader();
       reader.onload = (e) => {
         this.imgMiniatura = e.target.result;
-      }
+      };
       reader.readAsDataURL(file);
     },
     //asignar personas
     async addPeople(item) {
+      this.editedIndex = 1;
       this.selectedHome = item.id;
+        this.originalItem = _.cloneDeep(item);
+        this.editedItem = _.cloneDeep(item);
+
       try {
         const result = await handleRequest({
-          endpoint: 'hometype-status-people-apk',
-          method: 'GET'
+          endpoint: "hometype-status-people-apk",
+          method: "GET",
         });
 
         if (result.success) {
@@ -995,18 +1472,12 @@ export default {
           this.people = [];
           this.roles = [];
           this.hometypes = [];
-          this.showAlert('info', result.message || 'No hay datos disponibles.', 3000);
+          this.showAlert("info", result.message || "No hay datos disponibles.", 3000);
         }
       } catch (error) {
-        this.showAlert('error', 'Ocurrió un error inesperado al cargar los datos.', 3000);
+        this.showAlert("error", "Ocurrió un error inesperado al cargar los datos.", 3000);
       } finally {
-        this.originalItem = _.cloneDeep(item);
-        this.editedItem = _.cloneDeep(item);
-
-        this.people = this.people.filter(person => {
-          // Verificar si la persona no está en editedItem.people
-          return !this.editedItem.people.some(editedPerson => (editedPerson.id === person.id && editedPerson.role_id !== 0));
-        });
+        this.initializeSelections();
         this.dialogAddPeople = true;
       }
     },
@@ -1023,19 +1494,19 @@ export default {
       this.data.role_id = this.role_id;
       this.data.home_id = this.selectedHome;
       // Buscar el rol correspondiente en el array roles
-      const selectedRole = this.roles.find(role => role.id === this.role_id);
+      const selectedRole = this.roles.find((role) => role.id === this.role_id);
 
       // Agregar el nombre del rol a this.data
       if (selectedRole) {
         this.data.roleName = selectedRole.nameRol;
       } else {
-        this.data.roleName = 'Rol no encontrado'; // O algún valor por defecto
+        this.data.roleName = "Rol no encontrado"; // O algún valor por defecto
       }
       try {
         const result = await handleRequest({
-          endpoint: 'home-person',
-          method: 'POST',
-          data: this.data
+          endpoint: "home-person",
+          method: "POST",
+          data: this.data,
         });
 
         // Manejo de la respuesta según el resultado
@@ -1048,7 +1519,11 @@ export default {
         }
       } catch (error) {
         // Este bloque captura errores inesperados fuera del manejo estándar
-        this.showAlert("error", "Ocurrió un error inesperado al procesar la solicitud.", 3000);
+        this.showAlert(
+          "error",
+          "Ocurrió un error inesperado al procesar la solicitud.",
+          3000
+        );
         this.closeAddPeople();
       } finally {
         this.closeAddPeople();
@@ -1058,6 +1533,47 @@ export default {
 };
 </script>
 <style scoped>
+.icono-concavo {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  margin-right: 2px;
+  color: white;
+  /* Mantenemos solo el efecto cóncavo en el ícono 
+  box-shadow: inset;*/
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.icono-concavo::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  border-radius: 8px;
+  background: transparent;
+}
+.icono-concavo:hover .img-concava {
+  filter: brightness(1.1);
+}
+.img-concava {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Asegura que la imagen cubra el espacio */
+  border-radius: 8px; /* Para que coincida con el contenedor */
+}
+.modal-imagen {
+  background: transparent !important;
+  box-shadow: none !important;
+}
 .avatar-border {
   border: 2px solid #000;
   /* Aquí se define el borde */
@@ -1076,7 +1592,7 @@ export default {
 
 .avatar-item {
   margin-right: -5px;
-  border: 2px solid #4CAF50;
+  border: 2px solid #4caf50;
   /* Cambia el color del borde según desees */
   border-radius: 50%;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -1101,7 +1617,7 @@ export default {
 .custom-tooltip {
   background-color: #f5f5f5 !important;
   /* Fondo claro */
-  color: #E5E5E5 !important;
+  color: #e5e5e5 !important;
   /* Texto oscuro */
   border-radius: 8px;
   /* Bordes redondeados */
@@ -1112,7 +1628,7 @@ export default {
 }
 
 .selected-tab {
-  background-color: #03626C;
+  background-color: #03626c;
   /* Fondo del tab seleccionado */
   color: white;
   /* Texto blanco */

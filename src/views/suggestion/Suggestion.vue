@@ -26,6 +26,7 @@
       <v-card-text>
     <!-- Encabezado -->
     <v-row justify="space-between" align="center" class="mb-6">
+        <v-col cols="12" class="d-flex justify-space-between align-center">
       <h2 class="text-body-2 font-weight-bold">{{ $t("viewTitles.suggestions") }}</h2>
       <v-btn
         icon
@@ -36,6 +37,7 @@
       >
         <v-icon>mdi-plus</v-icon>
       </v-btn>
+      </v-col>
     </v-row>
 
     <template v-if="filteredSuggestions.length > 0">

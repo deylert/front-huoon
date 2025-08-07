@@ -96,9 +96,9 @@ const spanish = {
         title: "Sugerencias",
         description: "Recomendaciones y propuestas",
       },
-      history: {
-        title: "Historia Clínica",
-        description: "Registros médicos y evolución de salud",
+      health: {
+       title: "Salud",
+       description: "Registros médicos y evolución de salud",
       },
     },
     viewTitles: {
@@ -938,6 +938,7 @@ const spanish = {
           view: "Ver archivo",
           edit: "Editar",
           delete: "Eliminar",
+          download: "Descargar Archivo"
         },
         types: {
           personal: "Personal",
@@ -1106,8 +1107,11 @@ const spanish = {
       },
     },
     home: {
-      create: {
-        title: "Crear un nuevo hogar",
+      //create: {
+        title: "Hogares asociados",  // Cambiado de "Listado de Almacenes"
+        empty: "No hay hogares registrados",  // Ajustado
+        search: "Buscar hogares...",  // Ajustado,
+        addButton: "Crear un nuevo hogar",
         instructions:
           "Complete todos los campos requeridos para crear su hogar",
         steps: {
@@ -1134,6 +1138,7 @@ const spanish = {
           residents: "Número de residentes",
           image: "Imagen del hogar",
           status: "Estado",
+          ranking: "Ranking en el hogar"
         },
         membersTable: {
           avatar: "Foto",
@@ -1147,6 +1152,7 @@ const spanish = {
           previous: "Anterior",
           next: "Siguiente",
           create: "Crear Hogar",
+          edit: "Editar Hogar",
           addMembers: "Agregar Miembros",
         },
         validation: {
@@ -1155,7 +1161,7 @@ const spanish = {
           codeRequired: "El código de acceso es requerido",
           codeMinLength: "El código debe tener al menos 8 caracteres",
         },
-      },
+      //},
       types: {
         house: "Casa",
         apartment: "Departamento",

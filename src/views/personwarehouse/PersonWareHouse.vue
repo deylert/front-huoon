@@ -77,6 +77,8 @@
         <v-row>
         <v-divider class="my-4" />
 
+        </v-row>
+      </v-card-text>
         <SuggestionsList
           :items="suggestions"
           :title="$t('finances.sections.suggestions')"
@@ -86,8 +88,6 @@
             <ChatTask :taskData="taskData" @close-dialog="onClose" />
           </template>
         </SuggestionsList>
-        </v-row>
-      </v-card-text>
     </v-card>
   </v-container>
   <v-dialog v-model="dialog" fullscreen persistent transition="dialog-bottom-transition"

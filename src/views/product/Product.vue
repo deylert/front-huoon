@@ -66,46 +66,6 @@
           </v-col>
           <!-- Productos del almacén seleccionado -->
           <v-col cols="12" class="ma-0 pt-6" style="max-height: 60vh; min-height: 40vh; overflow-y: auto">
-            <!--<template v-if="paginatedProducts.length > 0">
-                <v-col v-for="product in paginatedProducts" :key="product.id" cols="3" class="ml-2">
-                  <v-card class="rounded-lg" max-width="35vh">
-                    <v-img height="25vh" :src="`${$axios.defaults.baseURL}images/${product.image}`" cover></v-img>
-
-                    <v-card-title>
-                      <v-tooltip bottom location="top" class="custom-tooltip">
-                        <template v-slot:activator="{ props }">
-                          <span v-bind="props">{{ product.productName }}</span>
-                        </template>
-                        {{ product.productName }}
-                      </v-tooltip>
-                    </v-card-title>
-
-                    <v-card-subtitle>
-                      <v-tooltip bottom location="top">
-                        <template v-slot:activator="{ props }">
-                          <span v-bind="props">
-                            {{ $t("product.listing.description") }}: {{ product.additionalNotes }}
-                          </span>
-                        </template>
-                        {{ product.additionalNotes }}
-                      </v-tooltip>
-                    </v-card-subtitle>
-
-                    <v-card-text>
-                      {{ $t("product.listing.quantity") }}: {{ product.quantity }}
-                    </v-card-text>
-
-                    <v-card-actions justify="end" class="w-100">
-                      <v-btn color="#DA7171" @click="deleteItem(product)">
-                        {{ $t("product.listing.delete") }}
-                      </v-btn>
-                      <v-btn color="#03626C" @click="editItem(product)" :loading="loadingProductEdit">
-                        {{ $t("product.listing.edit") }}
-                      </v-btn>
-                    </v-card-actions>
-                  </v-card>
-                </v-col>
-              </template>-->
             <template v-if="paginatedProducts.length > 0">
               <v-card v-for="(product, index) in paginatedProducts" :key="index" class="mb-4 rounded-lg pa-2"
                 density="comfortable" elevation="2">
@@ -1705,7 +1665,12 @@ export default {
 .icono-concavo:hover .img-concava {
   filter: brightness(1.1);
 }
-
+.img-concava {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Asegura que la imagen cubra el espacio */
+  border-radius: 8px; /* Para que coincida con el contenedor */
+}
 .modal-imagen {
   background: transparent !important;
   box-shadow: none !important;

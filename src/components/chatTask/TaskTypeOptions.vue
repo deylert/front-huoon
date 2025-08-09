@@ -1,35 +1,35 @@
 <!-- TaskTypeOptions.vue -->
 <template>
   <div class="task-type-options-container">
-    <v-slide-group show-arrows class="pa-2">
+    <v-slide-group show-arrows class="px-0">
       <v-slide-group-item v-for="option in options" :key="option.id">
-        <div class="me-3">
+        <div class="me-2" style="margin-bottom: 1px">
           <v-card
-            class="pa-3 d-flex align-center"
+            class="pa-2 d-flex align-center"
             elevation="2"
             rounded="lg"
             :class="{
-              'bg-primary text-white': option.id === selectedId,
+              'bg-primary': option.id === selectedId,
               'bg-grey-lighten-3': option.id !== selectedId,
             }"
-            style="min-width: 180px; cursor: pointer"
+            style="min-width: 150px; cursor: pointer"
             @click="selectType(option)"
           >
             <v-avatar
-              size="40"
-              class="me-3"
-              :color="getTypeColor(option.id, 'light')"
+              size="32"
+              class="me-2"
+              :color="option.id === selectedId ? 'white' : getTypeColor(option.id, 'light')"
               variant="tonal"
             >
-              <v-icon :color="getTypeColor(option.id, 'dark')">
-                {{ option.id === 'Tarea' ? 'mdi-clipboard-task' : 'mdi-flag-checkered' }}
+              <v-icon :color="option.id === selectedId ? getTypeColor(option.id, 'dark') : getTypeColor(option.id, 'dark')">
+                {{ option.id === 'Tarea' ? 'mdi-clipboard-text-outline' : 'mdi-flag-checkered' }}
               </v-icon>
             </v-avatar>
             <div>
-              <div class="text-body-1 font-weight-medium">
+              <div class="text-body-2 font-weight-medium" :class="{ 'text-white': option.id === selectedId }">
                 {{ option.name }}
               </div>
-              <div class="text-caption text-grey-darken-1">
+              <div class="text-caption" :class="option.id === selectedId ? 'text-white' : 'text-grey-darken-1'">
                 {{ option.description }}
               </div>
             </div>
@@ -61,7 +61,7 @@ export default {
     },
     getTypeColor(id, tone) {
       const colors = {
-        Tarea: { light: 'deep-orange-lighten-4', dark: 'deep-orange' },   // 🟠 Tarea = Naranja
+        Tarea: { light: 'purple-lighten-4', dark: 'purple' },   // 🟠 Tarea = Naranja
         Meta: { light: 'blue-lighten-4', dark: 'blue' },                  // 🔵 Meta = Azul
       };
       return colors[id]?.[tone] || (tone === 'light' ? 'grey-lighten-3' : 'grey');
@@ -72,11 +72,16 @@ export default {
 
 <style scoped>
 .task-type-options-container {
-  margin-top: 12px;
-  margin-bottom: 8px;
+  margin: 8px 0;
 }
 
 .v-slide-group__content {
   padding: 4px 0;
+  align-items: center;
+}
+
+/* Ajustar el padding de los contenedores de flechas */
+.v-slide-group__prev, .v-slide-group__next {
+  padding: 0 4px;
 }
 </style>

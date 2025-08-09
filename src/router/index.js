@@ -11,7 +11,7 @@ const routes = [
     name: "Login",
     component: () => import(/* webpackChunkName: "home" */ "@/views/Login.vue"),
   },
-  
+
   {
     path: "/dashboard",
     name: "Dashboard",
@@ -22,7 +22,9 @@ const routes = [
         path: "/onboarding",
         name: "Onboarding",
         component: () =>
-          import(/* webpackChunkName: "onboarding" */ "@/views/onboarding/Onboarding.vue"),
+          import(
+            /* webpackChunkName: "onboarding" */ "@/views/onboarding/Onboarding.vue"
+          ),
         //meta: { requiresAuth: true } // Si usas protección de rutas
       },
       {
@@ -88,6 +90,12 @@ const routes = [
           import(/* webpackChunkName: "home" */ "@/views/task/Tasks.vue"),
       },
       {
+        path: "/goals",
+        name: "Goals",
+        component: () =>
+          import(/* webpackChunkName: "home" */ "@/views/goal/Goals.vue"),
+      },
+      {
         path: "/health",
         name: "Health",
         component: () =>
@@ -105,17 +113,13 @@ const routes = [
         path: "/exam",
         name: "Examenes",
         component: () =>
-          import(
-            /* webpackChunkName: "home" */ "@/views/salud/Exams.vue"
-          ),
+          import(/* webpackChunkName: "home" */ "@/views/salud/Exams.vue"),
       },
       {
         path: "/emergency",
         name: "Emergencias",
         component: () =>
-          import(
-            /* webpackChunkName: "home" */ "@/views/salud/Emergency.vue"
-          ),
+          import(/* webpackChunkName: "home" */ "@/views/salud/Emergency.vue"),
       },
       {
         path: "/finance",
@@ -151,7 +155,9 @@ const routes = [
         path: "/suggestions",
         name: "Suggestions",
         component: () =>
-          import(/* webpackChunkName: "home" */ "@/views/suggestion/Suggestion.vue"),
+          import(
+            /* webpackChunkName: "home" */ "@/views/suggestion/Suggestion.vue"
+          ),
       },
       {
         path: "/homes",

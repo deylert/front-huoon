@@ -18,7 +18,7 @@
     <!-- Encabezado -->
     <v-row justify="space-between" align="center" class="mb-6">
         <v-col cols="12" class="d-flex justify-space-between align-center">
-      <h2 class="text-body-2 font-weight-bold">{{ $t("viewTitles.tasks") }}</h2>
+      <h2 class="text-body-2 font-weight-bold">{{ $t("viewTitles.goals") }}</h2>
       <v-btn icon color="deep-purple-accent-4" variant="flat" class="elevation-3" @click="showAdd">
         <v-icon>mdi-plus</v-icon>
       </v-btn>
@@ -116,7 +116,7 @@
               </div>
             </v-row>
           </v-col>
-          <v-col cols="1" class="d-flex align-center justify-start">
+          <v-col cols="1" class="d-flex align-center">
             <div>
               <v-icon :color="getTypeColor(meeting.type)"
                 style="font-size: 10px; filter: drop-shadow(0 0 2px currentColor)" icon="mdi-circle"
@@ -351,7 +351,7 @@
                 <v-col cols="12" md="6">
                     <v-locale-provider>
                   <v-menu v-model="menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
-                    offset-y min-width="290px">
+                    offset-y min-width="290px" location="end">
                     <template v-slot:activator="{ props }">
                       <v-text-field v-bind="props" :modelValue="dateFormatted" variant="underlined"
                         :label="$t('taskForm.today')"></v-text-field>
@@ -380,12 +380,8 @@
                     :rules="[(v) => v > 0 || 'Debe ser un número válido']"></v-text-field>
                 </v-col>
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="editedItem.geo_location" :label="$t('taskForm.fields.location')"
-                    variant="underlined"></v-text-field>
-                </v-col>
-                <v-col cols="12" md="6">
                   <v-select v-model="editedItem.recurrence" :items="recurrences" item-title="name" item-value="id"
-                    :label="$t('taskForm.fields.recurrence')" variant="underlined" density="compact"
+                    :label="$t('taskForm.fields.recurrence')" variant="underlined"
                     :rules="selectRules">
                   </v-select>
                 </v-col>
@@ -422,25 +418,29 @@
                     </template>
                   </v-autocomplete>
                 </v-col>
-                <v-row v-if="editedItem.type === 'Evento'">
-                  <v-col cols="12" md="6">
+                  <v-col cols="12" md="6" v-if="editedItem.type === 'Meta'">
                    <v-locale-provider>
-                    <v-menu v-model="menu2" :close-on-content-click="false" offset-y min-width="auto">
-                      <template v-slot:activator="{ props }">
-                        <v-text-field v-bind="props" :model-value="dateFormatted2"
-                          :label="$t('taskForm.fields.endDate')" variant="underlined" readonly></v-text-field>
-                      </template>
-                      <v-date-picker v-model="editedItem.end_date" color="#03626C"
-                        :min="editedItem.start_date"></v-date-picker>
-                    </v-menu>
+                    <v-menu v-model="menu2" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
+                    offset-y min-width="290px" location="end">
+                    <template v-slot:activator="{ props }">
+                      <v-text-field v-bind="props" :modelValue="dateFormatted2" variant="underlined"
+                        :label="$t('taskForm.fields.endDate')"></v-text-field>
+                    </template>
+                      <v-date-picker color="#03626C" :modelValue="input2" @update:model-value="updateDate1"
+                        format="yyyy-MM-dd"></v-date-picker>
+                  </v-menu>
                     </v-locale-provider>
                   </v-col>
 
-                  <v-col cols="12" md="6">
+                  <v-col cols="12" md="6" v-if="editedItem.type === 'Meta'">
                     <v-select v-model="editedItem.end_time" :items="timeSlots" :label="$t('taskForm.fields.endTime')"
                       variant="underlined"></v-select>
                   </v-col>
-                </v-row>
+                  
+                <v-col cols="12" md="12">
+                  <v-text-field v-model="editedItem.geo_location" :label="$t('taskForm.fields.location')"
+                    variant="underlined"></v-text-field>
+                </v-col>
               </v-row>
 
               <div class="d-flex justify-space-between mt-8">
@@ -652,8 +652,8 @@ export default {
       end_date: null,
       start_time: null,
       end_time: null,
-      type: "Tarea",
-      module: "Tarea",
+      type: "Meta",
+      module: "Meta",
       parent_id: "",
       status_id: "",
       category_id: "",
@@ -675,8 +675,7 @@ export default {
       end_date: null,
       start_time: null,
       end_time: null,
-      type: "Tarea",
-      module: "Tarea",
+      module: "Meta",
       parent_id: "",
       status_id: "",
       category_id: "",
@@ -771,8 +770,8 @@ export default {
   computed: {
     formTitle() {
       return this.editedIndex === -1
-        ? this.$t("taskForm.titles.new")
-        : this.$t("taskForm.titles.edit");
+        ? this.$t("taskForm.titles.newGoal")
+        : this.$t("taskForm.titles.editGoal");
     },
     formTitlePerson() {
       return this.tittlePerson === -1
@@ -1483,7 +1482,7 @@ export default {
         if (result.success) {
           // Si la solicitud es exitosa, asignamos las sucursales
           this.tasks = (result.data?.tasks || []).filter(task => 
-            task.type === 'Tarea'
+            task.type === 'Meta'
           );
           this.status = result.data?.status || []; // Si no hay roles, asigna un arreglo vacío
         } else {
@@ -1551,6 +1550,7 @@ export default {
           "start_time",
           "end_time",
           "type",
+          "module",
         ];
         let updatedFields = Object.keys(this.editedItem)
           .filter(
@@ -1656,6 +1656,7 @@ export default {
           "start_time",
           "end_time",
           "type",
+          "module"
         ];
 
         let updatedFields = Object.keys(this.editedItem)

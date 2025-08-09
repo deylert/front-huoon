@@ -97,13 +97,30 @@ const spanish = {
         description: "Recomendaciones y propuestas",
       },
       health: {
-       title: "Salud",
-       description: "Registros médicos y evolución de salud",
+        title: "Salud",
+        description: "Registros médicos y evolución de salud",
+      },
+      achievements: {
+        title: "Logros",
+        description: "Registro de logros personales",
+      },
+      goals: {
+        title: "Metas",
+        description: "Objetivos y metas personales",
+      },
+      nutrition: {
+        title: "Nutrición",
+        description: "Seguimiento alimenticio y dietas",
+      },
+      pets: {
+        title: "Mascotas",
+        description: "Cuidado y salud de mascotas",
       },
     },
     viewTitles: {
       physicalExams: "Exámenes Físicos",
       tasks: "Tareas",
+      goals: "Metas",
       treatments: "Tratamientos",
       personalBackground: "Antecedentes Personales",
       familyBackground: "Antecedentes Familiares",
@@ -128,9 +145,9 @@ const spanish = {
     taskForm: {
       noTasksToday: "No tienes tareas para realizar en el día de hoy",
       updateStatus: "Actualizar Estado",
-      dialogTitle: "Detalles de la Tarea",
+      dialogTitle: "Detalles",
       fields: {
-        title: "Título de la tarea",
+        title: "Título",
         date: "Fecha",
         time: "Hora",
         priority: "Prioridad",
@@ -169,6 +186,8 @@ const spanish = {
       titles: {
         new: "Agregar Nueva Tarea",
         edit: "Editar Tarea",
+        newGoal: "Agregar Nueva Meta",
+        editGoal: "Editar Meta",
       },
     },
     taskTypes: {
@@ -938,7 +957,7 @@ const spanish = {
           view: "Ver archivo",
           edit: "Editar",
           delete: "Eliminar",
-          download: "Descargar Archivo"
+          download: "Descargar Archivo",
         },
         types: {
           personal: "Personal",
@@ -1108,59 +1127,58 @@ const spanish = {
     },
     home: {
       //create: {
-        title: "Hogares asociados",  // Cambiado de "Listado de Almacenes"
-        empty: "No hay hogares registrados",  // Ajustado
-        search: "Buscar hogares...",  // Ajustado,
-        addButton: "Crear un nuevo hogar",
-        instructions:
-          "Complete todos los campos requeridos para crear su hogar",
-        steps: {
-          basic: {
-            title: "Información básica",
-            subtitle: "Datos principales del hogar",
-          },
-          details: {
-            title: "Detalles adicionales",
-            subtitle: "Configuraciones del hogar",
-          },
-          members: {
-            title: "Miembros del hogar",
-            subtitle: "Agregar personas al hogar",
-          },
+      title: "Hogares asociados", // Cambiado de "Listado de Almacenes"
+      empty: "No hay hogares registrados", // Ajustado
+      search: "Buscar hogares...", // Ajustado,
+      addButton: "Crear un nuevo hogar",
+      instructions: "Complete todos los campos requeridos para crear su hogar",
+      steps: {
+        basic: {
+          title: "Información básica",
+          subtitle: "Datos principales del hogar",
         },
-        fields: {
-          name: "Nombre del hogar",
-          address: "Dirección",
-          type: "Tipo de hogar",
-          code: "Código de acceso",
-          geoLocation: "Geolocalización",
-          timezone: "Zona horaria",
-          residents: "Número de residentes",
-          image: "Imagen del hogar",
-          status: "Estado",
-          ranking: "Ranking en el hogar"
+        details: {
+          title: "Detalles adicionales",
+          subtitle: "Configuraciones del hogar",
         },
-        membersTable: {
-          avatar: "Foto",
-          name: "Nombre",
-          email: "Correo",
-          role: "Rol",
-          actions: "Acciones",
+        members: {
+          title: "Miembros del hogar",
+          subtitle: "Agregar personas al hogar",
         },
-        actions: {
-          cancel: "Cancelar",
-          previous: "Anterior",
-          next: "Siguiente",
-          create: "Crear Hogar",
-          edit: "Editar Hogar",
-          addMembers: "Agregar Miembros",
-        },
-        validation: {
-          nameRequired: "El nombre del hogar es requerido",
-          nameMinLength: "El nombre debe tener al menos 3 caracteres",
-          codeRequired: "El código de acceso es requerido",
-          codeMinLength: "El código debe tener al menos 8 caracteres",
-        },
+      },
+      fields: {
+        name: "Nombre del hogar",
+        address: "Dirección",
+        type: "Tipo de hogar",
+        code: "Código de acceso",
+        geoLocation: "Geolocalización",
+        timezone: "Zona horaria",
+        residents: "Número de residentes",
+        image: "Imagen del hogar",
+        status: "Estado",
+        ranking: "Ranking en el hogar",
+      },
+      membersTable: {
+        avatar: "Foto",
+        name: "Nombre",
+        email: "Correo",
+        role: "Rol",
+        actions: "Acciones",
+      },
+      actions: {
+        cancel: "Cancelar",
+        previous: "Anterior",
+        next: "Siguiente",
+        create: "Crear Hogar",
+        edit: "Editar Hogar",
+        addMembers: "Agregar Miembros",
+      },
+      validation: {
+        nameRequired: "El nombre del hogar es requerido",
+        nameMinLength: "El nombre debe tener al menos 3 caracteres",
+        codeRequired: "El código de acceso es requerido",
+        codeMinLength: "El código debe tener al menos 8 caracteres",
+      },
       //},
       types: {
         house: "Casa",

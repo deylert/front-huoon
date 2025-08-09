@@ -28,20 +28,20 @@
 
         <!-- Fecha y hora -->
         <v-col cols="auto" class="pa-2 d-flex flex-column align-center date-time-col">
-          <div class="text-body-2 font-weight-medium text-center date-time-text">
-            {{ formatDate(task.start_date) }}
-          </div>
-          <div
-            v-if="task.start_time"
-            class="text-body-2 font-weight-medium text-center mt-1 date-time-text"
-          >
-            {{ formatTime(task.start_time) }}
-          </div>
+          <div class="icono-concavo d-flex flex-column justify-center justify-start"
+                  :class="`bg-${getTypeColor(meeting.type)}`">
+                  <div class="date-display">
+                    {{ formatIntuitiveDate(meeting.start_date) }}
+                  </div>
+                  <div v-if="meeting.start_time" class="time-display">
+                    {{ formatTime(meeting.start_time) }}
+                  </div>
+                </div>
         </v-col>
 
         <!-- Detalles de la tarea -->
         <v-col cols="7" class="py-3 px-4 task-details">
-          <div class="font-weight-semibold text-body-1">{{ task.title }}</div>
+          <div class="font-weight-semibold text-body-2">{{ task.title }}</div>
           <div class="text-caption text-grey-darken-1 mt-1">
             {{ task.description }}
           </div>
@@ -75,7 +75,7 @@
                 <template v-slot:activator="{ props }">
                   <v-avatar class="avatar-item hover-expand" size="32" v-bind="props">
                     <v-img
-                      :src="`${baseUrl}images/${person.image}?t=${Date.now()}`"
+                      :src="`${baseUrl}images/${person.image}`"
                       alt="avatar"
                     />
                   </v-avatar>
@@ -174,6 +174,60 @@ export default {
   }
 },
   methods: {
+    getTypeColor(type) {
+      const colorMap = {
+        Tarea: "warning",
+        Meta: "purple",
+        // Agrega más tipos si es necesario
+      };
+      return colorMap[type] || "grey-lighten-1"; // Color por defecto
+    },
+    formatIntuitiveDate(dateString) {
+      if (!dateString) return "Sin fecha";
+
+      // 1. Parsear la fecha de entrada (formato YYYY-MM-DD)
+      const [year, month, day] = dateString.split("-");
+      const inputDate = new Date(year, month - 1, day); // Mes es 0-based
+
+      // 2. Obtener fecha actual (sin horas/minutos/segundos)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // 3. Normalizar ambas fechas a UTC para evitar problemas de zona horaria
+      const inputUTC = Date.UTC(
+        inputDate.getFullYear(),
+        inputDate.getMonth(),
+        inputDate.getDate()
+      );
+      const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+
+      // 4. Calcular diferencia en días
+      const diffDays = Math.floor((inputUTC - todayUTC) / (1000 * 60 * 60 * 24));
+
+      // 5. Determinar el texto a mostrar
+      switch (diffDays) {
+        case 0:
+          return "Hoy";
+        case 1:
+          return "Mañana";
+        case -1:
+          return "Ayer";
+        default:
+          return inputDate
+            .toLocaleDateString("es-ES", {
+              weekday: "short",
+              day: "numeric",
+              month: "short",
+            })
+            .replace(/\./g, "");
+      }
+    },
+    formatTime(timeString) {
+      if (!timeString) return "";
+
+      const [hours, minutes] = timeString.split(":");
+      return `${hours}:${minutes}`;
+    },
     enrichPeopleData(taskPeople) {
       // 1. Verificar y extraer datos del Proxy
       const peopleProxy = this.allPeople; // El Proxy recibido
@@ -268,6 +322,47 @@ export default {
 </script>
 
 <style scoped>
+.time-display {
+  font-size: 0.625rem;
+  line-height: 1;
+  margin-top: 2px;
+}
+.icono-concavo {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  color: white;
+  /* Mantenemos solo el efecto cóncavo en el ícono 
+  box-shadow: inset;*/
+  position: relative;
+  overflow: hidden;
+}
+
+.icono-concavo::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  border-radius: 8px;
+  background: transparent;
+}
+
+.date-display {
+  font-size: 0.75rem; /* Equivale a text-caption */
+  line-height: 1.1;
+  font-weight: 500;
+  text-align: center;
+  word-break: break-word;
+  white-space: normal;
+}
+.smooth-hover {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
 /* Estilos para el texto en tareas seleccionadas */
 .selected-task {
   background-color: #03626c;

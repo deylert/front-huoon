@@ -653,7 +653,6 @@ export default {
       start_time: null,
       end_time: null,
       type: "Tarea",
-      module: "Tarea",
       parent_id: "",
       status_id: "",
       category_id: "",
@@ -676,7 +675,6 @@ export default {
       start_time: null,
       end_time: null,
       type: "Tarea",
-      module: "Tarea",
       parent_id: "",
       status_id: "",
       category_id: "",
@@ -1482,9 +1480,7 @@ export default {
 
         if (result.success) {
           // Si la solicitud es exitosa, asignamos las sucursales
-          this.tasks = (result.data?.tasks || []).filter(task => 
-            task.type === 'Tarea'
-          );
+          this.tasks = result.data?.tasks || []; // Si no hay roles, asigna un arreglo vacío
           this.status = result.data?.status || []; // Si no hay roles, asigna un arreglo vacío
         } else {
           // Si no hay datos, asignamos un array vacío

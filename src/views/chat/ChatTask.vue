@@ -1,6 +1,14 @@
 <template>
-  <v-snackbar class="mt-12" location="right top" :timeout="sb_timeout" :color="sb_type" elevation="24"
-    :multi-line="true" vertical v-model="snackbar">
+  <v-snackbar
+    class="mt-12"
+    location="right top"
+    :timeout="sb_timeout"
+    :color="sb_type"
+    elevation="24"
+    :multi-line="true"
+    vertical
+    v-model="snackbar"
+  >
     <v-row>
       <v-col md="2">
         <v-avatar :icon="sb_icon" color="sb_type" size="40"></v-avatar>
@@ -14,101 +22,205 @@
   <v-container>
     <v-row justify="center" class="mx-2">
       <v-col cols="12" class="px-0 mb-6">
-        <v-card class="pt-4 mb-8 rounded-lg" elevation="2">
+        <v-card class="pt-4 mb-4 rounded-lg" elevation="2">
           <!-- Chat Body -->
-          <div ref="chatBody" class="px-4 py-2">
-            <div v-for="(message, index) in chatMessages" :key="index" class="d-flex mb-8"
-              :class="message.from === 'user' ? 'justify-end' : 'justify-start'">
-              <div class="d-flex align-end" :class="message.from === 'user' ? 'flex-row-reverse' : ''">
+          <div
+            ref="chatBody"
+            class="px-4 py-2"
+            style="max-height: 70vh; min-height: 40vh; overflow-y: auto"
+          >
+            <div
+              v-for="(message, index) in chatMessages"
+              :key="index"
+              class="d-flex mb-8"
+              :class="message.from === 'user' ? 'justify-end' : 'justify-start'"
+            >
+              <div
+                class="d-flex align-end"
+                :class="message.from === 'user' ? 'flex-row-reverse' : ''"
+              >
                 <v-avatar v-if="message.from === 'ai'" size="28" class="mb-2 mr-3">
                   <v-img src="@/assets/logo-verde.png" alt="Imagen de perfil" />
                 </v-avatar>
                 <v-avatar v-else size="28" class="mb-2 ml-3">
-                  <v-img :src="`${this.$axios.defaults.baseURL}images/${imageUrl}`" alt="Imagen de usuario"></v-img>
+                  <v-img
+                    :src="`${this.$axios.defaults.baseURL}images/${imageUrl}`"
+                    alt="Imagen de usuario"
+                  ></v-img>
                 </v-avatar>
-                <div :class="[
-            'rounded-xl',
-            message.from === 'user' 
-              ? 'bg-primary text-white' 
-              : 'bg-grey-lighten-2 text-black',
-            message.isEditing 
-              ? 'pa-4'  // Estilo cuando está en edición
-              : 'px-8 py-3'  // Estilo normal
-          ]"
-          style="min-width: 0; max-width: 100%; width: fit-content" >
+                <div
+                  :class="[
+                    'rounded-xl',
+                    message.from === 'user'
+                      ? 'bg-primary text-white'
+                      : 'bg-grey-lighten-2 text-black',
+                    message.isEditing
+                      ? 'pa-4' // Estilo cuando está en edición
+                      : 'px-4 py-2', // Estilo normal
+                  ]"
+                  style="min-width: 0; max-width: 100%; width: fit-content"
+                >
                   <!-- Campo editable con componente -->
                   <template v-if="message.isEditable && message.isEditing">
+                    <!-- Usamos el sistema existente -->
                     <div v-if="['start_date', 'end_date'].includes(message.fieldKey)">
-                    <v-locale-provider>
-                      <v-menu v-model="message.showDatePicker" :close-on-content-click="false"
-                        transition="scale-transition" offset-y location="bottom"
-                        @update:modelValue="handleMenuClose(message, index)">
-                        <template #activator="{ props }">
-                          <v-text-field v-bind="props" :model-value="taskParameters[message.fieldKey]"
-                            :label="message.fieldLabel" variant="outlined" density="comfortable"
-                            style="width: auto; min-width: 10em" no-resize
-                            @click:appendInner="message.showDatePicker = true" />
-                        </template>
-
-                        <DatePicker :dateValue="taskParameters[message.fieldKey]" :fieldType="message.fieldKey"
-                          @date-updated="
-                        handleDateSelection(message.fieldKey, $event)
-                      " />
-                      </v-menu>
+                      <v-locale-provider>
+                        <v-menu
+                          v-model="message.showDatePicker"
+                          :close-on-content-click="false"
+                          transition="scale-transition"
+                          offset-y
+                          location="end"
+                          class="rounded-lg"
+                          @update:modelValue="handleMenuClose(message, index)"
+                        >
+                          <template #activator="{ props }">
+                            <v-text-field
+                              v-bind="props"
+                              :model-value="taskParameters[message.fieldKey]"
+                              :label="message.fieldLabel"
+                              variant="plain"                          
+                              density="comfortable"
+                              style="width: auto; min-width: 10em"
+                              no-resize
+                              @click:appendInner="message.showDatePicker = true"
+                              class="editing-textarea"
+                            />
+                          </template>
+                          <DatePicker
+                            :dateValue="taskParameters[message.fieldKey]"
+                            :fieldType="message.fieldKey"
+                            @date-updated="handleDateSelection(message.fieldKey, $event)"
+                          />
+                        </v-menu>
                       </v-locale-provider>
                     </div>
-                    <!-- Para campos de hora -->
-                    <div v-else-if="
-                    ['start_time', 'end_time'].includes(message.fieldKey)
-                  ">
-                      <v-menu v-model="message.showTimePicker" :close-on-content-click="false"
-                        transition="scale-transition" offset-y location="bottom"
-                        @update:modelValue="handleMenuClose(message, index)">
+                    <div
+                      v-else-if="['start_time', 'end_time'].includes(message.fieldKey)"
+                    >
+                      <v-menu
+                        v-model="message.showTimePicker"
+                        :close-on-content-click="false"
+                        transition="scale-transition"
+                        offset-y
+                        location="end"
+                        class="rounded-lg"
+                        @update:modelValue="handleMenuClose(message, index)"
+                      >
                         <template #activator="{ props }">
-                          <v-text-field v-bind="props" :model-value="
-                          taskParameters[message.fieldKey] || '00:00'
-                        " :label="message.fieldLabel" variant="outlined" density="comfortable"
-                            style="width: auto; min-width: 10em" no-resize
-                            @click:appendInner="message.showTimePicker = true" />
+                          <v-text-field
+                            v-bind="props"
+                            :model-value="taskParameters[message.fieldKey] || '00:00'"
+                            :label="message.fieldLabel"
+                            variant="underlined"
+                            density="comfortable"
+                            style="width: auto; min-width: 10em"
+                            no-resize
+                            @click:appendInner="message.showTimePicker = true"
+                            class="editing-textarea"
+                          />
                         </template>
-
-                        <TimePicker :timeValue="taskParameters[message.fieldKey]" :fieldType="message.fieldKey"
-                          @time-updated="
-                        handleTimeSelection(message.fieldKey, $event)
-                      " />
+                        <TimePicker
+                          :timeValue="taskParameters[message.fieldKey]"
+                          :fieldType="message.fieldKey"
+                          @time-updated="handleTimeSelection(message.fieldKey, $event)"
+                        />
                       </v-menu>
                     </div>
-                    <v-textarea v-else-if="['title', 'description'].includes(message.fieldKey)"
-                      v-model="message.editValue" :label="message.fieldLabel" variant="outlined" density="comfortable"
-                      style="width: auto; min-width: 50em" :ref="(el) => setTextFieldRef(el, index)" autofocus auto-grow
-                      rows="2" no-resize @keyup.enter="saveFieldEdit(index)"></v-textarea>
-
-                    <!-- Textfield para otros campos -->
-                    <v-text-field v-else v-model="message.editValue" :label="message.fieldLabel" variant="outlined"
-                      density="comfortable" style="width: auto; min-width: 15em" :ref="(el) => setTextFieldRef(el, index)"
-                      autofocus no-resize @keyup.enter="saveFieldEdit(index)"></v-text-field>
+                    <v-textarea
+                      v-else-if="['title', 'description'].includes(message.fieldKey)"
+                      v-model="message.editValue"
+                      :label="message.fieldLabel"
+                      variant="plain"
+                      density="comfortable"
+                      style="width: auto; min-width: 50em"
+                      :ref="(el) => setTextFieldRef(el, index)"
+                      autofocus
+                      auto-grow
+                      rows="1"
+                      no-resize
+                      @keyup.enter="saveFieldEdit(index)"
+                      class="editing-textarea"
+                      @blur="saveFieldEdit(index)"
+                    />
+                    <v-text-field
+                      v-else
+                      v-model="message.editValue"
+                      :label="message.fieldLabel"
+                      variant="plain"
+                      density="comfortable"
+                      style="width: auto; min-width: 15em"
+                      :ref="(el) => setTextFieldRef(el, index)"
+                      autofocus
+                      no-resize
+                      @keyup.enter="saveFieldEdit(index)"
+                      class="editing-textarea"
+                      @blur="saveFieldEdit(index)"
+                    />
                   </template>
 
-                  <!-- Texto normal -->
-                  <template v-else>
-                    <div v-if="!message.buttons" @click="message.isEditable ? startFieldEdit(index) : null"
-                      :class="{ 'editable-message': message.isEditable }"
-                      style="white-space: pre-wrap; word-break: break-word">
-                      {{ message.text }}
-                      <v-icon v-if="message.isEditable" x-small class="ml-2">
-                        mdi-pencil
-                      </v-icon>
-                    </div>
+                  <!-- Vista compacta: al hacer clic, activa edición real -->
+                  <template v-else-if="message.isCompactFields">
+                    <div
+                      class=" text-body-2bg-grey-lighten-2 text-black rounded-xl pa-2"
+                      style="white-space: pre-line; margin-left: -8px; width: auto; min-width: 10em"
+                    >
+                      <div v-for="field in message.fields" :key="field.key" class="d-flex align-center" style="margin: px 0;">
+                        <!-- Etiqueta -->
+                        <span class="mr-2">{{ field.label }}:</span>
 
-                    <!-- Mensaje con botones de confirmación -->
+                        <!-- Valor -->
+                        <span>{{ formatFieldDisplay(field.key, taskParameters[field.key]) }}</span>
+
+                        <!-- Ícono de edición -->
+                        <v-icon
+                          v-if="canEditField(field.key)"
+                          x-small
+                          class="ml-2"
+                          style="cursor: pointer;"
+                          @click.stop="startSubFieldEdit(message, field.key)"
+                        >
+                          mdi-pencil
+                        </v-icon>
+                      </div>
+                    </div>
+                  </template>
+
+                  <!-- Mensaje normal -->
+                  <template v-else>
+                    <div
+                      v-if="!message.buttons"
+                      @click="message.isEditable ? startFieldEdit(index) : null"
+                      :class="{ 'editable-message': message.isEditable }"
+                      style="white-space: pre-wrap; word-break: break-word"
+                    >
+                      {{ message.text }}
+                      <v-icon v-if="message.isEditable" x-small class="ml-2"
+                        >mdi-pencil</v-icon
+                      >
+                    </div>
                     <div v-else>
-                      <div style="white-space: pre-wrap; word-break: break-word; margin-bottom: 12px;">
+                      <div
+                        style="
+                          white-space: pre-wrap;
+                          word-break: break-word;
+                          margin-bottom: 12px;
+                        "
+                      >
                         {{ message.text }}
                       </div>
                       <div class="d-flex flex-wrap gap-2">
-                        <v-btn v-for="(button, btnIndex) in message.buttons" :key="btnIndex" :color="button.color"
-                          :variant="button.variant" @click="button.action" class="text-none" size="small" :disabled="button.disabled"
-                          v-bind="button.props || {}">
+                        <v-btn
+                          v-for="(button, btnIndex) in message.buttons"
+                          :key="btnIndex"
+                          :color="button.color"
+                          :variant="button.variant"
+                          @click="button.action"
+                          class="text-none"
+                          size="small"
+                          :disabled="button.disabled"
+                          v-bind="button.props || {}"
+                        >
                           {{ button.text }}
                         </v-btn>
                       </div>
@@ -116,78 +228,123 @@
                   </template>
 
                   <!-- Componente dinámico -->
-                  <component v-if="message.component && !message.isEditing" :is="message.component"
-                    v-bind="message.props" @priority-selected="handlePrioritySelection($event)"
+                  <component
+                    v-if="message.component && !message.isEditing"
+                    :is="message.component"
+                    v-bind="message.props"
+                    @priority-selected="handlePrioritySelection($event)"
                     @recurrence-selected="handleRecurrenceSelection($event)"
-                    @selection-update="updatePeopleSelection($event)" @confirm="handlePeopleConfirmation($event)"
-                    @confirm-suggested="addSelectedTasks($event)" @cancel="handleCancellation()"
-                    @date-updated="updateDate($event)" @time-updated="updateTime($event)" @type-selected="handleTtypeSelected($event)"/>
+                    @selection-update="updatePeopleSelection($event)"
+                    @confirm="handlePeopleConfirmation($event)"
+                    @confirm-suggested="addSelectedTasks($event)"
+                    @cancel="handleCancellation()"
+                    @date-updated="updateDate($event)"
+                    @time-updated="updateTime($event)"
+                    @type-selected="handleTtypeSelected($event)"
+                  />
                 </div>
               </div>
             </div>
 
-            <div v-if="isTyping" class="d-flex justify-start align-center mb-8 mb-2 ml-3">
-            <div class="d-flex align-end">
-              <v-avatar size="28" class="mb-2 mr-3">
-                <v-img src="@/assets/logo-verde.png" alt="Avatar" />
-              </v-avatar>
-              <div class="chat-bubble px-8 py-3 rounded-xl bg-grey-lighten-2 text-black">
-                <span class="typing-indicator">•••</span>
+            <div v-if="isTyping" class="d-flex justify-start align-center mb-4 mb-2 ml-3">
+              <div class="d-flex align-end">
+                <v-avatar size="28" class="mb-2 mr-3">
+                  <v-img src="@/assets/logo-verde.png" alt="Avatar" />
+                </v-avatar>
+                <div
+                  class="chat-bubble px-8 py-3 rounded-xl bg-grey-lighten-2 text-black"
+                >
+                  <span class="typing-indicator">•••</span>
+                </div>
               </div>
             </div>
-          </div>
           </div>
 
           <!-- Herramientas -->
           <v-divider />
           <v-card-actions class="pa-3 bg-grey-lighten-5 tools-bar">
-            <v-btn v-for="tool in tools" :key="tool.name" @click="tool.action" size="small" color="primary"
-              variant="text" prepend-icon="mdi-plus" class="text-capitalize">
+            <v-btn
+              v-for="tool in tools"
+              :key="tool.name"
+              @click="tool.action"
+              size="small"
+              color="primary"
+              variant="text"
+              prepend-icon="mdi-plus"
+              class="text-capitalize"
+            >
               {{ tool.name }}
             </v-btn>
           </v-card-actions>
 
           <!-- Input -->
-          <v-card-actions class="pa-4 bg-white rounded-b-2xl d-flex align-center" style="gap: 12px">
+          <v-card-actions
+            class="pa-4 bg-white rounded-b-2xl d-flex align-center"
+            style="gap: 12px"
+          >
             <!-- Input + texto temporal en un solo bloque -->
             <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden">
-              <v-textarea v-model="newMessage" :placeholder="$t('chat.inputPlaceholder')" variant="outlined"
-                hide-details density="compact" rounded rows="1" no-resize @keyup.enter="sendMessage"
-                style="overflow-y: auto; max-height: 120px; resize: none" class="custom-textarea"
-                :disabled="isLoading" />
-              <div v-if="escuchando && textoTemporal" style="
-              margin-top: 10px;
-              font-size: 12px;
-              color: gray;
-              font-style: italic;
-              white-space: pre-wrap;
-              word-break: break-word;
-              max-height: 60px;
-              overflow-y: auto;
-            ">
+              <v-textarea
+                v-model="newMessage"
+                :placeholder="$t('chat.inputPlaceholder')"
+                variant="outlined"
+                hide-details
+                density="compact"
+                rounded
+                rows="1"
+                no-resize
+                @keyup.enter="!isInputBlocked && sendMessage()"
+                :disabled="isLoading || isInputBlocked"
+                style="overflow-y: auto; max-height: 120px; resize: none"
+                class="custom-textarea"
+              />
+              <div
+                v-if="escuchando && textoTemporal"
+                style="
+                  margin-top: 10px;
+                  font-size: 12px;
+                  color: gray;
+                  font-style: italic;
+                  white-space: pre-wrap;
+                  word-break: break-word;
+                  max-height: 60px;
+                  overflow-y: auto;
+                "
+              >
                 {{ textoTemporal }}
               </div>
             </div>
 
             <!-- Botón de dictado -->
-            <v-btn color="primary" @click="toggleDictado" :disabled="!compatible" :loading="cargando"
-              :icon="escuchando ? 'mdi-microphone-off' : 'mdi-microphone'" :title="
-            !compatible ? 'Reconocimiento de voz no compatible con tu navegador' : ''
-          "></v-btn>
+            <v-btn
+              color="primary"
+              @click="toggleDictado"
+              :disabled="!compatible || isLoading || isInputBlocked"
+              :loading="cargando"
+              :icon="escuchando ? 'mdi-microphone-off' : 'mdi-microphone'"
+              :title="
+                !compatible ? 'Reconocimiento de voz no compatible con tu navegador' : ''
+              "
+            ></v-btn>
 
             <!-- Botón de enviar -->
-            <v-btn icon="mdi-send" color="primary" @click="sendMessage" />
+            <v-btn icon="mdi-send" color="primary" @click="!isInputBlocked && sendMessage()"
+  :disabled="isLoading || isInputBlocked || !newMessage.trim()" />
           </v-card-actions>
         </v-card>
       </v-col>
     </v-row>
-
   </v-container>
-    <v-dialog v-model="dialogChatFinance" fullscreen transition="dialog-bottom-transition">
+  <v-dialog v-model="dialogChatFinance" fullscreen transition="dialog-bottom-transition">
     <v-card>
       <v-card-text>
         <!-- Pasamos los parámetros al componente ChatTask -->
-        <ChatFinance :financeData="currentFinance" :transactionIntent="currentIntentFinance" @close-dialog="closeDialgChat()" @close-all-dialogs="$emit('close-all-dialogs')" />
+        <ChatFinance
+          :financeData="currentFinance"
+          :transactionIntent="currentIntentFinance"
+          @close-dialog="closeDialgChat()"
+          @close-all-dialogs="$emit('close-all-dialogs')"
+        />
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
@@ -196,11 +353,15 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-    <v-dialog v-model="dialogChatBudget" fullscreen transition="dialog-bottom-transition">
+  <v-dialog v-model="dialogChatBudget" fullscreen transition="dialog-bottom-transition">
     <v-card>
       <v-card-text>
         <!-- Pasamos los parámetros al componente ChatTask -->
-        <ChatBudget :budgetData="currentBudget" @close-dialog="closeDialgChat()" @close-all-dialogs="$emit('close-all-dialogs')" />
+        <ChatBudget
+          :budgetData="currentBudget"
+          @close-dialog="closeDialgChat()"
+          @close-all-dialogs="$emit('close-all-dialogs')"
+        />
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
@@ -209,12 +370,19 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <v-dialog v-model="dialogChatWarehouse" fullscreen transition="dialog-bottom-transition">
+  <v-dialog
+    v-model="dialogChatWarehouse"
+    fullscreen
+    transition="dialog-bottom-transition"
+  >
     <v-card>
       <v-card-text>
         <!-- Pasamos los parámetros al componente ChatTask -->
-        <ChatWarehouse :warehouseData="currentWarehouse" @close-dialog="closeDialgChat()"
-          @close-all-dialogs="$emit('close-all-dialogs')" />
+        <ChatWarehouse
+          :warehouseData="currentWarehouse"
+          @close-dialog="closeDialgChat()"
+          @close-all-dialogs="$emit('close-all-dialogs')"
+        />
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
@@ -227,8 +395,11 @@
     <v-card>
       <v-card-text>
         <!-- Pasamos los parámetros al componente ChatTask -->
-        <ChatProduct :productData="currentProduct" @close-dialog="closeDialgChat()"
-          @close-all-dialogs="closeAllDialogs($event)" />
+        <ChatProduct
+          :productData="currentProduct"
+          @close-dialog="closeDialgChat()"
+          @close-all-dialogs="closeAllDialogs($event)"
+        />
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
@@ -241,8 +412,11 @@
     <v-card>
       <v-card-text>
         <!-- Pasamos los parámetros al componente ChatTask -->
-        <ChatDesire :desireData="currentDesire" @close-dialog="closeDialgChat()"
-          @close-all-dialogs="closeAllDialogs($event)" />
+        <ChatDesire
+          :desireData="currentDesire"
+          @close-dialog="closeDialgChat()"
+          @close-all-dialogs="closeAllDialogs($event)"
+        />
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
@@ -267,7 +441,7 @@ import _ from "lodash";
 import { defineAsyncComponent, markRaw } from "vue";
 
 export default {
- emits: ["close-dialog", "close-all-dialogs"],
+  emits: ["close-dialog", "close-all-dialogs"],
   props: {
     initialMessage: {
       type: String,
@@ -286,21 +460,20 @@ export default {
     RecurrenceOptions,
     TaskTypeOptions,
     SuggestedTasksList: markRaw(SuggestedTasksList),
-    
-    ChatBudget: defineAsyncComponent(() => import('./ChatBudget.vue')),
-    ChatFinance: defineAsyncComponent(() => import('./ChatFinance.vue')),
-    ChatWarehouse: defineAsyncComponent(() => import('./ChatWarehouse.vue')),
-    ChatDesire: defineAsyncComponent(() => import('./ChatDesire.vue')),
-    ChatProduct: defineAsyncComponent(() => import('./ChatProduct.vue')),
 
+    ChatBudget: defineAsyncComponent(() => import("./ChatBudget.vue")),
+    ChatFinance: defineAsyncComponent(() => import("./ChatFinance.vue")),
+    ChatWarehouse: defineAsyncComponent(() => import("./ChatWarehouse.vue")),
+    ChatDesire: defineAsyncComponent(() => import("./ChatDesire.vue")),
+    ChatProduct: defineAsyncComponent(() => import("./ChatProduct.vue")),
   },
   data() {
     return {
       shownChatFields: new Set(), // ← Aquí llevamos control
-       dialogChatFinance: false,
-        dialogChatBudget: false,
-        dialogChatWarehouse: false,
-        dialogChatDesire: false,
+      dialogChatFinance: false,
+      dialogChatBudget: false,
+      dialogChatWarehouse: false,
+      dialogChatDesire: false,
       dialogChatProduct: false,
       currentBudget: null,
       currentFinance: null,
@@ -308,7 +481,7 @@ export default {
       currentDesire: null,
       currentProduct: null,
       editingFieldKey: null,
-       editingFieldIndex: null,
+      editingFieldIndex: null,
       currentIntentFinance: null,
       saveData: false,
       textoTemporal: "",
@@ -322,6 +495,7 @@ export default {
       tools: [],
       taskParameters: {
         type: null,
+        module: null,
         title: null,
         description: null,
         priority_id: null,
@@ -352,6 +526,7 @@ export default {
       },
       defaultItem: {
         type: null,
+        module: null,
         title: null,
         description: null,
         priority_id: null,
@@ -375,7 +550,7 @@ export default {
       people: [],
       recurrences: [],
       status: [],
-      types:[],
+      types: [],
       isTyping: false,
       imageUrl: "",
       data: {},
@@ -400,7 +575,16 @@ export default {
     };
   },
   computed: {
-     textoEditable() {
+    isInputBlocked() {
+    // Bloquear si:
+    return (
+      this.isTyping || // Está "escribiendo" el bot
+      this.collectingPeople || // Está seleccionando personas
+      this.waitingForConfirmation || // Está esperando confirmación
+      this.chatMessages.some(m => m.component && !m.isEditing) // Hay un componente activo (ej: PeopleSelector, DatePicker, etc.)
+    );
+  },
+    textoEditable() {
       // Muestra texto confirmado + texto dictado en vivo
       return this.newMessage + this.textoTemporal;
     },
@@ -457,18 +641,18 @@ export default {
       this.textoTemporal = "";
     };
     let taskData = this.taskData;
-  
-  // Si es string, parsearlo
-  if (typeof taskData === 'string') {
-    try {
-      taskData = JSON.parse(taskData);
-    } catch (error) {
-      console.error("Error parsing taskData:", error);
-      return;
+
+    // Si es string, parsearlo
+    if (typeof taskData === "string") {
+      try {
+        taskData = JSON.parse(taskData);
+      } catch (error) {
+        console.error("Error parsing taskData:", error);
+        return;
+      }
     }
-  }
-  
-  console.log("Datos recibidos del componente padre (taskData):", taskData);
+
+    console.log("Datos recibidos del componente padre (taskData):", taskData);
     this.name = JSON.parse(LocalStorageService.getItem("name"));
     this.user = JSON.parse(LocalStorageService.getItem("user"));
     this.user_id = JSON.parse(LocalStorageService.getItem("user_id"));
@@ -478,23 +662,22 @@ export default {
       try {
         await this.loadRequiredData();
         // Copiar los datos de la tarea
-          this.taskParameters = {
-                          ...this.taskParameters,
-                          ...taskData,
-                        };
-          this.taskDataCollectionMode = true;
-          this.currentTaskIntent = taskData.type || "Tarea";
+        this.taskParameters = {
+          ...this.taskParameters,
+          ...taskData,
+        };
+        this.taskDataCollectionMode = true;
+        this.currentTaskIntent = taskData.type || "Tarea";
         // Mostrar en el chat
         this.chatMessages.push({
           from: "ai",
-          text: `Datos de la  ${this.currentTaskIntent} recibidos. Puedes editarlos antes de confirmar.`,
+          text: `Datos de la ${this.currentTaskIntent} recibidos. Puedes editarlos antes de confirmar.`,
           timestamp: new Date().toLocaleTimeString(),
         });
 
         // Iniciar flujo de edición
-        
-  
-      await this.showInitialTaskData(taskData);
+
+        await this.showInitialTaskData(taskData);
       } catch (error) {
         this.showAlert("error", "Error al cargar datos: " + error.message);
       }
@@ -519,7 +702,7 @@ export default {
       this.$emit("close-all-dialogs", "ChatTask");
       //this.initialize();
     },
-     toggleDictado() {
+    toggleDictado() {
       if (!this.recognition) return;
 
       if (this.escuchando) {
@@ -549,8 +732,8 @@ export default {
     },
     startFieldEdit(index) {
       const message = this.chatMessages[index];
-       this.editingFieldIndex = index; // ✅ Guardamos el índice
-        this.editingFieldKey = message.fieldKey; // ✅ Opcional: guardamos también la clave
+      this.editingFieldIndex = index; // ✅ Guardamos el índice
+      this.editingFieldKey = message.fieldKey; // ✅ Opcional: guardamos también la clave
 
       message.isEditing = true;
       message.editValue = message.currentValue;
@@ -574,13 +757,28 @@ export default {
     },
     async saveFieldEdit(index) {
       const message = this.chatMessages[index];
+      if (this.chatMessages[index].editValue === this.chatMessages[index].text) {
+      this.chatMessages[index].isEditing = false;
+      return;
+    }
       try {
         const validatedValue = this.validateField(message.fieldKey, message.editValue);
         this.taskParameters[message.fieldKey] = validatedValue;
-        message.currentValue = validatedValue;
-        message.text = `• ${message.fieldLabel}: ${validatedValue}`;
+        // Si es mensaje compacto, no actualizamos texto individual, sino todo el bloque
+    if (message.isCompactFields) {
+      // Actualizar valor en los campos
+      const field = message.fields.find(f => f.key === message.fieldKey);
+      if (field) field.value = validatedValue;
+
+      // Actualizar resumen existente
+      this.updateExistingTaskSummary();
+    } else {
+      message.currentValue = validatedValue;
+      message.text = `• ${message.fieldLabel}: ${validatedValue}`;
+    }
+
         message.isEditing = false;
-         this.updateExistingTaskSummary();
+        this.updateExistingTaskSummary();
         this.scrollToBottom();
         this.editingFieldIndex = null;
         this.editingFieldKey = null;
@@ -596,127 +794,86 @@ export default {
       const tempMessage = this.newMessage.trim();
       if (!tempMessage) return;
 
-      // ✅ ¿Estamos editando un campo?
-      if (this.editingFieldIndex !== null) {
-        const index = this.editingFieldIndex;
-        const message = this.chatMessages[index];
+      this.isLoading = true;
+      //const tempMessage = this.newMessage;
+      this.newMessage = "";
+      this.chatMessages.push({
+        from: "user",
+        text: tempMessage,
+        timestamp: new Date().toLocaleTimeString(),
+      });
+      this.isTyping = true;
 
-        // Simular que el usuario escribió en el campo
-        message.editValue = tempMessage;
-
-        // Guardar
-        await this.saveFieldEdit(index);
-
-        // Limpiar
-        this.editingFieldIndex = null;
-        this.editingFieldKey = null;
-        this.newMessage = "";
-        return;
-      } //{
-        this.isLoading = true;
-        //const tempMessage = this.newMessage;
-        this.newMessage = "";
-        this.chatMessages.push({
-          from: "user",
-          text: tempMessage,
-          timestamp: new Date().toLocaleTimeString(),
-        });
-        this.isTyping = true;
-
-        try {
-          const lastAIMessage = this.chatMessages
-            .slice()
-            .reverse()
-            .find((m) => m.from === "ai" && m.isFieldPrompt);
-          if (lastAIMessage) {
-            try {
-              const validatedValue = this.validateField(
-                lastAIMessage.fieldName,
-                tempMessage
-              );
-              this.taskParameters[lastAIMessage.fieldName] = validatedValue;
-              this.chatMessages.push({
-                from: "ai",
-                text: `✅ ${
-                  lastAIMessage.fieldLabel || lastAIMessage.fieldName
-                } guardado: ${validatedValue}`,
-                timestamp: new Date().toLocaleTimeString(),
-              });
-              this.startAutomaticDataCollection();
-              return;
-            } catch (error) {
-              this.chatMessages.push({
-                from: "ai",
-                text: `❌ Error: ${error.message}. Por favor ingresa un valor válido.`,
-                timestamp: new Date().toLocaleTimeString(),
-                isFieldPrompt: true,
-                fieldName: lastAIMessage.fieldName,
-                fieldLabel: lastAIMessage.fieldLabel,
-              });
-              return;
-            }
-          }
-
-          if (this.waitingForConfirmation) {
-            await this.handleTaskConfirmation(tempMessage);
-            return;
-          }
-
-          if (this.collectingPeople) {
-            await this.processPeopleSelection(tempMessage);
-            return;
-          }
-
-          if (!this.taskDataCollectionMode) {
-            const response = await handleRequest({
-              endpoint: "ask-ai-task",
-              method: "POST",
-              data: {
-                question: tempMessage,
-                issue: "Eres un asistente para gestión de tareas y metas.",
-              },
+      try {
+        const lastAIMessage = this.chatMessages
+          .slice()
+          .reverse()
+          .find((m) => m.from === "ai" && m.isFieldPrompt);
+        if (lastAIMessage) {
+          try {
+            const validatedValue = this.validateField(
+              lastAIMessage.fieldName,
+              tempMessage
+            );
+            this.taskParameters[lastAIMessage.fieldName] = validatedValue;
+            this.chatMessages.push({
+              from: "ai",
+              text: `✅ ${
+                lastAIMessage.fieldLabel || lastAIMessage.fieldName
+              } guardado: ${validatedValue}`,
+              timestamp: new Date().toLocaleTimeString(),
             });
-            this.isTyping = false;
-        const { intentDetected, intent, task, answer, finances, budget, warehouse, product, desire } = response.data;
-            if (intentDetected && intent) {
+            this.startAutomaticDataCollection();
+            return;
+          } catch (error) {
+            this.chatMessages.push({
+              from: "ai",
+              text: `❌ Error: ${error.message}. Por favor ingresa un valor válido.`,
+              timestamp: new Date().toLocaleTimeString(),
+              isFieldPrompt: true,
+              fieldName: lastAIMessage.fieldName,
+              fieldLabel: lastAIMessage.fieldLabel,
+            });
+            return;
+          }
+        }
 
-              this.data = { home_id: this.home_id };
-                switch (intent) {
-            case "Tarea":
-              this.$nextTick(async () => {
-                            try {
-                    // 1. Primero: Cargar datos necesarios (ej: personas, departamentos, etc.)
-                    await this.loadRequiredData();
+        if (this.waitingForConfirmation) {
+          await this.handleTaskConfirmation(tempMessage);
+          return;
+        }
 
-                    // 2. Ahora sí: Actualizar parámetros con los datos de la tarea
-                    this.taskParameters = {
-                      ...this.taskParameters,
-                      ...task,
-                    };
+        if (this.collectingPeople) {
+          await this.processPeopleSelection(tempMessage);
+          return;
+        }
 
-                    this.currentTaskIntent = intent;
-                    this.taskDataCollectionMode = true;
-
-                    // 3. Mostrar mensaje en el chat
-                    this.chatMessages.push({
-                      from: "ai",
-                      text: `Datos de la ${this.currentTaskIntent} recibidos. Puedes editarlos antes de confirmar.`,
-                      timestamp: new Date().toLocaleTimeString(),
-                    });
-
-                    // 4. Mostrar datos iniciales (ahora con datos cargados)
-                    await this.showInitialTaskData(task); // ← usa 'task', no 'response.data.task'
-
-                    // 5. Scroll al final
-                    this.scrollToBottom();
-                  } catch (error) {
-                    this.showAlert("error", "Error al procesar la tarea: " + error.message);
-                  }
-                });
-              break;
-
-            case "Meta":
-               this.$nextTick(async () => {
+        if (!this.taskDataCollectionMode) {
+          const response = await handleRequest({
+            endpoint: "ask-ai-task",
+            method: "POST",
+            data: {
+              question: tempMessage,
+              issue: "Eres un asistente para gestión de tareas y metas.",
+            },
+          });
+          this.isTyping = false;
+          const {
+            intentDetected,
+            intent,
+            task,
+            answer,
+            finances,
+            budget,
+            warehouse,
+            product,
+            desire,
+          } = response.data;
+          if (intentDetected && intent) {
+            this.data = { home_id: this.home_id };
+            switch (intent) {
+              case "Tarea":
+                this.$nextTick(async () => {
                   try {
                     // 1. Primero: Cargar datos necesarios (ej: personas, departamentos, etc.)
                     await this.loadRequiredData();
@@ -743,160 +900,188 @@ export default {
                     // 5. Scroll al final
                     this.scrollToBottom();
                   } catch (error) {
-                    this.showAlert("error", "Error al procesar la tarea: " + error.message);
+                    this.showAlert(
+                      "error",
+                      "Error al procesar la tarea: " + error.message
+                    );
                   }
                 });
-              break;
+                break;
+
+              case "Meta":
+                this.$nextTick(async () => {
+                  try {
+                    // 1. Primero: Cargar datos necesarios (ej: personas, departamentos, etc.)
+                    await this.loadRequiredData();
+
+                    // 2. Ahora sí: Actualizar parámetros con los datos de la tarea
+                    this.taskParameters = {
+                      ...this.taskParameters,
+                      ...task,
+                    };
+
+                    this.currentTaskIntent = intent;
+                    this.taskDataCollectionMode = true;
+
+                    // 3. Mostrar mensaje en el chat
+                    this.chatMessages.push({
+                      from: "ai",
+                      text: `Datos de la ${this.currentTaskIntent} recibidos. Puedes editarlos antes de confirmar.`,
+                      timestamp: new Date().toLocaleTimeString(),
+                    });
+
+                    // 4. Mostrar datos iniciales (ahora con datos cargados)
+                    await this.showInitialTaskData(task); // ← usa 'task', no 'response.data.task'
+
+                    // 5. Scroll al final
+                    this.scrollToBottom();
+                  } catch (error) {
+                    this.showAlert(
+                      "error",
+                      "Error al procesar la tarea: " + error.message
+                    );
+                  }
+                });
+                break;
               case "Gasto":
-              this.currentFinance = null;
-              this.$nextTick(() => {
-                const financeData =
-                  typeof finances === "string"
-                    ? JSON.parse(finances)
-                    : finances;
+                this.currentFinance = null;
+                this.$nextTick(() => {
+                  const financeData =
+                    typeof finances === "string" ? JSON.parse(finances) : finances;
 
-              
-                if(Number(financeData.spent) <= 0)
-                {
-                this.chatMessages.push({
-                from: "ai",
-                text:
-                  /*answer ||*/
-                  "Detecte que desea registrar un gasto pero no especificaste el monto, podrías ser mas especifico",
-                timestamp: new Date().toLocaleTimeString(),
-              });
-            }else{
-                this.currentFinance = _.cloneDeep(financeData);
-                this.currentIntentFinance = "Gasto";
-                this.dialogChatFinance = true;
-                this.scrollToBottom();
-            }
-              });
-              break;
+                  if (Number(financeData.spent) <= 0) {
+                    this.chatMessages.push({
+                      from: "ai",
+                      text:
+                        /*answer ||*/
+                        "Detecte que desea registrar un gasto pero no especificaste el monto, podrías ser mas especifico",
+                      timestamp: new Date().toLocaleTimeString(),
+                    });
+                  } else {
+                    this.currentFinance = _.cloneDeep(financeData);
+                    this.currentIntentFinance = "Gasto";
+                    this.dialogChatFinance = true;
+                    this.scrollToBottom();
+                  }
+                });
+                break;
 
-            case "Ingreso":
-              this.currentFinance = null;
-              this.$nextTick(() => {
-                const financeData =
-                  typeof finances === "string"
-                    ? JSON.parse(finances)
-                    : finances;
+              case "Ingreso":
+                this.currentFinance = null;
+                this.$nextTick(() => {
+                  const financeData =
+                    typeof finances === "string" ? JSON.parse(finances) : finances;
 
-              
-                if(Number(financeData.income) <= 0)
-                {
-                this.chatMessages.push({
-                from: "ai",
-                text:
-                  /*answer ||*/
-                  "Detecte que desea registrar un ingreso pero no especificaste el monto, podrías ser mas especifico",
-                timestamp: new Date().toLocaleTimeString(),
-              });
-            }else{
-                this.currentFinance = _.cloneDeep(financeData);
-                this.currentIntentFinance = "Ingreso";
-                this.dialogChatFinance = true;
-                this.scrollToBottom();
-            }
-              });
-              break;
+                  if (Number(financeData.income) <= 0) {
+                    this.chatMessages.push({
+                      from: "ai",
+                      text:
+                        /*answer ||*/
+                        "Detecte que desea registrar un ingreso pero no especificaste el monto, podrías ser mas especifico",
+                      timestamp: new Date().toLocaleTimeString(),
+                    });
+                  } else {
+                    this.currentFinance = _.cloneDeep(financeData);
+                    this.currentIntentFinance = "Ingreso";
+                    this.dialogChatFinance = true;
+                    this.scrollToBottom();
+                  }
+                });
+                break;
 
-            case "Presupuesto":
-              this.currentBudget = null;
-              this.$nextTick(() => {
-                const budgetData =
-                  typeof budget === "string"
-                    ? JSON.parse(budget)
-                    : budget;
-                if(Number(budgetData.amount) <= 0)
-                {
-                this.chatMessages.push({
-                from: "ai",
-                text:
-                  /*answer ||*/
-                  "Detecte que desea registrar un presupuesto pero no especificaste el monto, podrías ser mas especifico",
-                timestamp: new Date().toLocaleTimeString(),
-              });
-            }else{
-                this.currentBudget = _.cloneDeep(budgetData);
-                this.dialogChatBudget = true;
-                this.scrollToBottom();
-              }
-              });
-              break;
-            case "Warehouse":
-              this.currentWarehouse = null;
-              this.$nextTick(() => {
-                const warehouseData =
-                  typeof warehouse === "string"
-                    ? JSON.parse(warehouse)
-                    : warehouse;
+              case "Presupuesto":
+                this.currentBudget = null;
+                this.$nextTick(() => {
+                  const budgetData =
+                    typeof budget === "string" ? JSON.parse(budget) : budget;
+                  if (Number(budgetData.amount) <= 0) {
+                    this.chatMessages.push({
+                      from: "ai",
+                      text:
+                        /*answer ||*/
+                        "Detecte que desea registrar un presupuesto pero no especificaste el monto, podrías ser mas especifico",
+                      timestamp: new Date().toLocaleTimeString(),
+                    });
+                  } else {
+                    this.currentBudget = _.cloneDeep(budgetData);
+                    this.dialogChatBudget = true;
+                    this.scrollToBottom();
+                  }
+                });
+                break;
+              case "Warehouse":
+                this.currentWarehouse = null;
+                this.$nextTick(() => {
+                  const warehouseData =
+                    typeof warehouse === "string" ? JSON.parse(warehouse) : warehouse;
 
-                this.currentWarehouse = _.cloneDeep(warehouseData);
-                this.dialogChatWarehouse = true;
-                this.scrollToBottom();
-              });
-              break;
-            
-            case "Producto":
-              this.currentProduct = null;
-              this.$nextTick(() => {
-                const productData =
-                  typeof product === "string"
-                    ? JSON.parse(product)
-                    : product;
-                 if (isNaN(productData.quantity) || isNaN(productData.unit_price) || productData.quantity <= 0 || productData.unit_price <= 0) {
+                  this.currentWarehouse = _.cloneDeep(warehouseData);
+                  this.dialogChatWarehouse = true;
+                  this.scrollToBottom();
+                });
+                break;
+
+              case "Producto":
+                this.currentProduct = null;
+                this.$nextTick(() => {
+                  const productData =
+                    typeof product === "string" ? JSON.parse(product) : product;
+                  if (
+                    isNaN(productData.quantity) ||
+                    isNaN(productData.unit_price) ||
+                    productData.quantity <= 0 ||
+                    productData.unit_price <= 0
+                  ) {
                     this.messages.push({
                       from: "ai",
-                      text: "⚠️ Parece que aún no has especificado bien la **cantidad** o el **precio unitario** del producto. Ambos deben ser valores numéricos mayores a cero. ¿Podrías revisarlo y corregirlo, por favor?",
+                      text:
+                        "⚠️ Parece que aún no has especificado bien la **cantidad** o el **precio unitario** del producto. Ambos deben ser valores numéricos mayores a cero. ¿Podrías revisarlo y corregirlo, por favor?",
                       timestamp: new Date().toLocaleTimeString(),
                     });
                     return; // Detener el flujo hasta que se corrijan
-                  }else{
-                this.currentProduct = _.cloneDeep(productData);
-                this.dialogChatProduct = true;
-                this.scrollToBottom();
-              }
-              });
-              break;
+                  } else {
+                    this.currentProduct = _.cloneDeep(productData);
+                    this.dialogChatProduct = true;
+                    this.scrollToBottom();
+                  }
+                });
+                break;
 
               case "Deseo":
-              this.currentDesire = null;
-              this.$nextTick(() => {
-                const desireData =
-                  typeof desire === "string"
-                    ? JSON.parse(desire)
-                    : desire;
+                this.currentDesire = null;
+                this.$nextTick(() => {
+                  const desireData =
+                    typeof desire === "string" ? JSON.parse(desire) : desire;
 
-                this.currentDesire = _.cloneDeep(desireData);
-                this.dialogChatDesire = true;
+                  this.currentDesire = _.cloneDeep(desireData);
+                  this.dialogChatDesire = true;
+                  this.scrollToBottom();
+                });
+                break;
+
+              case "salud":
+                this.currentHealthData = _.cloneDeep(task || {});
+                this.dialogChatHealth = true;
                 this.scrollToBottom();
-              });
-              break;
+                break;
 
-            case "salud":
-              this.currentHealthData = _.cloneDeep(task || {});
-              this.dialogChatHealth = true;
-              this.scrollToBottom();
-              break;
+              case "compra":
+                this.currentShoppingData = _.cloneDeep(task || {});
+                this.dialogChatShopping = true;
+                this.scrollToBottom();
+                break;
 
-            case "compra":
-              this.currentShoppingData = _.cloneDeep(task || {});
-              this.dialogChatShopping = true;
-              this.scrollToBottom();
-              break;
-
-            default:
-              // Respuesta por defecto si no se reconoce la intención
-              this.chatMessages.push({
-                from: "ai",
-                text:
-                  answer ||
-                  "No entendí muy bien tu solicitud. ¿Podrías ser más específico?",
-                timestamp: new Date().toLocaleTimeString(),
-              });
-          }
-              /*if (response.data.task) {
+              default:
+                // Respuesta por defecto si no se reconoce la intención
+                this.chatMessages.push({
+                  from: "ai",
+                  text:
+                    answer ||
+                    "No entendí muy bien tu solicitud. ¿Podrías ser más específico?",
+                  timestamp: new Date().toLocaleTimeString(),
+                });
+            }
+            /*if (response.data.task) {
                 this.taskParameters = {
                   ...this.taskParameters,
                   ...response.data.task,
@@ -906,22 +1091,22 @@ export default {
               this.currentTaskIntent = response.data.intent;
               this.taskDataCollectionMode = true;
               await this.showInitialTaskData(response.data.task);*/
-            } else {
-              this.chatMessages.push({
-                from: "ai",
-                text: response.data.answer,
-                timestamp: new Date().toLocaleTimeString(),
-              });
-            }
-            return;
+          } else {
+            this.chatMessages.push({
+              from: "ai",
+              text: response.data.answer,
+              timestamp: new Date().toLocaleTimeString(),
+            });
           }
-        } catch (error) {
-          this.showAlert("error", error.message || "Ocurrió un error", 2000);
-        } finally {
-          this.isTyping = false;
-          this.isLoading = false;
-          this.scrollToBottom();
+          return;
         }
+      } catch (error) {
+        this.showAlert("error", error.message || "Ocurrió un error", 2000);
+      } finally {
+        this.isTyping = false;
+        this.isLoading = false;
+        this.scrollToBottom();
+      }
       //}
     },
     async loadRequiredData() {
@@ -958,6 +1143,8 @@ export default {
       await this.showTaskSummary(taskData);
       await this.startAutomaticDataCollection();
     },
+    //Aqui comienzan los cambios
+
     async showTaskSummary(taskData) {
       if (taskData.type) {
         this.chatMessages.push({
@@ -970,52 +1157,45 @@ export default {
           },
           timestamp: new Date().toLocaleTimeString(),
         });
-         // Marcar este campo como ya mostrado en el chat
+        // Marcar este campo como ya mostrado en el chat
         this.shownChatFields.add("type");
       }
+      const isMeta = taskData.type === "Meta";
+
+      // Campos a mostrar
       const fieldsToShow = [
         { key: "title", label: "Título" },
         { key: "description", label: "Descripción" },
-        { key: "start_date", label: "Fecha de inicio" },
-        { key: "start_time", label: "Hora de inicio" },
-        { key: "end_date", label: "Fecha de finalización" },
-        { key: "end_time", label: "Hora de finalización" },
-        { key: "estimated_time", label: "Duración estimada (minutos)" },
+        { key: "start_date", label: "Fecha inicio" },
+        { key: "start_time", label: "Hora inicio" },
+        //{ key: "estimated_time", label: "Duración estimada (min)" },
+        ...(isMeta
+          ? [
+              { key: "end_date", label: "Fecha fin" },
+              { key: "end_time", label: "Hora fin" },
+            ]
+          : []),
       ];
 
-      // Determinar si es Meta (solo en ese caso se muestran end_date y end_time)
-      const isMeta = taskData.type === "Meta";
-      console.log("isMeta:", isMeta);
+      // Crear mensaje compacto
+      const compactMessage = {
+        from: "ai",
+        text: "Detalles de la tarea:",
+        timestamp: new Date().toLocaleTimeString(),
+        isCompactFields: true,
+        isEditable: true,
+        fields: fieldsToShow.map((field) => ({
+          ...field,
+          value: taskData[field.key],
+        })),
+        isEditing: false,
+        editingSubField: null,
+      };
 
-      // Filtrar los campos: solo se excluyen end_date y end_time si NO es Meta
-      const filteredFields = fieldsToShow.filter(field => {
-        // Si NO es Meta, excluimos estos dos campos
-        if (!isMeta) {
-          return !["end_date", "end_time"].includes(field.key);
-        }
-        // Si es Meta, mostramos todos los campos
-        return true;
-      });
-      // Mostrar campos normales como texto
-      filteredFields.forEach((field) => {
-        const value = taskData[field.key];
-        if (value) {
-          this.chatMessages.push({
-            from: "ai",
-            text: `${field.label}: ${value}`,
-            timestamp: new Date().toLocaleTimeString(),
-            isEditable: true,
-            fieldKey: field.key,
-            fieldLabel: field.label,
-            currentValue: value,
-            editValue: value,
-            isEditing: false,
-            showDatePicker: false,
-          });
-           // Marcar este campo como ya mostrado en el chat
-      this.shownChatFields.add(field.key);
-        }
-      });
+      this.chatMessages.push(compactMessage);
+
+      // Marcar todos los campos como mostrados
+      fieldsToShow.forEach((f) => this.shownChatFields.add(f.key));
 
       // Mostrar prioridad como componente especial
       if (taskData.priority_id) {
@@ -1029,7 +1209,7 @@ export default {
           },
           timestamp: new Date().toLocaleTimeString(),
         });
-         // Marcar este campo como ya mostrado en el chat
+        // Marcar este campo como ya mostrado en el chat
         this.shownChatFields.add("priority_id");
       }
       if (taskData.recurrence) {
@@ -1043,10 +1223,54 @@ export default {
           },
           timestamp: new Date().toLocaleTimeString(),
         });
-         // Marcar este campo como ya mostrado en el chat
+        // Marcar este campo como ya mostrado en el chat
         this.shownChatFields.add("recurrence");
       }
     },
+    formatFieldDisplay(fieldKey, value) {
+  if (!value) return "(vacío)";
+  if (fieldKey === "estimated_time") return `${value} min`;
+  return value;
+},
+    canEditField(fieldKey) {
+  if (["end_date", "end_time"].includes(fieldKey)) {
+    return this.taskParameters.type === "Meta";
+  }
+  return true;
+},
+startSubFieldEdit(message, fieldKey) {
+  // Buscar el índice real del mensaje en chatMessages
+  const index = this.chatMessages.indexOf(message);
+  if (index === -1) return;
+
+  // Simular que el usuario hizo clic en un campo editable
+  const fieldLabel = message.fields.find(f => f.key === fieldKey)?.label;
+
+  // Actualizar el mensaje para que parezca un campo editable
+  message.isEditing = true;
+  message.fieldKey = fieldKey;
+  message.fieldLabel = fieldLabel;
+  message.currentValue = this.taskParameters[fieldKey] || "";
+  message.editValue = message.currentValue;
+  message.showDatePicker = false;
+  message.showTimePicker = false;
+
+  // Forzar actualización
+  this.$nextTick(() => {
+    if (["start_date", "end_date"].includes(fieldKey)) {
+      this.$nextTick(() => {
+        message.showDatePicker = true;
+      });
+    } else if (["start_time", "end_time"].includes(fieldKey)) {
+      this.$nextTick(() => {
+        message.showTimePicker = true;
+      });
+    } else {
+      const textField = this.textFieldRefs[index];
+      if (textField) textField.focus();
+    }
+  });
+},
     async startAutomaticDataCollection() {
       const parametersOrder = [
         "type",
@@ -1077,7 +1301,7 @@ export default {
         this.completeTaskCreation(); // Aquí ya no genera resumen, solo confirmación
         return;
       }
-        // Si ya fue mostrado, no mostramos de nuevo
+      // Si ya fue mostrado, no mostramos de nuevo
       if (this.shownChatFields.has(nextField)) {
         return;
       }
@@ -1102,7 +1326,7 @@ export default {
       }
     },
     updateExistingTaskSummary() {
-      const summaryIndex = this.chatMessages.findIndex(msg => msg.isSummary);
+      const summaryIndex = this.chatMessages.findIndex((msg) => msg.isSummary);
       if (summaryIndex !== -1) {
         // Solo actualizamos si ya existe
         this.chatMessages[summaryIndex].text = this.generateTaskSummary();
@@ -1111,7 +1335,7 @@ export default {
       }
     },
     updateOrCreateTaskSummary() {
-      const summaryIndex = this.chatMessages.findIndex(msg => msg.isSummary);
+      const summaryIndex = this.chatMessages.findIndex((msg) => msg.isSummary);
       const newSummary = this.generateTaskSummary();
 
       if (summaryIndex === -1) {
@@ -1152,7 +1376,7 @@ export default {
       });
       if (field === "type") {
         await this.showTypeOptions();
-      }else if (field === "priority_id") {
+      } else if (field === "priority_id") {
         await this.showPriorityOptions();
       } else if (field === "recurrence") {
         await this.showRecurrenceOptions();
@@ -1215,7 +1439,7 @@ export default {
       setTimeout(() => {
         this.chatMessages.push({
           from: "ai",
-          text: "Selecciona la prioridad para esta tarea:",
+          text: `Selecciona la prioridad para esta ${this.currentTaskIntent.toLowerCase()}:`,
           component: "PriorityOptions",
           props: {
             options: this.priorities,
@@ -1254,7 +1478,7 @@ export default {
       setTimeout(() => {
         this.chatMessages.push({
           from: "ai",
-          text: "Selecciona la recurrencia para esta tarea:",
+          text: `Selecciona la recurrencia para esta ${this.currentTaskIntent.toLowerCase()}:`,
           component: "RecurrenceOptions",
           props: {
             options: this.recurrences,
@@ -1301,11 +1525,11 @@ export default {
       // Llamar a showPeopleSelector después de seleccionar recurrencia
       this.startAutomaticDataCollection();
     },
-   async handleTtypeSelected(type) {
+    /*async handleTtypeSelected(type) {
       const newType = type.id === "none" ? null : type.id;
       const oldType = this.taskParameters.type;
-        
-          await this.updateEndDateVisibilityInChat(newType);
+
+      await this.updateEndDateVisibilityInChat(newType);
       // Si no cambia el tipo, salir
       if (newType === oldType) {
         await this.startAutomaticDataCollection();
@@ -1314,6 +1538,7 @@ export default {
 
       // Cambiar el tipo
       this.taskParameters.type = newType;
+      this.currentTaskIntent = newType;
 
       // Actualizar el componente visual
       const typeMessageIndex = this.chatMessages.findIndex(
@@ -1331,7 +1556,7 @@ export default {
         });
 
         // Eliminar del resumen si existe
-        const summaryIndex = this.chatMessages.findIndex(msg => msg.isSummary);
+        const summaryIndex = this.chatMessages.findIndex((msg) => msg.isSummary);
         if (summaryIndex !== -1) {
           // Actualizar el texto del resumen sin end_date/end_time
           this.chatMessages[summaryIndex].text = this.generateTaskSummary();
@@ -1340,10 +1565,43 @@ export default {
 
       // 🔥 Eliminar resumen y confirmación para que se regenere
       this.chatMessages = this.chatMessages.filter(
-        msg => !msg.isSummary && !msg.isConfirmation
+        (msg) => !msg.isSummary && !msg.isConfirmation
       );
 
       // 🔁 Reiniciar flujo
+      this.startAutomaticDataCollection();
+    },*/
+    async handleTtypeSelected(type) {
+      const newType = type.id === "none" ? null : type.id;
+      const oldType = this.taskParameters.type;
+
+      // Si no cambia el tipo, salir
+      if (newType === oldType) {
+        await this.startAutomaticDataCollection();
+        return;
+      }
+
+      // Cambiar el tipo
+      this.taskParameters.type = newType;
+      this.currentTaskIntent = newType;
+
+      // Actualizar componente visual
+      const typeMessageIndex = this.chatMessages.findIndex(
+        (m) => m.from === "ai" && m.component === "TaskTypeOptions"
+      );
+      if (typeMessageIndex !== -1) {
+        this.chatMessages[typeMessageIndex].props.selectedId = newType;
+      }
+
+      // Actualizar visibilidad de end_date/end_time en el mensaje compacto
+      await this.updateEndDateVisibilityInChat(newType);
+
+      // Eliminar resumen y confirmación para regenerar
+      this.chatMessages = this.chatMessages.filter(
+        msg => !msg.isSummary && !msg.isConfirmation
+      );
+
+      // Reiniciar flujo
       this.startAutomaticDataCollection();
     },
     //personas
@@ -1379,7 +1637,7 @@ export default {
       setTimeout(() => {
         this.chatMessages.push({
           from: "ai",
-          text: "Selecciona las personas para esta tarea:",
+          text: `Selecciona las personas para esta ${this.currentTaskIntent.toLowerCase()}:`,
           component: "PeopleSelector",
           props: {
             roles: this.roles,
@@ -1419,7 +1677,7 @@ export default {
       this.updateOrCreateTaskSummary();
 
       // ❌ Eliminar solo confirmación anterior
-      this.chatMessages = this.chatMessages.filter(msg => !msg.isConfirmation);
+      this.chatMessages = this.chatMessages.filter((msg) => !msg.isConfirmation);
 
       // ✅ Mostrar confirmación
       this.chatMessages.push({
@@ -1431,10 +1689,10 @@ export default {
           {
             text: "Cancelar",
             color: "grey",
-            variant: "outlined",
+            variant: "flat",
             disabled: false,
             action: () => this.handleCancellation("no"),
-            props: { class: "mr-2", size: "default" }
+            props: { class: "mr-2", size: "default" },
           },
           {
             text: "Confirmar y crear",
@@ -1442,16 +1700,16 @@ export default {
             variant: "flat",
             disabled: false,
             action: () => this.handleTaskConfirmation("si"),
-            props: { size: "default" }
-          }
-        ]
+            props: { size: "default" },
+          },
+        ],
       });
 
       this.waitingForConfirmation = true;
       this.isTyping = false;
       this.scrollToBottom();
     },
-   generateTaskSummary() {
+    generateTaskSummary() {
       let summary = `Resumen de la ${this.currentTaskIntent}:\n\n`;
 
       const parameterLabels = {
@@ -1470,16 +1728,23 @@ export default {
         const value = this.taskParameters[key];
         if (value !== null && value !== undefined && value !== "") {
           // Saltar end_date si no es Meta
-          if ((key === "end_date" || key === "end_time") && this.taskParameters.type !== "Meta") {
+          if (
+            (key === "end_date" || key === "end_time") &&
+            this.taskParameters.type !== "Meta"
+          ) {
             return;
           }
 
           if (key === "priority_id") {
             const priority = this.priorities.find((p) => p.id === value);
-            summary += `• ${parameterLabels[key]}: ${priority?.namePriority || "No especificada"}\n`;
+            summary += `• ${parameterLabels[key]}: ${
+              priority?.namePriority || "No especificada"
+            }\n`;
           } else if (key === "recurrence") {
             const recurrence = this.recurrences.find((r) => r.id === value);
-            summary += `• ${parameterLabels[key]}: ${recurrence?.recurrenceName || "No recurrente"}\n`;
+            summary += `• ${parameterLabels[key]}: ${
+              recurrence?.recurrenceName || "No recurrente"
+            }\n`;
           } else if (key === "start_date" || key === "end_date") {
             const timeKey = key.replace("_date", "_time");
             const timeValue = this.taskParameters[timeKey];
@@ -1495,7 +1760,9 @@ export default {
       if (this.taskParameters.people.length > 0) {
         summary += `• Personas asignadas:\n`;
         this.roles.forEach((role) => {
-          const peopleInRole = this.taskParameters.people.filter((p) => p.roleId === role.id);
+          const peopleInRole = this.taskParameters.people.filter(
+            (p) => p.roleId === role.id
+          );
           if (peopleInRole.length > 0) {
             summary += `  - ${role.nameRol}: `;
             summary += peopleInRole
@@ -1512,14 +1779,14 @@ export default {
       return summary;
     },
     updateTaskSummaryMessage() {
-      const summaryIndex = this.chatMessages.findIndex(msg => msg.isSummary);
+      const summaryIndex = this.chatMessages.findIndex((msg) => msg.isSummary);
       if (summaryIndex !== -1) {
         // Actualizar el resumen completo
         const newSummary = this.generateTaskSummary();
         this.chatMessages[summaryIndex].text = newSummary;
 
         // Actualizar mensaje individual del campo editado
-        const fieldKey = this.chatMessages.find(m => m.isEditing)?.fieldKey;
+        const fieldKey = this.chatMessages.find((m) => m.isEditing)?.fieldKey;
         if (fieldKey) {
           const fieldLabel = {
             type: "Tipo",
@@ -1535,12 +1802,16 @@ export default {
 
           if (fieldLabel) {
             const fieldMessageIndex = this.chatMessages.findIndex(
-              m => m.fieldKey === fieldKey && !m.isEditing && !m.isSummary
+              (m) => m.fieldKey === fieldKey && !m.isEditing && !m.isSummary
             );
             if (fieldMessageIndex !== -1) {
               const displayValue = this.getDisplayValueForTaskField(fieldKey);
-              this.chatMessages[fieldMessageIndex].text = `• ${fieldLabel}: ${displayValue}`;
-              this.chatMessages[fieldMessageIndex].currentValue = this.taskParameters[fieldKey];
+              this.chatMessages[
+                fieldMessageIndex
+              ].text = `• ${fieldLabel}: ${displayValue}`;
+              this.chatMessages[fieldMessageIndex].currentValue = this.taskParameters[
+                fieldKey
+              ];
             }
           }
         }
@@ -1551,17 +1822,17 @@ export default {
       if (!value) return value;
 
       if (fieldKey === "type") {
-        const type = this.types.find(p => p.id === value);
+        const type = this.types.find((p) => p.id === value);
         return type?.name || "No especificado";
       }
 
       if (fieldKey === "priority_id") {
-        const priority = this.priorities.find(p => p.id === value);
+        const priority = this.priorities.find((p) => p.id === value);
         return priority?.namePriority || "No especificada";
       }
 
       if (fieldKey === "recurrence") {
-        const recurrence = this.recurrences.find(r => r.id === value);
+        const recurrence = this.recurrences.find((r) => r.id === value);
         return recurrence?.recurrenceName || "No recurrente";
       }
 
@@ -1574,19 +1845,20 @@ export default {
       return value;
     },
 
-
     // Maneja la confirmación del usuario
     async handleTaskConfirmation(userResponse) {
       this.waitingForConfirmation = false;
 
       if (userResponse.toLowerCase() === "si" || userResponse.toLowerCase() === "sí") {
-         const confirmationMsg = this.chatMessages.find(msg => msg.isConfirmation);
-  if (confirmationMsg) {
-    const confirmButton = confirmationMsg.buttons.find(b => b.text === "Confirmar y crear");
-    if (confirmButton) {
-      confirmButton.disabled = true; // ✅ Deshabilita visualmente
-    }
-  }
+        const confirmationMsg = this.chatMessages.find((msg) => msg.isConfirmation);
+        if (confirmationMsg) {
+          const confirmButton = confirmationMsg.buttons.find(
+            (b) => b.text === "Confirmar y crear"
+          );
+          if (confirmButton) {
+            confirmButton.disabled = true; // ✅ Deshabilita visualmente
+          }
+        }
         const fieldsToUpdate = [
           "title",
           "description",
@@ -1606,6 +1878,7 @@ export default {
           "start_time",
           "end_time",
           "type",
+          "module",
           ...(this.taskParameters.type === "Meta" ? ["end_date", "end_time"] : []),
         ];
         let updatedFields = Object.keys(this.taskParameters)
@@ -1684,7 +1957,7 @@ export default {
               //aqui comienza los cambios de mostrar las sugerencias
               if (result.data?.suggestedTasks?.length > 0) {
                 this.showSuggestedTasks(result.data.suggestedTasks);
-              }else{
+              } else {
                 this.handleCancellation();
               }
             }
@@ -1715,60 +1988,60 @@ export default {
       this.scrollToBottom();
     },
     handleCancellation() {
-       const confirmationMsg = this.chatMessages.find(msg => msg.isConfirmation);
-  if (confirmationMsg) {
-    const confirmButton = confirmationMsg.buttons.find(b => b.text === "Confirmar y crear");
-    if (confirmButton) {
-      confirmButton.disabled = true; // ✅ Deshabilita visualmente
-    }
-  }
-      this.waitingForConfirmation = false;
-      this.taskParameters.people = [];
-          this.taskParameters = Object.assign({}, this.defaultItem);
-          this.originalItem = Object.assign({}, this.defaultItem);
-
-          const existingOptionMessage = this.chatMessages.find(
-    (msg) =>
-      msg.from === "ai" &&
-      msg.text === "¿Qué deseas hacer ahora?"
-  );
-
-  if (!existingOptionMessage) {
-      // Mensaje con botones de opción
-      this.chatMessages.push({
-        from: "ai",
-        text: "¿Qué deseas hacer ahora?",
-        timestamp: new Date().toLocaleTimeString(),
-        buttons: [
-          {
-            text: "Salir",
-            color: "grey",
-            variant: "outlined",  // Botón con borde
-            disabled: false,  // Botón deshabilitado
-            action: () => this.closeDialog(),
-            props: {
-              class: "mr-2",
-              size: "default",
-            }
-          },
-          {
-        text: "Nueva conversación",
-        color: "primary",
-        variant: "flat",  // Botón sólido
-        disabled: false,  // Botón deshabilitado
-        action: () => this.startNewConversation(),
-        props: {
-          size: "default",
+      const confirmationMsg = this.chatMessages.find((msg) => msg.isConfirmation);
+      if (confirmationMsg) {
+        const confirmButton = confirmationMsg.buttons.find(
+          (b) => b.text === "Confirmar y crear"
+        );
+        if (confirmButton) {
+          confirmButton.disabled = true; // ✅ Deshabilita visualmente
         }
       }
-        ]
-      });
-    }
+      this.waitingForConfirmation = false;
+      this.taskParameters.people = [];
+      this.taskParameters = Object.assign({}, this.defaultItem);
+      this.originalItem = Object.assign({}, this.defaultItem);
+
+      const existingOptionMessage = this.chatMessages.find(
+        (msg) => msg.from === "ai" && msg.text === "¿Qué deseas hacer ahora?"
+      );
+
+      if (!existingOptionMessage) {
+        // Mensaje con botones de opción
+        this.chatMessages.push({
+          from: "ai",
+          text: "¿Qué deseas hacer ahora?",
+          timestamp: new Date().toLocaleTimeString(),
+          buttons: [
+            {
+              text: "Salir",
+              color: "grey",
+              variant: "flat", // Botón con borde
+              disabled: false, // Botón deshabilitado
+              action: () => this.closeDialog(),
+              props: {
+                class: "mr-2",
+                size: "default",
+              },
+            },
+            {
+              text: "Nueva conversación",
+              color: "primary",
+              variant: "flat", // Botón sólido
+              disabled: false, // Botón deshabilitado
+              action: () => this.startNewConversation(),
+              props: {
+                size: "default",
+              },
+            },
+          ],
+        });
+      }
     },
 
     // Método para nueva conversación
     startNewConversation() {
-          // Limpiar el chat
+      // Limpiar el chat
       this.chatMessages = [];
       this.saveData.false;
       // Reiniciar todas las variables de estado relacionadas con tareas
@@ -1792,27 +2065,25 @@ export default {
       this.waitingForConfirmation = false;
       this.collectingPeople = false;
       this.isTyping = false;
-      
+
       // Mensaje inicial del asistente
       this.chatMessages.push({
         from: "ai",
         text: "¡Hola! ¿En qué puedo ayudarte hoy?",
-        timestamp: new Date().toLocaleTimeString()
+        timestamp: new Date().toLocaleTimeString(),
       });
-      
+
       // Asegurarse de que el scroll se actualice
       this.scrollToBottom();
     },
 
     // Método para cerrar el diálogo
     closeDialog() {
-      
       // Opcional: limpiar la conversación
       this.chatMessages = [];
       // Emitir evento para cerrar el diálogo (ajusta según tu implementación)
-      this.$emit('close-dialog');
+      this.$emit("close-dialog");
       this.$emit("close-all-dialogs", "ChatTask");
-
     },
     showSuggestedTasks(tasks) {
       this.isTyping = true;
@@ -1915,52 +2186,89 @@ export default {
       // Continuar con el flujo automático
       await this.startAutomaticDataCollection();
     },
-    async updateEndDateVisibilityInChat(isMeta) {
-  //const isMeta = this.taskParameters.type === "Meta";
+    /*async updateEndDateVisibilityInChat(isMeta) {
+      //const isMeta = this.taskParameters.type === "Meta";
+      console.log("Actualizando visibilidad de fechas. ¿Es Meta?", isMeta);
+
+      // Campos que queremos controlar
+      const dateFields = ["end_date", "end_time"];
+
+      dateFields.forEach((fieldKey) => {
+        const messageIndex = this.chatMessages.findIndex((m) => m.fieldKey === fieldKey);
+
+        if (isMeta) {
+          // Si es Meta y el mensaje no existe, hay que crearlo
+          if (messageIndex === -1) {
+            const value = this.taskParameters[fieldKey];
+            if (value) {
+              const fieldLabel =
+                fieldKey === "end_date"
+                  ? "Fecha de finalización"
+                  : "Hora de finalización";
+
+              const newMessage = {
+                from: "ai",
+                text: `• ${fieldLabel}: ${value}`,
+                timestamp: new Date().toLocaleTimeString(),
+                isEditable: true,
+                fieldKey: fieldKey,
+                fieldLabel: fieldLabel,
+                currentValue: value,
+                editValue: value,
+                isEditing: false,
+                showDatePicker: false,
+              };
+
+              // Insertar en orden adecuado (opcional: busca posición lógica)
+              const insertIndex =
+                this.chatMessages.findIndex((m) => m.fieldKey === "start_time") + 1;
+              this.chatMessages.splice(
+                insertIndex >= 0 ? insertIndex : this.chatMessages.length,
+                0,
+                newMessage
+              );
+            }
+          }
+          // Si ya existe, aseguramos que esté visible (no hacemos nada, ya está)
+        } else {
+          // Si NO es Meta, debemos eliminarlo del chat si existe
+          if (messageIndex > -1) {
+            this.chatMessages.splice(messageIndex, 1);
+            // Opcional: también limpiar de shownChatFields
+            this.shownChatFields.delete(fieldKey);
+          }
+        }
+      });
+    },*/
+    async updateEndDateVisibilityInChat(newType) {
+  const isMeta = newType === "Meta";
   console.log("Actualizando visibilidad de fechas. ¿Es Meta?", isMeta);
 
-  // Campos que queremos controlar
-  const dateFields = ["end_date", "end_time"];
+  // Buscar el mensaje compacto
+  const compactMsg = this.chatMessages.find(m => m.isCompactFields);
+  if (!compactMsg) return;
 
-  dateFields.forEach((fieldKey) => {
-    const messageIndex = this.chatMessages.findIndex(
-      (m) => m.fieldKey === fieldKey
-    );
-
-    if (isMeta) {
-      // Si es Meta y el mensaje no existe, hay que crearlo
-      if (messageIndex === -1) {
-        const value = this.taskParameters[fieldKey];
-        if (value) {
-          const fieldLabel = fieldKey === "end_date" ? "Fecha de finalización" : "Hora de finalización";
-
-          const newMessage = {
-            from: "ai",
-            text: `• ${fieldLabel}: ${value}`,
-            timestamp: new Date().toLocaleTimeString(),
-            isEditable: true,
-            fieldKey: fieldKey,
-            fieldLabel: fieldLabel,
-            currentValue: value,
-            editValue: value,
-            isEditing: false,
-            showDatePicker: false,
-          };
-
-          // Insertar en orden adecuado (opcional: busca posición lógica)
-          const insertIndex = this.chatMessages.findIndex(m => m.fieldKey === "start_time") + 1;
-          this.chatMessages.splice(insertIndex >= 0 ? insertIndex : this.chatMessages.length, 0, newMessage);
-        }
-      }
-      // Si ya existe, aseguramos que esté visible (no hacemos nada, ya está)
-    } else {
-      // Si NO es Meta, debemos eliminarlo del chat si existe
-      if (messageIndex > -1) {
-        this.chatMessages.splice(messageIndex, 1);
-        // Opcional: también limpiar de shownChatFields
-        this.shownChatFields.delete(fieldKey);
-      }
+  // Actualizar lista de campos
+  const currentFields = compactMsg.fields.filter(f => !["end_date", "end_time"].includes(f.key));
+  if (isMeta) {
+    // Añadir end_date y end_time si no existen
+    if (!currentFields.some(f => f.key === "end_date")) {
+      currentFields.push({ key: "end_date", label: "Fecha fin", value: this.taskParameters.end_date });
     }
+    if (!currentFields.some(f => f.key === "end_time")) {
+      currentFields.push({ key: "end_time", label: "Hora fin", value: this.taskParameters.end_time });
+    }
+  }
+
+  // Actualizar campos
+  compactMsg.fields = currentFields;
+
+  // Regenerar texto visual (opcional, si usas `text`)
+  // compactMsg.text = this.generateCompactText();
+
+  // Forzar actualización
+  this.$nextTick(() => {
+    this.scrollToBottom();
   });
 },
     handleTimeSelection(field, timeEvent) {
@@ -1988,6 +2296,20 @@ export default {
 </script>
 
 <style scoped>
+.editing-textarea .v-textarea__control {
+  min-height: auto !important;
+}
+
+.editing-textarea .v-field__input {
+  padding-top: 2px !important;
+  padding-bottom: 0 !important;
+}
+
+/* Ajusta el contenedor de la burbuja cuando está en modo edición */
+.v-card .v-card-text .rounded-xl.pa-4 {
+  padding-top: 2px !important;
+  padding-bottom: 2px !important;
+}
 .v-slide-group__content {
   padding: 4px 0;
 }
@@ -2014,7 +2336,7 @@ export default {
   background-color: #888;
   border-radius: 12px;
   padding: 1px;
-   min-width: 100% !important;
+  min-width: 100% !important;
 }
 
 .ai-message {
@@ -2047,7 +2369,7 @@ export default {
 /* Efecto hover para los botones */
 .v-btn--action-cancel:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
 }
 </style>

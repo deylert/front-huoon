@@ -519,6 +519,9 @@ export default {
   methods: {
     closeAllDialogs(sourceComponent) {
     console.log(`Cerrando todo desde: ${sourceComponent}`);
+    if (sourceComponent === "ChatTask") {
+        this.$router.push("/task");
+      }
     this.dialogChatTask = false;
     this.dialogChatFinance = false;
     this.dialogChatBudget = false;

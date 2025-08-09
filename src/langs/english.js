@@ -99,10 +99,27 @@ const english = {
         title: "Health",
         description: "Medical records and health evolution",
       },
+      achievements: {
+        title: "Achievements",
+        description: "Personal accomplishments tracker",
+      },
+      goals: {
+        title: "Goals",
+        description: "Personal objectives and milestones",
+      },
+      nutrition: {
+        title: "Nutrition",
+        description: "Food intake and diet tracking",
+      },
+      pets: {
+        title: "Pets",
+        description: "Pet care and health records",
+      },
     },
     viewTitles: {
       physicalExams: "Physical Exams",
       tasks: "Tasks",
+      goals: "Goals",
       treatments: "Treatments",
       personalBackground: "Personal Background",
       familyBackground: "Family Background",
@@ -127,9 +144,9 @@ const english = {
     taskForm: {
       noTasksToday: "You have no tasks to do today",
       updateStatus: "Update Status",
-      dialogTitle: "Task Details",
+      dialogTitle: "Details",
       fields: {
-        title: "Task title",
+        title: "Title",
         date: "Date",
         time: "Time",
         priority: "Priority",
@@ -168,6 +185,8 @@ const english = {
       titles: {
         new: "Add New Task",
         edit: "Edit Task",
+        newGoal: "Add New Goal",
+        editGoal: "Edit Goal",
       },
     },
     taskTypes: {
@@ -935,7 +954,7 @@ const english = {
           view: "View file",
           edit: "Edit",
           delete: "Delete",
-          download: "Download File"
+          download: "Download File",
         },
         types: {
           personal: "Personal",
@@ -1105,7 +1124,7 @@ const english = {
     },
     home: {
       create: {
-        title: "Associated Households",  // O "Linked Homes" si prefieres
+        title: "Associated Households", // O "Linked Homes" si prefieres
         empty: "No households registered",
         search: "Search households...",
         adddButton: "Create a new home",
@@ -1134,7 +1153,7 @@ const english = {
           residents: "Number of residents",
           image: "Home image",
           status: "Status",
-          ranking: "Household ranking"
+          ranking: "Household ranking",
         },
         membersTable: {
           avatar: "Avatar",

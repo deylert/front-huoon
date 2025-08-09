@@ -98,10 +98,27 @@ const portuguese = {
         title: "Saúde", // PT-BR: mesma grafia
         description: "Registros médicos e evolução de saúde",
       },
+      achievements: {
+        title: "Conquistas",
+        description: "Registro de conquistas pessoais",
+      },
+      goals: {
+        title: "Metas",
+        description: "Objetivos e metas pessoais",
+      },
+      nutrition: {
+        title: "Nutrição",
+        description: "Acompanhamento alimentar e dietas",
+      },
+      pets: {
+        title: "Animais",
+        description: "Cuidados e saúde de animais de estimação",
+      },
     },
     viewTitles: {
       physicalExams: "Exames Físicos",
       tasks: "Tarefas",
+      goals: "Metas",
       treatments: "Tratamentos",
       personalBackground: "Antecedentes Pessoais",
       familyBackground: "Antecedentes Familiares",
@@ -126,9 +143,9 @@ const portuguese = {
     taskForm: {
       noTasksToday: "Você não tem tarefas para hoje",
       updateStatus: "Atualizar Status",
-      dialogTitle: "Detalhes da Tarefa",
+      dialogTitle: "Detalhes",
       fields: {
-        title: "Título da tarefa",
+        title: "Título",
         date: "Data",
         time: "Hora",
         priority: "Prioridade",
@@ -167,11 +184,13 @@ const portuguese = {
       titles: {
         new: "Adicionar Nova Tarefa",
         edit: "Editar Tarefa",
+         newGoal: "Adicionar Nova Meta",
+        editGoal: "Editar Meta",
       },
     },
     taskTypes: {
       Tarea: "Tarefa",
-      Evento: "Evento",
+      Meta: "Meta",
     },
     formInstructions: "Introduza os dados solicitados abaixo",
     steps: {
@@ -933,7 +952,7 @@ const portuguese = {
           view: "Ver arquivo",
           edit: "Editar",
           delete: "Excluir",
-          download: "Baixar Arquivo"
+          download: "Baixar Arquivo",
         },
         types: {
           personal: "Pessoal",
@@ -1103,9 +1122,9 @@ const portuguese = {
     },
     home: {
       create: {
-        title: "Lares associados",  // PT-PT | PT-BR: "Lares vinculados" o "Domicílios associados"
-        empty: "Nenhum lar registrado",  // PT-BR: "Nenhum domicílio cadastrado"
-        search: "Pesquisar lares...", 
+        title: "Lares associados", // PT-PT | PT-BR: "Lares vinculados" o "Domicílios associados"
+        empty: "Nenhum lar registrado", // PT-BR: "Nenhum domicílio cadastrado"
+        search: "Pesquisar lares...",
         addButton: "Criar um novo lar",
         instructions:
           "Preencha todos os campos obrigatórios para criar seu lar",
@@ -1133,7 +1152,7 @@ const portuguese = {
           residents: "Número de residentes",
           image: "Imagem do lar",
           status: "Estado",
-          ranking: "Ranking do lar" 
+          ranking: "Ranking do lar",
         },
         membersTable: {
           avatar: "Foto",
@@ -1146,8 +1165,8 @@ const portuguese = {
           cancel: "Cancelar",
           previous: "Anterior",
           next: "Próximo",
-           create: "Criar Lar",         // PT-BR: "Criar Residência"
-            edit: "Editar Lar",  
+          create: "Criar Lar", // PT-BR: "Criar Residência"
+          edit: "Editar Lar",
           addMembers: "Adicionar Membros",
         },
         validation: {

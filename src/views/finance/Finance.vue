@@ -449,7 +449,7 @@
                               <img
                                 :src="`${this.$axios.defaults.baseURL}images/${
                                   item.raw.icon
-                                }?t=${Date.now()}`"
+                                }`"
                                 alt="icon"
                               />
                             </template>
@@ -940,7 +940,7 @@
                                 <v-img
                                   :src="`${this.$axios.defaults.baseURL}images/${
                                     person.image
-                                  }?t=${Date.now()}`"
+                                  }`"
                                   alt="avatar"
                                 />
                               </v-avatar>
@@ -1481,7 +1481,7 @@ export default {
     getPersonAvatar(person) {
       // Si la persona tiene imagen, usarla, sino una por defecto
       return person.image
-        ? `${this.$axios.defaults.baseURL}images/${person.image}?t=${Date.now()}`
+        ? `${this.$axios.defaults.baseURL}images/${person.image}`
         : require("@/assets/default-avatar.png");
     },
 

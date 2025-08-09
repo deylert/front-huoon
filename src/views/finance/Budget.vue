@@ -249,7 +249,7 @@
                             <template v-if="isImage(item.raw.iconCategory)">
                               <img :src="`${this.$axios.defaults.baseURL}images/${
                                   item.raw.iconCategory
-                                }?t=${Date.now()}`" alt="icon" />
+                                }`" alt="icon" />
                             </template>
                             <template v-else>
                               <v-icon>{{ getIconName(item.raw.iconCategory) }}</v-icon>

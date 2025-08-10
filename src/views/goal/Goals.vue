@@ -70,7 +70,7 @@
       <!-- Tarjetas de reuniones -->
       <v-card v-for="(meeting, index) in filteredTasks" :key="index" class="mb-4 rounded-lg pa-2" density="comfortable" elevation="2"
         :class="{ 'smooth-hover': true }">
-        <v-row>
+        <v-row class="align-center">
           <!-- Barra lateral de color e info -->
           <v-col cols="1" class="d-flex justify-start">
            <div class="icono-concavo d-flex flex-column justify-center justify-start pa-0"
@@ -98,7 +98,7 @@
                 </div>
             </v-row>
           </v-col>
-          <v-col cols="1" class="d-flex align-center justify-start">
+          <v-col cols="1" class="d-flex align-center justify-start pa-0">
             <!-- Info usuario -->
             <v-row align="center" class="gap-3">
               <div class="avatar-row d-flex flex-wrap justify-end gap-1">
@@ -124,12 +124,12 @@
               <span class="text-black">{{ meeting.typeName }}</span>
             </div>
           </v-col>
-          <v-col cols="1" class="d-flex align-center justify-start">
+          <v-col cols="1" class="d-flex align-center justify-start pa-0">
             <div>
               <span class="text-black">{{ meeting.namePriority }}</span>
             </div>
           </v-col>
-          <v-col cols="1" class="d-flex align-center justify-end justify-start">
+          <v-col cols="1" class="d-flex align-center justify-start pa-0">
             <v-row>
               <!-- Fecha y estado -->
               <div class="text-end">
@@ -353,10 +353,10 @@
                   <v-menu v-model="menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
                     offset-y min-width="290px" location="end">
                     <template v-slot:activator="{ props }">
-                      <v-text-field v-bind="props" :modelValue="dateFormatted" variant="underlined"
+                      <v-text-field v-bind="props" :modelValue="this.editedItem.start_date" variant="underlined"
                         :label="$t('taskForm.today')"></v-text-field>
                     </template>
-                      <v-date-picker color="#03626C" :modelValue="input" @update:model-value="updateDate"
+                      <v-date-picker color="#03626C" :modelValue="parseDateString(this.editedItem.start_date)" @update:model-value="updateDate"
                         format="yyyy-MM-dd"></v-date-picker>
                   </v-menu>
                     </v-locale-provider>
@@ -418,21 +418,21 @@
                     </template>
                   </v-autocomplete>
                 </v-col>
-                  <v-col cols="12" md="6" v-if="editedItem.type === 'Meta'">
+                  <v-col cols="12" md="6">
                    <v-locale-provider>
                     <v-menu v-model="menu2" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
                     offset-y min-width="290px" location="end">
                     <template v-slot:activator="{ props }">
-                      <v-text-field v-bind="props" :modelValue="dateFormatted2" variant="underlined"
+                      <v-text-field v-bind="props" :modelValue="this.editedItem.end_date" variant="underlined"
                         :label="$t('taskForm.fields.endDate')"></v-text-field>
                     </template>
-                      <v-date-picker color="#03626C" :modelValue="input2" @update:model-value="updateDate1"
+                      <v-date-picker color="#03626C" :modelValue="parseDateString(this.editedItem.end_date)" @update:model-value="updateDate1"
                         format="yyyy-MM-dd"></v-date-picker>
                   </v-menu>
                     </v-locale-provider>
                   </v-col>
 
-                  <v-col cols="12" md="6" v-if="editedItem.type === 'Meta'">
+                  <v-col cols="12" md="6">
                     <v-select v-model="editedItem.end_time" :items="timeSlots" :label="$t('taskForm.fields.endTime')"
                       variant="underlined"></v-select>
                   </v-col>
@@ -567,6 +567,27 @@
       </v-card>
     </v-form>
   </v-dialog>
+   <v-dialog
+    v-model="dialogSuggested"
+    max-width="900"
+    persistent
+    scrollable
+  >
+
+    <v-card>
+      <v-card-text class="pa-0">
+        <SuggestedTasksList
+          :suggestedTasks="suggestedTasks"
+          :priorities="this.priorities"
+          :baseUrl="this.$axios.defaults.baseURL"
+          :allPeople="this.people"
+          :allRoles="this.roles"
+          @confirm-suggested="handleTaskSelection($event)"
+          @cancel="handleSkip"
+        />
+      </v-card-text>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
@@ -576,14 +597,19 @@ import { handleRequest } from "@/utils/api"; // Ruta al archivo
 import _ from "lodash";
 import { shallowRef } from "vue";
 import { VTimePicker } from "vuetify/labs/components";
+import SuggestedTasksList from "@/components/suggested/SuggestedTasksList.vue";
+import { defineAsyncComponent, markRaw } from "vue";
 
 export default {
   components: {
+    SuggestedTasksList: markRaw(SuggestedTasksList),
     "v-time-picker": VTimePicker,
   },
   data: () => ({
     selected: shallowRef([2]),
     selected2: null,
+    dialogSuggested: false,
+    suggestedTasks: null,
     step: 0,
     dateMenu: false,
       searchDate: '',
@@ -676,6 +702,7 @@ export default {
       start_time: null,
       end_time: null,
       module: "Meta",
+      type: "Meta",
       parent_id: "",
       status_id: "",
       category_id: "",
@@ -881,6 +908,48 @@ export default {
     this.timeSlots = this.generateTimeSlots(); // Genera los horarios al montar el componente
   },
   methods: {
+    async handleSkip(){
+      this.dialogSuggested = false;
+    },
+    async handleTaskSelection(selectedTasks){
+      try {
+        // Preparar datos para enviar al API
+        const tasksToCreate = selectedTasks.map((task) => {
+          const { selected, ...cleanTask } = task;
+          return {
+            ...cleanTask,
+            home_id: Number(this.home_id),
+            people: task.people.map((person) => ({
+              home_id: Number(this.home_id),
+              person_id: Number(person.person_id),
+              role_id: Number(person.role_id),
+            })),
+          };
+        });
+
+        // Enviar al endpoint de creación múltiple
+        const result = await handleRequest({
+          endpoint: "task-bulk",
+          method: "POST",
+          data: { tasks: tasksToCreate },
+        });
+
+        if (result.success) {
+          this.showAlert("success", result.message, 3000);
+          this.initialize();
+        } else {
+          this.showAlert("warning", result.message, 3000);
+        }
+      } catch (error) {
+        this.showAlert(
+              "error",
+              "Ocurrió un error inesperado al procesar la solicitud.",
+              3000
+            );
+      } finally {
+        this.dialogSuggested = false;
+      }
+    },
      getLocalDate(dateValue) {
     if (!dateValue) return new Date();
     
@@ -1319,16 +1388,29 @@ export default {
       // En otros casos, devolver un ícono por defecto
       return "mdi-help-circle";
     },
-    updateDate(val) {
-      this.input = val;
-      this.editedItem.start_date = this.dateFormatted;
+     updateDate(value) {
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    this.input = `${year}-${month}-${day}`;
+
+      this.editedItem.start_date = this.input;
       this.menu = false;
     },
-    updateDate1(val) {
-      this.input2 = val;
-      this.editedItem.end_date = this.dateFormatted2;
+    updateDate1(value) {
+      const year = value.getFullYear();
+      const month = String(value.getMonth() + 1).padStart(2, '0');
+      const day = String(value.getDate()).padStart(2, '0');
+      this.input2 = `${year}-${month}-${day}`;
+
+      this.editedItem.end_date = this.input2;
       this.menu2 = false;
     },
+    parseDateString(dateString) {
+    if (!dateString) return null;
+    const [year, month, day] = dateString.split('-');
+    return new Date(year, month - 1, day);
+  },
     async showAssiegnedPeople() {
       this.tittlePerson = -1;
       // Filtrar las personas que no están en editedItem.people usando el 'id' para la comparación
@@ -1585,7 +1667,7 @@ export default {
           updatedFields.estimated_time = this.editedItem.estimated_time
             ? this.editedItem.estimated_time
             : 0;
-          updatedFields.type = this.editedItem.type ? this.editedItem.type : "Tarea";
+          updatedFields.type = this.editedItem.type ? this.editedItem.type : "Meta";
 
           if (this.file) {
             updatedFields.attachments = this.editedItem.attachments;
@@ -1617,7 +1699,11 @@ export default {
             if (result.success) {
               this.loading = false;
               this.showAlert("success", result.message, 3000);
-              this.initialize();
+              if (result.data?.suggestedTasks?.length > 0) {
+                this.suggestedTasks = result.data.suggestedTasks;
+                this.dialogSuggested = true;
+              }
+              //this.initialize();
             } else {
               this.loading = false;
               this.showAlert("warning", result.message, 3000);

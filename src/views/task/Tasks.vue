@@ -70,7 +70,7 @@
       <!-- Tarjetas de reuniones -->
       <v-card v-for="(meeting, index) in filteredTasks" :key="index" class="mb-4 rounded-lg pa-2" density="comfortable" elevation="2"
         :class="{ 'smooth-hover': true }">
-        <v-row>
+        <v-row class="align-center">
           <!-- Barra lateral de color e info -->
           <v-col cols="1" class="d-flex justify-start">
            <div class="icono-concavo d-flex flex-column justify-center justify-start pa-0"
@@ -116,7 +116,7 @@
               </div>
             </v-row>
           </v-col>
-          <v-col cols="1" class="d-flex align-center justify-start">
+          <v-col cols="1" class="d-flex align-center justify-start pa-0">
             <div>
               <v-icon :color="getTypeColor(meeting.type)"
                 style="font-size: 10px; filter: drop-shadow(0 0 2px currentColor)" icon="mdi-circle"
@@ -124,12 +124,12 @@
               <span class="text-black">{{ meeting.typeName }}</span>
             </div>
           </v-col>
-          <v-col cols="1" class="d-flex align-center justify-start">
+          <v-col cols="1" class="d-flex align-center justify-start pa-0">
             <div>
               <span class="text-black">{{ meeting.namePriority }}</span>
             </div>
           </v-col>
-          <v-col cols="1" class="d-flex align-center justify-end justify-start">
+          <v-col cols="1" class="d-flex align-center justify-start pa-0">
             <v-row>
               <!-- Fecha y estado -->
               <div class="text-end">
@@ -353,10 +353,10 @@
                   <v-menu v-model="menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
                     offset-y min-width="290px">
                     <template v-slot:activator="{ props }">
-                      <v-text-field v-bind="props" :modelValue="dateFormatted" variant="underlined"
+                      <v-text-field v-bind="props" :modelValue="this.editedItem.start_date" variant="underlined"
                         :label="$t('taskForm.today')"></v-text-field>
                     </template>
-                      <v-date-picker color="#03626C" :modelValue="input" @update:model-value="updateDate"
+                      <v-date-picker color="#03626C" :modelValue="parseDateString(this.editedItem.start_date)" @update:model-value="updateDate"
                         format="yyyy-MM-dd"></v-date-picker>
                   </v-menu>
                     </v-locale-provider>
@@ -427,10 +427,11 @@
                    <v-locale-provider>
                     <v-menu v-model="menu2" :close-on-content-click="false" offset-y min-width="auto">
                       <template v-slot:activator="{ props }">
-                        <v-text-field v-bind="props" :model-value="dateFormatted2"
+                        <v-text-field v-bind="props" :model-value="this.editedItem.end_date"
                           :label="$t('taskForm.fields.endDate')" variant="underlined" readonly></v-text-field>
                       </template>
-                      <v-date-picker v-model="editedItem.end_date" color="#03626C"
+                      <v-date-picker :modelValue="parseDateString(this.editedItem.end_date)" @update:model-value="updateDate1"
+                        format="yyyy-MM-dd" color="#03626C"
                         :min="editedItem.start_date"></v-date-picker>
                     </v-menu>
                     </v-locale-provider>
@@ -783,18 +784,18 @@ export default {
       return this.imgMiniatura;
     },
     dateFormatted() {
-    const date = this.getLocalDate(this.editedItem.start_date || this.input);
-    const day = date.getDate().toString().padStart(2, "0");
-    const month = (date.getMonth() + 1).toString().padStart(2, "0");
-    const year = date.getFullYear();
-    return `${year}-${month}-${day}`;
+     const date = this.input ? new Date(this.input) : new Date();
+      const day = date.getDate().toString().padStart(2, "0");
+      const month = (date.getMonth() + 1).toString().padStart(2, "0");
+      const year = date.getFullYear();
+      return `${year}-${month}-${day}`;
   },
   dateFormatted2() {
-    const date = this.getLocalDate(this.editedItem.end_date || this.input2);
-    const day = date.getDate().toString().padStart(2, "0");
-    const month = (date.getMonth() + 1).toString().padStart(2, "0");
-    const year = date.getFullYear();
-    return `${year}-${month}-${day}`;
+     const date = this.input2 ? new Date(this.input2) : new Date();
+      const day = date.getDate().toString().padStart(2, "0");
+      const month = (date.getMonth() + 1).toString().padStart(2, "0");
+      const year = date.getFullYear();
+      return `${year}-${month}-${day}`;
   },
     getDate() {
       return this.input ? new Date(this.input) : new Date();
@@ -882,21 +883,10 @@ export default {
     this.timeSlots = this.generateTimeSlots(); // Genera los horarios al montar el componente
   },
   methods: {
-     getLocalDate(dateValue) {
-    if (!dateValue) return new Date();
-    
-    // Si es string en formato YYYY-MM-DD
-    if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
-      const [year, month, day] = dateValue.split('-');
-      return new Date(year, month - 1, day);
-    }
-    
-    // Si ya es un objeto Date
-    if (dateValue instanceof Date) return dateValue;
-    
-    // Para otros casos (ISO strings, timestamps, etc.)
-    const date = new Date(dateValue);
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    parseDateString(dateString) {
+    if (!dateString) return null;
+    const [year, month, day] = dateString.split('-');
+    return new Date(year, month - 1, day);
   },
     isValidDatePartial(dateStr) {
   const parts = dateStr.split('-');
@@ -1320,14 +1310,22 @@ export default {
       // En otros casos, devolver un ícono por defecto
       return "mdi-help-circle";
     },
-    updateDate(val) {
-      this.input = val;
-      this.editedItem.start_date = this.dateFormatted;
+    updateDate(value) {
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    this.input = `${year}-${month}-${day}`;
+
+      this.editedItem.start_date = this.input;
       this.menu = false;
     },
-    updateDate1(val) {
-      this.input2 = val;
-      this.editedItem.end_date = this.dateFormatted2;
+    updateDate1(value) {
+      const year = value.getFullYear();
+      const month = String(value.getMonth() + 1).padStart(2, '0');
+      const day = String(value.getDate()).padStart(2, '0');
+      this.input2 = `${year}-${month}-${day}`;
+
+      this.editedItem.end_date = this.input2;
       this.menu2 = false;
     },
     async showAssiegnedPeople() {
@@ -1749,7 +1747,8 @@ export default {
       // Asignar a originalItem y editedItem solo las personas seleccionadas
       this.originalItem = _.cloneDeep(item);
       this.editedItem = _.cloneDeep(item);
-
+      this.input = item.start_date;
+      this.input2 = item.end_date;
       // Asignamos las personas seleccionadas a las propiedades 'people' de los dos objetos
       //this.originalItem.people = _.cloneDeep(selectedPeople); // Aseguramos una copia profunda
       //this.editedItem.people = _.cloneDeep(selectedPeople); // Aseguramos una copia profunda

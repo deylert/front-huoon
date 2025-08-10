@@ -206,6 +206,7 @@
                 </v-col>
 
                 <v-col cols="12">
+                <v-locale-provider>
                   <v-menu v-model="dateMenu" :close-on-content-click="false" transition="scale-transition" offset-y
                     min-width="auto">
                     <template v-slot:activator="{ props }">
@@ -215,6 +216,7 @@
                     <v-date-picker color="#03626C" :model-value="parseDateString(dateInput)"
                       @update:model-value="updateDate"></v-date-picker>
                   </v-menu>
+                  </v-locale-provider>
                 </v-col>
               </v-row>
 

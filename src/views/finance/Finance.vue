@@ -985,10 +985,9 @@
       </v-card>
     </v-form>
   </v-dialog>
-  <v-dialog v-model="dialogChatTask" fullscreen transition="dialog-bottom-transition">
+  <!--<v-dialog v-model="dialogChatTask" fullscreen transition="dialog-bottom-transition">
     <v-card>
       <v-card-text>
-        <!-- Pasamos los parámetros al componente ChatTask -->
         <ChatTaskFinance :taskData="currentTask" @close-dialog="closeDialgChat()" />
       </v-card-text>
       <v-divider></v-divider>
@@ -997,7 +996,7 @@
         <v-btn text @click="closeDialgChat()">Cerrar</v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </v-dialog>-->
   <v-dialog v-model="dialogAlerta" max-width="500">
     <v-card rounded-lg>
       <v-card-title class="text-body-2">Alertas para Hoy</v-card-title>

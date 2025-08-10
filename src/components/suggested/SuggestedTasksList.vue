@@ -1,6 +1,6 @@
 <template>
   <div class="suggested-tasks-container">
-    <v-card-title class="text-h6 mb-4">
+    <v-card-title class="text-body-2 mb-4">
       Tareas sugeridas para tu meta
       <v-chip color="primary" class="ml-2">
         {{ localTasks.length }}
@@ -10,7 +10,7 @@
     <v-card
       v-for="(task, index) in localTasks"
       :key="index"
-      class="mb-3 task-card rounded-lg"
+      class="mb-3 task-card rounded-lg mx-1"
       :class="{ 'selected-task': task.selected }"
       @click="toggleTaskSelection(task)"
       elevation="2"
@@ -27,14 +27,14 @@
         </v-col>-->
 
         <!-- Fecha y hora -->
-        <v-col cols="auto" class="pa-2 d-flex flex-column align-center date-time-col">
+        <v-col cols="1" class="pa-2 d-flex flex-column align-center date-time-col">
           <div class="icono-concavo d-flex flex-column justify-center justify-start"
-                  :class="`bg-${getTypeColor(meeting.type)}`">
+                  :class="`bg-${getTypeColor(task.type)}`">
                   <div class="date-display">
-                    {{ formatIntuitiveDate(meeting.start_date) }}
+                    {{ formatIntuitiveDate(task.start_date) }}
                   </div>
-                  <div v-if="meeting.start_time" class="time-display">
-                    {{ formatTime(meeting.start_time) }}
+                  <div v-if="task.start_time" class="time-display">
+                    {{ formatTime(task.start_time) }}
                   </div>
                 </div>
         </v-col>
@@ -47,7 +47,7 @@
           </div>
         </v-col>
 
-        <v-col cols="auto" class="d-flex align-center px-2">
+        <v-col cols="1" class="d-flex align-center px-2">
           <v-chip
             color="amber"
             variant="outlined"
@@ -59,14 +59,14 @@
           </v-chip>
         </v-col>
 
-        <v-col cols="1" class="d-flex align-center pe-4 gap-2">
+        <v-col cols="1" class="d-flex align-center pe-4 gap-2 font-weight-semibold text-body-2">
           <div>
-            <span class="text-black">{{ task.namePriority }}</span>
+            <span>{{ task.namePriority }}</span>
           </div>
         </v-col>
 
         <!-- Participantes -->
-        <v-col cols="auto" class="d-flex align-center pe-4 gap-2">
+        <v-col cols="2" class="d-flex align-center pe-4 gap-2">
           <div class="avatar-row d-flex flex-wrap justify-end gap-1">
             <template v-for="(person, personIndex) in task.people" :key="person.person_id">
               <v-tooltip
@@ -90,8 +90,10 @@
 
     <!-- Acciones -->
     <v-card-actions class="justify-end mt-4">
+      <v-btn color="grey" variant="flat" @click="skipSelection" class="ml-2" :disabled="buttonsDisabled"> Saltar </v-btn>
       <v-btn
         color="primary"
+        variant="flat"
         @click="confirmSelection"
         :disabled="selectedTasksCount === 0 || buttonsDisabled"
       >
@@ -100,7 +102,6 @@
           {{ selectedTasksCount }}
         </v-chip>
       </v-btn>
-      <v-btn color="secondary" @click="skipSelection" class="ml-2" :disabled="buttonsDisabled"> Saltar </v-btn>
     </v-card-actions>
   </div>
 </template>

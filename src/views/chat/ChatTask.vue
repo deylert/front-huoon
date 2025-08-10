@@ -80,11 +80,11 @@
                               :model-value="taskParameters[message.fieldKey]"
                               :label="message.fieldLabel"
                               variant="plain"                          
-                              density="comfortable"
+                              density="compact"
                               style="width: auto; min-width: 10em"
                               no-resize
                               @click:appendInner="message.showDatePicker = true"
-                              class="editing-textarea"
+                              class="editing-textarea align-center"
                             />
                           </template>
                           <DatePicker
@@ -112,12 +112,12 @@
                             v-bind="props"
                             :model-value="taskParameters[message.fieldKey] || '00:00'"
                             :label="message.fieldLabel"
-                            variant="underlined"
-                            density="comfortable"
+                            variant="plain"
+                            density="compact"
                             style="width: auto; min-width: 10em"
                             no-resize
                             @click:appendInner="message.showTimePicker = true"
-                            class="editing-textarea"
+                            class="editing-textarea align-center"
                           />
                         </template>
                         <TimePicker
@@ -132,7 +132,7 @@
                       v-model="message.editValue"
                       :label="message.fieldLabel"
                       variant="plain"
-                      density="comfortable"
+                      density="compact"
                       style="width: auto; min-width: 50em"
                       :ref="(el) => setTextFieldRef(el, index)"
                       autofocus
@@ -140,7 +140,7 @@
                       rows="1"
                       no-resize
                       @keyup.enter="saveFieldEdit(index)"
-                      class="editing-textarea"
+                      class="editing-textarea align-start"
                       @blur="saveFieldEdit(index)"
                     />
                     <v-text-field
@@ -148,13 +148,13 @@
                       v-model="message.editValue"
                       :label="message.fieldLabel"
                       variant="plain"
-                      density="comfortable"
+                      density="compact"
                       style="width: auto; min-width: 15em"
                       :ref="(el) => setTextFieldRef(el, index)"
                       autofocus
                       no-resize
                       @keyup.enter="saveFieldEdit(index)"
-                      class="editing-textarea"
+                      class="editing-textarea aling-center"
                       @blur="saveFieldEdit(index)"
                     />
                   </template>
@@ -370,10 +370,7 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <v-dialog
-    v-model="dialogChatWarehouse"
-    fullscreen
-    transition="dialog-bottom-transition"
+  <v-dialog v-model="dialogChatWarehouse" fullscreen transition="dialog-bottom-transition"
   >
     <v-card>
       <v-card-text>
@@ -1228,49 +1225,49 @@ export default {
       }
     },
     formatFieldDisplay(fieldKey, value) {
-  if (!value) return "(vacío)";
-  if (fieldKey === "estimated_time") return `${value} min`;
-  return value;
-},
+      if (!value) return "(vacío)";
+      if (fieldKey === "estimated_time") return `${value} min`;
+      return value;
+    },
     canEditField(fieldKey) {
-  if (["end_date", "end_time"].includes(fieldKey)) {
-    return this.taskParameters.type === "Meta";
-  }
-  return true;
-},
-startSubFieldEdit(message, fieldKey) {
-  // Buscar el índice real del mensaje en chatMessages
-  const index = this.chatMessages.indexOf(message);
-  if (index === -1) return;
+      if (["end_date", "end_time"].includes(fieldKey)) {
+        return this.taskParameters.type === "Meta";
+      }
+      return true;
+    },
+    startSubFieldEdit(message, fieldKey) {
+      // Buscar el índice real del mensaje en chatMessages
+      const index = this.chatMessages.indexOf(message);
+      if (index === -1) return;
 
-  // Simular que el usuario hizo clic en un campo editable
-  const fieldLabel = message.fields.find(f => f.key === fieldKey)?.label;
+      // Simular que el usuario hizo clic en un campo editable
+      const fieldLabel = message.fields.find(f => f.key === fieldKey)?.label;
 
-  // Actualizar el mensaje para que parezca un campo editable
-  message.isEditing = true;
-  message.fieldKey = fieldKey;
-  message.fieldLabel = fieldLabel;
-  message.currentValue = this.taskParameters[fieldKey] || "";
-  message.editValue = message.currentValue;
-  message.showDatePicker = false;
-  message.showTimePicker = false;
+      // Actualizar el mensaje para que parezca un campo editable
+      message.isEditing = true;
+      message.fieldKey = fieldKey;
+      message.fieldLabel = fieldLabel;
+      message.currentValue = this.taskParameters[fieldKey] || "";
+      message.editValue = message.currentValue;
+      message.showDatePicker = false;
+      message.showTimePicker = false;
 
-  // Forzar actualización
-  this.$nextTick(() => {
-    if (["start_date", "end_date"].includes(fieldKey)) {
+      // Forzar actualización
       this.$nextTick(() => {
-        message.showDatePicker = true;
+        if (["start_date", "end_date"].includes(fieldKey)) {
+          this.$nextTick(() => {
+            message.showDatePicker = true;
+          });
+        } else if (["start_time", "end_time"].includes(fieldKey)) {
+          this.$nextTick(() => {
+            message.showTimePicker = true;
+          });
+        } else {
+          const textField = this.textFieldRefs[index];
+          if (textField) textField.focus();
+        }
       });
-    } else if (["start_time", "end_time"].includes(fieldKey)) {
-      this.$nextTick(() => {
-        message.showTimePicker = true;
-      });
-    } else {
-      const textField = this.textFieldRefs[index];
-      if (textField) textField.focus();
-    }
-  });
-},
+    },
     async startAutomaticDataCollection() {
       const parametersOrder = [
         "type",
@@ -2296,22 +2293,20 @@ startSubFieldEdit(message, fieldKey) {
 </script>
 
 <style scoped>
-.editing-textarea .v-textarea__control {
+.editing-textarea .v-field__input textarea {
   min-height: auto !important;
+  height: auto !important;
+  padding: 0 !important;
 }
 
-.editing-textarea .v-field__input {
-  padding-top: 2px !important;
-  padding-bottom: 0 !important;
+/* Ajuste fino para que el input tenga altura consistente */
+.editing-textarea .v-field--variant-plain .v-field__outline {
+  display: none;
 }
 
-/* Ajusta el contenedor de la burbuja cuando está en modo edición */
-.v-card .v-card-text .rounded-xl.pa-4 {
-  padding-top: 2px !important;
-  padding-bottom: 2px !important;
-}
-.v-slide-group__content {
-  padding: 4px 0;
+.editing-textarea .v-field--variant-plain .v-field__input {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
 .avatar-image {
   width: 100%;

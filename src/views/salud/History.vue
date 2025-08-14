@@ -37,7 +37,7 @@
 
           <!-- Datos del paciente -->
           <v-col>
-            <div class="text-h6 font-weight-bold mb-1">{{ person.name }}</div>
+            <div class="text-body-2 font-weight-bold mb-1">{{ person.name }}</div>
             <div class="text-body-2 text-grey-darken-1">
               {{
                 person.age !== null

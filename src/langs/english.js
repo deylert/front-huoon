@@ -131,6 +131,18 @@ const english = {
       budget: "Budgets",
       suggestions: "Suggestions",
     },
+    petTitles: {
+      vaccines: "Vaccination",
+      deworming: "Deworming",
+      vetVisits: "Vet Visits",
+      currentMedications: "Current Medications",
+      diet: "Diet",
+    },
+    common: {
+      items: "items",
+      last: "Last",
+      no_records: "No records",
+    },
     settings: {
       category: "Categories",
       warehouse: "Warehouses",
@@ -257,7 +269,29 @@ const english = {
         withoutValue: "ID not specified",
       },
     },
-
+    petDetails: {
+      name: {
+        withValue: "Name: {name}",
+        withoutValue: "Unnamed pet",
+      },
+      breed: {
+        withValue: "Breed: {breed}",
+        withoutValue: "Breed not specified",
+      },
+      age: {
+        withValue: "Age: {age} years",
+        withoutValue: "Age not specified",
+      },
+      sex: {
+        withValue: "Gender: {sex}",
+        withoutValue: "Gender not specified",
+      },
+    },
+    gender: {
+      male: "Male",
+      female: "Female",
+      other: "Other",
+    },
     //examenes fisicos
     physicalExam: {
       formInstructions: "Complete all required fields of the physical exam",
@@ -884,6 +918,13 @@ const english = {
           actions: "Actions",
         },
       },
+      titles: {
+        products: "Products",
+        lowStock: "Low Stock",
+        expiringSoon: "Expiring Soon",
+        categories: "Categories",
+        storageLocations: "Storage Locations",
+      },
     },
     product: {
       listing: {
@@ -1181,6 +1222,289 @@ const english = {
         house: "House",
         apartment: "Apartment",
         other: "Other",
+      },
+    },
+    pets: {
+      title: "Associated Pets",
+      empty: "No registered pets",
+      search: "Search pets...",
+      addButton: "Register new pet",
+      instructions: "Fill all required fields to register your pet",
+      steps: {
+        basic: {
+          title: "Basic Information",
+          subtitle: "Main pet details",
+        },
+        details: {
+          title: "Additional Details",
+          subtitle: "Physical characteristics",
+        },
+      },
+      fields: {
+        name: "Pet name",
+        category: "Pet type",
+        breed: "Breed",
+        sex: "Gender",
+        age: "Age",
+        date_birth: "Birth or adoption date",
+        color: "Color",
+        microchip: "Microchip number",
+        signs: "Distinctive marks",
+        image: "Pet photo",
+        home: "Belonging home",
+        owner: "Responsible owner",
+      },
+      table: {
+        avatar: "Photo",
+        name: "Name",
+        type: "Type",
+        breed: "Breed",
+        age: "Age",
+        actions: "Actions",
+      },
+      actions: {
+        cancel: "Cancel",
+        previous: "Previous",
+        next: "Next",
+        create: "Register Pet",
+        edit: "Edit Pet",
+        addHealth: "Add Medical Info",
+      },
+      validation: {
+        nameRequired: "Pet name is required",
+        categoryRequired: "Pet type is required",
+        agePositive: "Age must be a positive number",
+        microchipLength: "Microchip must have 15 characters",
+      },
+      types: {
+        dog: "Dog",
+        cat: "Cat",
+        bird: "Bird",
+        reptile: "Reptile",
+        other: "Other",
+      },
+      gender: {
+        male: "Male",
+        female: "Female",
+        other: "Other",
+      },
+      health: {
+        vaccines: "Vaccines",
+        lastVisit: "Last vet visit",
+        specialNeeds: "Special needs",
+      },
+      alerts: {
+        title: "Alerts",
+        count: "{count} active alert | {count} active alerts",
+      },
+    },
+    vaccinations: {
+      listing: {
+        title: "Vaccination Management",
+        addButton: "Add Vaccination",
+        noData: "No vaccinations registered",
+      },
+      formTitle: {
+        create: "Register New Vaccination",
+        edit: "Edit Vaccination",
+      },
+      formInstructions: "Complete the vaccination information",
+      fields: {
+        name: "Vaccine Name",
+        date: "Application Date",
+        next_date: "Next Dose",
+        pet: "Pet",
+        notes: "Observations",
+      },
+      steps: {
+        basic: {
+          title: "Basic Information",
+          subtitle: "Vaccine and pet details",
+        },
+        schedule: {
+          title: "Schedule",
+          subtitle: "Application dates",
+        },
+      },
+      validation: {
+        required: "{field} is required",
+        invalid_date: "Invalid date",
+        future_date: "Date cannot be in the future",
+        min_dosage: "Minimum dosage is {min}",
+        max_dosage: "Maximum dosage is {max}",
+      },
+    },
+    dewormings: {
+      listing: {
+        title: "Deworming Management",
+        addButton: "Add Deworming",
+        noData: "No dewormings registered",
+      },
+      formTitle: {
+        create: "Register New Deworming",
+        edit: "Edit Deworming",
+      },
+      formInstructions: "Complete the deworming information",
+      fields: {
+        name: "Product",
+        dosage: "Dosage",
+        unit: "Unit",
+        date: "Application Date",
+        next_date: "Next Application",
+        pet: "Pet",
+        notes: "Observations",
+      },
+      steps: {
+        basic: {
+          title: "Basic Information",
+          subtitle: "Product and pet details",
+        },
+        details: {
+          title: "Details",
+          subtitle: "Dosage and schedule",
+        },
+      },
+      validation: {
+        required: "{field} is required",
+        invalid_date: "Invalid date",
+        future_date: "Date cannot be in the future",
+        min_dosage: "Minimum dosage is {min}",
+        max_dosage: "Maximum dosage is {max}",
+        invalid_unit: "Invalid unit",
+      },
+    },
+    vet_visits: {
+      listing: {
+        title: "Veterinary Visit Management",
+        addButton: "Add Visit",
+        noData: "No veterinary visits recorded",
+      },
+      formTitle: {
+        create: "Register new veterinary visit",
+        edit: "Edit veterinary visit",
+      },
+      formInstructions: "Fill in the veterinary visit details",
+      fields: {
+        date: "Visit date",
+        vet_name: "Veterinarian name",
+        clinic: "Clinic or office",
+        reason: "Reason for visit",
+        diagnosis: "Diagnosis",
+        treatment_given: "Treatment given",
+        recommendations: "Recommendations",
+        next_visit: "Next appointment",
+        image: "Attached document",
+      },
+      steps: {
+        basic: {
+          title: "Basic Information",
+          subtitle: "Visit and professional details",
+        },
+        medical: {
+          title: "Medical Details",
+          subtitle: "Diagnosis and treatment given",
+        },
+        follow_up: {
+          title: "Follow-up",
+          subtitle: "Next appointment and documents",
+        },
+      },
+      validation: {
+        required: "{field} is required",
+        invalid_date: "Invalid date",
+        future_date: "Date cannot be in the future",
+        invalid_clinic: "Invalid clinic name",
+        min_length_reason: "Reason must be at least 3 characters long",
+        max_length_diagnosis: "Diagnosis cannot exceed 500 characters",
+        max_file_size: "File must not exceed 5 MB",
+      },
+    },
+    current_medications: {
+      listing: {
+        title: "Current Medications Management",
+        addButton: "Add Medication",
+        noData: "No current medications registered",
+      },
+      formTitle: {
+        create: "Register new medication",
+        edit: "Edit medication",
+      },
+      formInstructions: "Fill in the current medication details",
+      fields: {
+        name: "Medication name",
+        dosage: "Dosage",
+        unit: "Unit",
+        type_id: "Frequency",
+        route: "Administration route",
+        start_date: "Start date",
+        end_date: "End date",
+        notes: "Notes",
+        prescribed_by: "Prescribed by",
+      },
+      steps: {
+        basic: {
+          title: "Basic Information",
+          subtitle: "Name, dosage and route",
+        },
+        prescription: {
+          title: "Prescription",
+          subtitle: "Frequency and prescriber",
+        },
+        schedule: {
+          title: "Duration",
+          subtitle: "Treatment start and end",
+        },
+      },
+      validation: {
+        required: "{field} is required",
+        invalid_date: "Invalid date",
+        future_date: "Date cannot be in the future",
+        min_dosage: "Minimum dosage is {min}",
+        max_dosage: "Maximum dosage is {max}",
+        end_before_start: "End date cannot be before start date",
+      },
+    },
+    pet_diets: {
+      listing: {
+        title: "Pet Diet Management",
+        addButton: "Add Diet",
+        noData: "No diets registered for this pet",
+      },
+      formTitle: {
+        create: "Register new diet",
+        edit: "Edit diet",
+      },
+      formInstructions: "Fill in the pet's diet information",
+      fields: {
+        name: "Diet name",
+        pet_id: "Pet",
+        food_type: "Food type",
+        brand: "Brand",
+        portion_size: "Portion size",
+        unit: "Unit",
+        type_id: "Frequency",
+        special_instructions: "Special instructions",
+      },
+      steps: {
+        basic: {
+          title: "Basic Information",
+          subtitle: "Type, brand and portion",
+        },
+        schedule: {
+          title: "Frequency",
+          subtitle: "How often it is administered",
+        },
+        details: {
+          title: "Additional Details",
+          subtitle: "Special instructions",
+        },
+      },
+      validation: {
+        required: "{field} is required",
+        invalid_number: "Value must be a valid number",
+        min_portion: "Minimum portion size is {min}",
+        max_portion: "Maximum portion size is {max}",
+        future_date: "Date cannot be in the future",
       },
     },
   },

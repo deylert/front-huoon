@@ -1051,6 +1051,7 @@ export default {
       this.editedIndex = 1;
       this.originalItem = Object.assign({}, item);
       this.editedItem = Object.assign({}, item);
+      this.step = 0;
       this.file = null;
       const imageExtensions = ["jpg", "jpeg", "png", "gif"];
       // Crear la imagen y configurar el src

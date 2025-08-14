@@ -92,9 +92,6 @@
                   <div class="text-caption d-flex align-center text-grey-darken-1">
                     {{ meeting.description }}
                   </div>
-                  <div class="text-caption d-flex align-center text-grey-darken-1">
-                    {{ meeting.geo_location }}
-                  </div>
                 </div>
             </v-row>
           </v-col>
@@ -1741,6 +1738,7 @@ export default {
     },
     async editItem(item) {
       this.editedIndex = 1;
+      this.step = 0;
       // Filtrar las personas que tengan 'select' igual a 1
       //const selectedPeople = item.people.filter(person => person.select === 1);
 
@@ -1899,8 +1897,8 @@ export default {
 </script>
 <style scoped>
 .icono-concavo {
-  width: 50px;
-  height: 50px;
+  width: 45px;
+  height: 45px;
   display: flex;
   align-items: center;
   justify-content: center;

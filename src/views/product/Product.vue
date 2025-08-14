@@ -44,14 +44,14 @@
                 </span>
               </v-tooltip>
             </div>
-            <div class="text-body-2 text-grey-darken-1 text-truncate">
-              {{warehouseData.location }}
-              <v-tooltip activator="parent" location="buttom" max-width="350px">
-                <span class="d-inline-block" style="white-space: normal; word-break: break-word; width: 100%">
-                  {{ $t("warehouse.fields.home_location") }}: {{ warehouseData.location }}
-                </span>
-              </v-tooltip>
-            </div>
+            <div class="text-body-2 text-grey-darken-1 text-truncated">
+                  {{ warehouseData.productCount }}
+                  <v-tooltip activator="parent" location="bottom" max-width="350px">
+                   <span style="white-space: normal; word-break: break-word">
+                    {{ $t("product.fields.quantity") }}: {{ warehouseData.productCount }}
+                    </span>
+                  </v-tooltip>
+                </div>
           </v-col>
           <v-col cols="1">
             <v-btn icon color="deep-purple-accent-4" variant="flat" class="elevation-3" @click="showAddProduct"
@@ -69,10 +69,10 @@
             <template v-if="paginatedProducts.length > 0">
               <v-card v-for="(product, index) in paginatedProducts" :key="index" class="mb-4 rounded-lg pa-2"
                 density="comfortable" elevation="2">
-                <v-row>
+                <v-row no-gutters>
                   <!-- Barra lateral de color e info -->
-                  <v-col cols="1" class="d-flex justify-start">
-                    <div class="icono-concavo d-flex flex-column justify-center justify-start"
+                  <v-col cols="auto" class="d-flex justify-start mr-4">
+                    <div class="icono-concavo d-flex flex-column justify-center align-center rounded-lg"
                       :class="`bg-${getTypeColor(product.nameStatus)}`">
                       <div class="date-display">
                         {{ formatIntuitiveDate(product.purchase_date) }}
@@ -194,45 +194,7 @@
                   </v-col>
                 </v-row>
               </v-card>
-              <!--<v-col v-for="product in paginatedProducts" :key="product.id" cols="3" class="ml-2">
-                  <v-card class="rounded-lg" max-width="35vh">
-                    <v-img height="25vh" :src="`${$axios.defaults.baseURL}images/${product.image}`" cover></v-img>
-
-                    <v-card-title>
-                      <v-tooltip bottom location="top" class="custom-tooltip">
-                        <template v-slot:activator="{ props }">
-                          <span v-bind="props">{{ product.productName }}</span>
-                        </template>
-                        {{ product.productName }}
-                      </v-tooltip>
-                    </v-card-title>
-
-                    <v-card-subtitle>
-                      <v-tooltip bottom location="top">
-                        <template v-slot:activator="{ props }">
-                          <span v-bind="props">
-                            {{ $t("product.listing.description") }}: {{ product.additionalNotes }}
-                          </span>
-                        </template>
-                        {{ product.additionalNotes }}
-                      </v-tooltip>
-                    </v-card-subtitle>
-
-                    <v-card-text>
-                      {{ $t("product.listing.quantity") }}: {{ product.quantity }}
-                    </v-card-text>
-
-                    <v-card-actions justify="end" class="w-100">
-                      <v-btn color="#DA7171" @click="deleteItem(product)">
-                        {{ $t("product.listing.delete") }}
-                      </v-btn>
-                      <v-btn color="#03626C" @click="editItem(product)" :loading="loadingProductEdit">
-                        {{ $t("product.listing.edit") }}
-                      </v-btn>
-                    </v-card-actions>
-                  </v-card>
-                </v-col>-->
-            </template>
+               </template>
             <template v-else>
               <v-col cols="12" class="text-center py-8">
                 {{ $t("product.listing.noProducts") }}
@@ -1024,45 +986,46 @@ export default {
       return colorMap[type] || "error"; // Color por defecto
     },
     formatIntuitiveDate(dateString) {
-      if (!dateString) return "Sin fecha";
+  if (!dateString) return "Sin fecha";
 
-      // 1. Parsear la fecha de entrada (formato YYYY-MM-DD)
-      const [year, month, day] = dateString.split("-");
-      const inputDate = new Date(year, month - 1, day); // Mes es 0-based
+  // 1. Parsear la fecha de entrada (formato YYYY-MM-DD)
+  const [year, month, day] = dateString.split("-");
+  const inputDate = new Date(year, month - 1, day); // Mes es 0-based
 
-      // 2. Obtener fecha actual (sin horas/minutos/segundos)
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+  // 2. Obtener fecha actual (sin horas/minutos/segundos)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-      // 3. Normalizar ambas fechas a UTC para evitar problemas de zona horaria
-      const inputUTC = Date.UTC(
-        inputDate.getFullYear(),
-        inputDate.getMonth(),
-        inputDate.getDate()
-      );
-      const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  // 3. Normalizar ambas fechas a UTC para evitar problemas de zona horaria
+  const inputUTC = Date.UTC(
+    inputDate.getFullYear(),
+    inputDate.getMonth(),
+    inputDate.getDate()
+  );
+  const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
 
-      // 4. Calcular diferencia en días
-      const diffDays = Math.floor((inputUTC - todayUTC) / (1000 * 60 * 60 * 24));
+  // 4. Calcular diferencia en días
+  const diffDays = Math.floor((inputUTC - todayUTC) / (1000 * 60 * 60 * 24));
 
-      // 5. Determinar el texto a mostrar
-      switch (diffDays) {
-        case 0:
-          return "Hoy";
-        case 1:
-          return "Mañana";
-        case -1:
-          return "Ayer";
-        default:
-          return inputDate
-            .toLocaleDateString("es-ES", {
-              weekday: "short",
-              day: "numeric",
-              month: "short",
-            })
-            .replace(/\./g, "");
-      }
-    },
+  // 5. Determinar el texto a mostrar
+  switch (diffDays) {
+    case 0:
+      return "Hoy";
+    case 1:
+      return "Mañana";
+    case -1:
+      return "Ayer";
+    default:
+      return inputDate
+        .toLocaleDateString("es-ES", {
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+          year: "numeric", // <-- Añadido: muestra el año
+        })
+        .replace(/\./g, ""); // Elimina los puntos de abreviaturas (ej: "mar." → "mar")
+  }
+},
     nextStepW() {
       if (this.stepW < this.stepsW.length - 1) {
         this.stepW++;
@@ -1634,14 +1597,24 @@ export default {
 };
 </script>
 <style scoped>
+.date-display {
+  font-size: 0.85rem; /* Equivale a text-caption */
+  line-height: 1.1;
+  font-weight: 500;
+  text-align: center;
+  word-break: break-word;
+  white-space: normal;
+   margin: 0;
+  padding: 0;
+}
 .icono-concavo {
   width: 50px;
   height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
-  margin-right: 2px;
+  margin: 0;
+  padding: 0;
   color: white;
   /* Mantenemos solo el efecto cóncavo en el ícono 
   box-shadow: inset;*/

@@ -2181,6 +2181,7 @@ export default {
 </script>
 
 <style scoped>
+
 .text-green {
   color: #2e7d32;
 }

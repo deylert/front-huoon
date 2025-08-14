@@ -179,6 +179,12 @@ const routes = [
         component: () =>
           import(/* webpackChunkName: "home" */ "@/views/type/Types.vue"),
       },
+      {
+        path: "/pets",
+        name: "Pets",
+        component: () =>
+          import(/* webpackChunkName: "home" */ "@/views/pet/Pet.vue"),
+      },
     ],
   },
 ];

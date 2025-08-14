@@ -223,6 +223,11 @@ export default {
     'name': 'Presupuesto',
     'id': 'Budget',
     'icon': 'mdi-cash-multiple' // o 'mdi-wallet', 'mdi-currency-usd'
+  },
+  {
+    'name': 'Mascotas', // Nuevo tipo (reemplaza "Animales")
+    'id': 'Pets', // ID en inglés para consistencia con Task/Product/Budget
+    'icon': 'mdi-paw'
   }
 ],
     headers: [
@@ -349,6 +354,8 @@ export default {
           return 'mdi-cart'; // Ícono para productos
           case 'Budget':
       return 'mdi-cash-multiple'; // Ícono para presupuestos
+        case 'Pets': // Cambiado de 'Animals' a 'Pets'
+      return 'mdi-paw'; 
         default:
           return 'mdi-help-circle'; // Ícono por defecto
       }
@@ -361,6 +368,8 @@ export default {
           return '#43A047'; // Color sugerente para productos (verde)
         case 'Budget':
           return '#2196F3'; // Azul confiable para presupuestos
+        case 'Pets': // Cambiado de 'Animals' a 'Pets'
+          return '#607D8B'; // azul grisáceo (amigable para mascotas)
         default:
           return '#E0E0E0'; // Color gris claro para otros tipos
       }

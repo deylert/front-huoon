@@ -261,207 +261,234 @@
         </template>
 
         <template v-else>
-  <div style="padding: 1px">
-    <v-card
-      v-for="meeting in tasks"
-      :key="meeting.id"
-      class="rounded-lg mb-6"
-      density="comfortable"
-      elevation="2"
-    >
-      <v-card-item class="pa-2">
-        <!-- Icono/Color lateral -->
-        <template v-slot:prepend>
-          <div
-            class="icono-concavo d-flex flex-column justify-center align-center"
-            :class="`bg-${getTypeColor(meeting.module || meeting.type)}`"
-          >
-            <div class="date-display text-center">
-              {{ formatIntuitiveDate(meeting.start_date) }}
-            </div>
-            <div v-if="meeting.start_time" class="time-display text-center">
-              {{ formatTime(meeting.start_time) }}
-            </div>
+          <div style="padding: 1px">
+            <v-card
+              v-for="meeting in tasks"
+              :key="meeting.id"
+              class="rounded-lg mb-6"
+              density="comfortable"
+              elevation="2"
+            >
+              <v-card-item class="pa-2">
+                <!-- Icono/Color lateral -->
+                <template v-slot:prepend>
+                  <div
+                    class="icono-concavo d-flex flex-column justify-center align-center"
+                    :class="`bg-${getTypeColor(meeting.module || meeting.type)}`"
+                  >
+                    <div class="date-display text-center">
+                      {{ formatIntuitiveDate(meeting.start_date) }}
+                    </div>
+                    <div v-if="meeting.start_time" class="time-display text-center">
+                      {{ formatTime(meeting.start_time) }}
+                    </div>
+                  </div>
+                </template>
+
+                <!-- Contenido principal - Modificado para ajuste automático -->
+                <div class="d-flex align-start px-1" style="width: 100%; flex-wrap: wrap">
+                  <!-- Información de la tarea - Ahora con texto multilínea -->
+                  <div
+                    class="flex-grow-1"
+                    style="min-width: 60%; max-width: 60%; word-break: break-word"
+                  >
+                    <v-card-title class="text-body-2 pb-1" style="white-space: normal">
+                      {{ meeting.title }}
+                    </v-card-title>
+                    <v-card-subtitle class="text-body-2 text-grey-darken-1 pt-0">
+                      <div style="white-space: normal">{{ meeting.description }}</div>
+                    </v-card-subtitle>
+                  </div>
+
+                  <!-- Avatares - Con ajuste automático -->
+                  <div
+                    class="avatar-container mx-4"
+                    style="min-width: 10%; max-width: 10%; align-self: center"
+                  >
+                    <div class="avatar-row d-flex flex-wrap justify-end gap-1">
+                      <v-tooltip
+                        v-for="person in meeting.people"
+                        :key="person.id"
+                        bottom
+                        :open-delay="300"
+                        :close-delay="100"
+                      >
+                        <template v-slot:activator="{ props }">
+                          <v-avatar
+                            class="avatar-item hover-expand"
+                            size="32"
+                            v-bind="props"
+                          >
+                            <v-img
+                              :src="`${this.$axios.defaults.baseURL}images/${person.image}`"
+                              alt="avatar"
+                            />
+                          </v-avatar>
+                        </template>
+                        <span>{{ person.name }}<br />{{ person.roleName }}</span>
+                      </v-tooltip>
+                    </div>
+                  </div>
+
+                  <!-- Tipo - Con texto multilínea -->
+                  <div
+                    class="type-container mx-2"
+                    style="
+                      min-width: 5%;
+                      max-width: 5%;
+                      align-self: center;
+                      word-break: break-word;
+                    "
+                  >
+                    <div class="d-flex align-center">
+                      <v-icon
+                        :color="getTypeColor(meeting.module || meeting.type)"
+                        style="font-size: 10px; filter: drop-shadow(0 0 2px currentColor)"
+                        icon="mdi-circle"
+                        class="mr-1"
+                      ></v-icon>
+                      <span
+                        class="text-grey-darken-1 text-body-2"
+                        style="white-space: normal"
+                      >
+                        {{ meeting.moduleName || meeting.typeName }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Prioridad - Con texto multilínea -->
+                  <div
+                    class="priority-container mx-2"
+                    style="
+                      min-width: 5%;
+                      max-width: 5%;
+                      align-self: center;
+                      word-break: break-word;
+                    "
+                  >
+                    <span
+                      class="text-grey-darken-1 text-body-2"
+                      style="white-space: normal"
+                    >
+                      {{ meeting.namePriority }}
+                    </span>
+                  </div>
+
+                  <!-- Estado - Con ajuste automático -->
+                  <div style="min-width: 10%; max-width: 10%; align-self: center">
+                    <v-dialog v-model="meeting.statusDialog" width="400">
+                      <template v-slot:activator="{ props }">
+                        <v-btn
+                          v-bind="props"
+                          :color="
+                            '#' +
+                            (getStatusById(meeting.status_id)?.colorStatus || 'grey')
+                          "
+                          variant="text"
+                          size="small"
+                          class="text-body-2"
+                          :prepend-icon="
+                            getStatusById(meeting.status_id)?.iconStatus ||
+                            'mdi-help-circle'
+                          "
+                          style="white-space: normal; height: auto; min-height: 36px"
+                        >
+                          {{
+                            getStatusById(meeting.status_id)?.nameStatus || "Desconocido"
+                          }}
+                        </v-btn>
+                      </template>
+                      <v-card>
+                        <v-card-title class="pa-4 text-center">
+                          {{ $t("taskForm.updateStatus") }}
+                        </v-card-title>
+                        <v-divider></v-divider>
+                        <v-card-text class="pa-0">
+                          <v-row class="px-2 pb-1" dense>
+                            <v-col
+                              cols="12"
+                              v-for="(statusOption, i) in status"
+                              :key="i"
+                              class="py-1"
+                            >
+                              <v-card
+                                @click="changeTaskStatus(meeting, statusOption.id)"
+                                :class="[
+                                  'status-option mx-1',
+                                  {
+                                    'current-status':
+                                      meeting.status_id === statusOption.id,
+                                  },
+                                ]"
+                                :style="
+                                  meeting.status_id === statusOption.id
+                                    ? {
+                                        'background-color': `#${statusOption.colorStatus}`,
+                                        'border-color': `#${statusOption.colorStatus}`,
+                                        color: 'white',
+                                      }
+                                    : {
+                                        'border-color': '#9e9e9e',
+                                      }
+                                "
+                                variant="outlined"
+                                :elevation="meeting.status_id === statusOption.id ? 2 : 0"
+                                style="border-radius: 12px; cursor: pointer"
+                              >
+                                <v-card-item class="pa-2">
+                                  <div class="d-flex align-center">
+                                    <v-icon
+                                      :color="
+                                        meeting.status_id === statusOption.id
+                                          ? 'white'
+                                          : '#' + statusOption.colorStatus
+                                      "
+                                      :icon="statusOption.iconStatus"
+                                      size="large"
+                                      class="mr-3"
+                                    ></v-icon>
+                                    <v-card-title
+                                      :style="{
+                                        color:
+                                          meeting.status_id === statusOption.id
+                                            ? 'white'
+                                            : 'inherit',
+                                        'font-size': '1rem',
+                                      }"
+                                    >
+                                      {{ statusOption.nameStatus }}
+                                    </v-card-title>
+                                    <v-spacer></v-spacer>
+                                    <v-icon
+                                      v-if="meeting.status_id === statusOption.id"
+                                      color="white"
+                                      icon="mdi-check-circle"
+                                    ></v-icon>
+                                  </div>
+                                </v-card-item>
+                              </v-card>
+                            </v-col>
+                          </v-row>
+                        </v-card-text>
+                        <v-divider></v-divider>
+                        <v-card-actions>
+                          <v-spacer></v-spacer>
+                          <v-btn
+                            variant="flat"
+                            color="#03626C"
+                            @click="meeting.statusDialog = false"
+                          >
+                            {{ $t("buttons.cancel") }}
+                          </v-btn>
+                        </v-card-actions>
+                      </v-card>
+                    </v-dialog>
+                  </div>
+                </div>
+              </v-card-item>
+            </v-card>
           </div>
         </template>
-
-        <!-- Contenido principal - Modificado para ajuste automático -->
-        <div class="d-flex align-start px-1" style="width: 100%; flex-wrap: wrap">
-          <!-- Información de la tarea - Ahora con texto multilínea -->
-          <div class="flex-grow-1" style="min-width: 60%; max-width: 60%; word-break: break-word">
-            <v-card-title class="text-body-2 pb-1" style="white-space: normal">
-              {{ meeting.title }}
-            </v-card-title>
-            <v-card-subtitle class="text-body-2 text-grey-darken-1 pt-0">
-              <div style="white-space: normal">{{ meeting.description }}</div>
-              <div style="white-space: normal">{{ meeting.geo_location }}</div>
-            </v-card-subtitle>
-          </div>
-
-          <!-- Avatares - Con ajuste automático -->
-          <div class="avatar-container mx-4" style="min-width: 10%; max-width: 10%; align-self: center">
-            <div class="avatar-row d-flex flex-wrap justify-end gap-1">
-              <v-tooltip
-                v-for="person in meeting.people"
-                :key="person.id"
-                bottom
-                :open-delay="300"
-                :close-delay="100"
-              >
-                <template v-slot:activator="{ props }">
-                  <v-avatar
-                    class="avatar-item hover-expand"
-                    size="32"
-                    v-bind="props"
-                  >
-                    <v-img
-                      :src="`${this.$axios.defaults.baseURL}images/${person.image}`"
-                      alt="avatar"
-                    />
-                  </v-avatar>
-                </template>
-                <span>{{ person.name }}<br />{{ person.roleName }}</span>
-              </v-tooltip>
-            </div>
-          </div>
-
-          <!-- Tipo - Con texto multilínea -->
-          <div class="type-container mx-2" style="min-width: 5%; max-width: 5%; align-self: center; word-break: break-word">
-            <div class="d-flex align-center">
-              <v-icon
-                :color="getTypeColor(meeting.module || meeting.type)"
-                style="font-size: 10px; filter: drop-shadow(0 0 2px currentColor)"
-                icon="mdi-circle"
-                class="mr-1"
-              ></v-icon>
-              <span class="text-grey-darken-1 text-body-2" style="white-space: normal">
-                {{ meeting.moduleName || meeting.typeName }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Prioridad - Con texto multilínea -->
-          <div class="priority-container mx-2" style="min-width: 5%; max-width: 5%; align-self: center; word-break: break-word">
-            <span class="text-grey-darken-1 text-body-2" style="white-space: normal">
-              {{ meeting.namePriority }}
-            </span>
-          </div>
-
-          <!-- Estado - Con ajuste automático -->
-          <div style="min-width: 10%; max-width: 10%; align-self: center">
-            <v-dialog v-model="meeting.statusDialog" width="400">
-              <template v-slot:activator="{ props }">
-                <v-btn
-                  v-bind="props"
-                  :color="
-                    '#' +
-                    (getStatusById(meeting.status_id)?.colorStatus || 'grey')
-                  "
-                  variant="text"
-                  size="small"
-                  class="text-body-2"
-                  :prepend-icon="
-                    getStatusById(meeting.status_id)?.iconStatus ||
-                    'mdi-help-circle'
-                  "
-                  style="white-space: normal; height: auto; min-height: 36px"
-                >
-                  {{
-                    getStatusById(meeting.status_id)?.nameStatus || "Desconocido"
-                  }}
-                </v-btn>
-              </template>
-              <v-card>
-                <v-card-title class="pa-4 text-center">
-                  {{ $t("taskForm.updateStatus") }}
-                </v-card-title>
-                <v-divider></v-divider>
-                <v-card-text class="pa-0">
-                  <v-row class="px-2 pb-1" dense>
-                    <v-col
-                      cols="12"
-                      v-for="(statusOption, i) in status"
-                      :key="i"
-                      class="py-1"
-                    >
-                      <v-card
-                        @click="changeTaskStatus(meeting, statusOption.id)"
-                        :class="[
-                          'status-option mx-1',
-                          {
-                            'current-status':
-                              meeting.status_id === statusOption.id,
-                          },
-                        ]"
-                        :style="
-                          meeting.status_id === statusOption.id
-                            ? {
-                                'background-color': `#${statusOption.colorStatus}`,
-                                'border-color': `#${statusOption.colorStatus}`,
-                                color: 'white',
-                              }
-                            : {
-                                'border-color': '#9e9e9e',
-                              }
-                        "
-                        variant="outlined"
-                        :elevation="meeting.status_id === statusOption.id ? 2 : 0"
-                        style="border-radius: 12px; cursor: pointer"
-                      >
-                        <v-card-item class="pa-2">
-                          <div class="d-flex align-center">
-                            <v-icon
-                              :color="
-                                meeting.status_id === statusOption.id
-                                  ? 'white'
-                                  : '#' + statusOption.colorStatus
-                              "
-                              :icon="statusOption.iconStatus"
-                              size="large"
-                              class="mr-3"
-                            ></v-icon>
-                            <v-card-title
-                              :style="{
-                                color:
-                                  meeting.status_id === statusOption.id
-                                    ? 'white'
-                                    : 'inherit',
-                                'font-size': '1rem',
-                              }"
-                            >
-                              {{ statusOption.nameStatus }}
-                            </v-card-title>
-                            <v-spacer></v-spacer>
-                            <v-icon
-                              v-if="meeting.status_id === statusOption.id"
-                              color="white"
-                              icon="mdi-check-circle"
-                            ></v-icon>
-                          </div>
-                        </v-card-item>
-                      </v-card>
-                    </v-col>
-                  </v-row>
-                </v-card-text>
-                <v-divider></v-divider>
-                <v-card-actions>
-                  <v-spacer></v-spacer>
-                  <v-btn
-                    variant="flat"
-                    color="#03626C"
-                    @click="meeting.statusDialog = false"
-                  >
-                    {{ $t("buttons.cancel") }}
-                  </v-btn>
-                </v-card-actions>
-              </v-card>
-            </v-dialog>
-          </div>
-        </div>
-      </v-card-item>
-    </v-card>
-  </div>
-</template>
       </v-col>
     </v-row>
   </v-container>
@@ -773,8 +800,7 @@ export default {
           title: "Mascotas",
           description: "Cuidado de mascotas",
           icon: "mdi-paw",
-          //to: "/pets", // Ruta no implementada
-          to: "",
+          to: "/pets", // Ruta no implementada
           name: "pets",
           color: "blue-grey",
         },
@@ -900,9 +926,9 @@ export default {
             { title: 'Tipos de Hogar', icon: 'mdi-home-group', to: '/hometype' },
             { title: 'Tipos de Salud', icon: 'mdi-heart-pulse', to: '/type' }
           ]
-        }*/ 
-       taskCount: "",
-       goalCount: "",
+        }*/
+      taskCount: "",
+      goalCount: "",
       whishCount: "",
       financeCount: "",
       personWarehousesCount: "",
@@ -1144,8 +1170,11 @@ export default {
   methods: {
     closeAllDialogs(sourceComponent) {
       console.log(`Cerrando todo desde: ${sourceComponent}`);
-      if (sourceComponent === "ChatTask") {
+      if (sourceComponent === "ChatTarea") {
         this.$router.push("/task");
+      }
+      if (sourceComponent === "ChatMeta") {
+        this.$router.push("/goals");
       }
       this.dialogChatTask = false;
       this.dialogChatFinance = false;
@@ -1212,11 +1241,12 @@ export default {
         default:
           return inputDate
             .toLocaleDateString("es-ES", {
-              weekday: "short",
-              day: "numeric",
-              month: "short",
-            })
-            .replace(/\./g, "");
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+          year: "numeric", // <-- Añadido: muestra el año
+        })
+        .replace(/\./g, "");
       }
     },
 
@@ -1695,28 +1725,28 @@ export default {
     return task.status === statusValue;
   },*/
     getTypeColor(type) {
-  const colorMap = {
-    // Tipos principales
-    Tarea: "warning",
-    Meta: "purple",
-    Logros: "primary",
-    Deseos: "secondary",
-    
-    // Segunda fila
-    Finanzas: "success",
-    Salud: "pink",
-    Nutrición: "deep-orange",
-    Mascotas: "blue-grey",
-    
-    // Tercera fila
-    Hogar: "brown",
-    Almacenes: "error",
-    Archivos: "indigo",
-    Sugerencias: "amber"
-  };
-  
-  return colorMap[type] || "grey-lighten-1"; // Color por defecto
-},
+      const colorMap = {
+        // Tipos principales
+        Tarea: "warning",
+        Meta: "purple",
+        Logros: "primary",
+        Deseos: "secondary",
+
+        // Segunda fila
+        Finanzas: "success",
+        Salud: "pink",
+        Nutrición: "deep-orange",
+        Mascotas: "blue-grey",
+
+        // Tercera fila
+        Hogar: "brown",
+        Almacenes: "error",
+        Archivos: "indigo",
+        Sugerencias: "amber",
+      };
+
+      return colorMap[type] || "grey-lighten-1"; // Color por defecto
+    },
     getStatusById(statusId) {
       return this.status.find((status) => status.id === statusId);
     },
@@ -1821,9 +1851,7 @@ export default {
         if (result.success) {
           // Si la solicitud es exitosa, asignamos las sucursales
           // Filtrar tareas que coincidan con el día actual
-          this.tasks = (result.data?.tasks || []).filter(task => 
-            task.type === 'Tarea'
-          );
+          this.tasks = (result.data?.tasks || []).filter((task) => task.type === "Tarea");
         } else {
           // Si no hay datos, asignamos un array vacío
           this.tasks = [];

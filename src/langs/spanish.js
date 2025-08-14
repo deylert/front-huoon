@@ -132,6 +132,18 @@ const spanish = {
       expenses: "Gastos",
       suggestions: "Sugerencias",
     },
+    petTitles: {
+      vaccines: "Vacunación",
+      deworming: "Desparasitación",
+      vetVisits: "Visitas Veterinarias",
+      currentMedications: "Medicamentos Actuales",
+      diet: "Alimentación",
+    },
+    common: {
+      items: "elementos",
+      last: "Último",
+      no_records: "Sin registros",
+    },
     settings: {
       category: "Categorías",
       warehouse: "Almacenes",
@@ -192,7 +204,7 @@ const spanish = {
     },
     taskTypes: {
       Tarea: "Tarea",
-      Evento: "Evento",
+      Meta: "Meta",
     },
     formInstructions: "Introduce los datos solicitados a continuación",
     steps: {
@@ -257,6 +269,29 @@ const spanish = {
         withValue: "ID Paciente: {number}",
         withoutValue: "ID no especificado",
       },
+    },
+    petDetails: {
+      name: {
+        withValue: "Nombre: {name}",
+        withoutValue: "Mascota sin nombre",
+      },
+      breed: {
+        withValue: "Raza: {breed}",
+        withoutValue: "Raza no especificada",
+      },
+      age: {
+        withValue: "Edad: {age} años",
+        withoutValue: "Edad no especificada",
+      },
+      sex: {
+        withValue: "Sexo: {sex}",
+        withoutValue: "Sexo no especificado",
+      },
+    },
+    gender: {
+      male: "Macho",
+      female: "Hembra",
+      other: "Otro",
     },
     //examenes fisicos
     physicalExam: {
@@ -887,6 +922,13 @@ const spanish = {
           actions: "Acciones",
         },
       },
+      titles: {
+        products: "Productos",
+        lowStock: "Bajo Stock",
+        expiringSoon: "Por Vencer",
+        categories: "Categorías",
+        storageLocations: "Ubicaciones",
+      },
     },
     product: {
       listing: {
@@ -1184,6 +1226,292 @@ const spanish = {
         house: "Casa",
         apartment: "Departamento",
         other: "Otro",
+      },
+    },
+    pets: {
+      title: "Mascotas asociadas",
+      empty: "No hay mascotas registradas",
+      search: "Buscar mascotas...",
+      addButton: "Registrar nueva mascota",
+      instructions:
+        "Complete todos los campos requeridos para registrar su mascota",
+      steps: {
+        basic: {
+          title: "Información básica",
+          subtitle: "Datos principales de la mascota",
+        },
+        details: {
+          title: "Detalles adicionales",
+          subtitle: "Características físicas",
+        },
+      },
+      fields: {
+        name: "Nombre de la mascota",
+        category: "Tipo de mascota",
+        breed: "Raza",
+        sex: "Sexo",
+        age: "Edad",
+        date_birth: "Fecha de nacimiento o adopción",
+        color: "Color",
+        microchip: "Número de microchip",
+        signs: "Señas particulares",
+        image: "Foto de la mascota",
+        home: "Hogar al que pertenece",
+        owner: "Dueño responsable",
+      },
+      table: {
+        avatar: "Foto",
+        name: "Nombre",
+        type: "Tipo",
+        breed: "Raza",
+        age: "Edad",
+        actions: "Acciones",
+      },
+      actions: {
+        cancel: "Cancelar",
+        previous: "Anterior",
+        next: "Siguiente",
+        create: "Registrar Mascota",
+        edit: "Editar Mascota",
+        addHealth: "Agregar Info. Médica",
+      },
+      validation: {
+        nameRequired: "El nombre de la mascota es requerido",
+        categoryRequired: "El tipo de mascota es requerido",
+        agePositive: "La edad debe ser un número positivo",
+        microchipLength: "El microchip debe tener 15 caracteres",
+      },
+      types: {
+        dog: "Perro",
+        cat: "Gato",
+        bird: "Ave",
+        reptile: "Reptil",
+        other: "Otro",
+      },
+      gender: {
+        male: "Macho",
+        female: "Hembra",
+        other: "Otro",
+      },
+      health: {
+        vaccines: "Vacunas",
+        lastVisit: "Última visita al veterinario",
+        specialNeeds: "Necesidades especiales",
+      },
+      alerts: {
+        title: "Alertas",
+        count: "{count} alerta activa | {count} alertas activas",
+      },
+    },
+    vaccinations: {
+      listing: {
+        title: "Gestión de Vacunaciones",
+        addButton: "Agregar Vacunación",
+        noData: "No hay vacunaciones registradas",
+      },
+      formTitle: {
+        create: "Registrar nueva vacunación",
+        edit: "Editar vacunación",
+      },
+      formInstructions: "Complete la información de la vacunación",
+      fields: {
+        name: "Nombre de la vacuna",
+        date: "Fecha de aplicación",
+        next_date: "Próxima dosis",
+        pet: "Mascota",
+        notes: "Observaciones",
+      },
+      steps: {
+        basic: {
+          title: "Información básica",
+          subtitle: "Datos de la vacuna y mascota",
+        },
+        schedule: {
+          title: "Programación",
+          subtitle: "Fechas de aplicación",
+        },
+      },
+      validation: {
+        required: "{field} es requerido",
+        invalid_date: "Fecha no válida",
+        future_date: "La fecha no puede ser futura",
+        min_dosage: "La dosis mínima es {min}",
+        max_dosage: "La dosis máxima es {max}",
+      },
+    },
+    dewormings: {
+      listing: {
+        title: "Gestión de Desparasitaciones",
+        addButton: "Agregar Desparasitación",
+        noData: "No hay desparasitaciones registradas",
+      },
+      formTitle: {
+        create: "Registrar nueva desparasitación",
+        edit: "Editar desparasitación",
+      },
+      formInstructions: "Complete la información de la desparasitación",
+      fields: {
+        name: "Producto",
+        dosage: "Dosis",
+        unit: "Unidad",
+        date: "Fecha de aplicación",
+        next_date: "Próxima aplicación",
+        pet: "Mascota",
+        notes: "Observaciones",
+      },
+      steps: {
+        basic: {
+          title: "Información básica",
+          subtitle: "Datos del producto y mascota",
+        },
+        details: {
+          title: "Detalles",
+          subtitle: "Dosis y programación",
+        },
+      },
+      validation: {
+        required: "{field} es requerido",
+        invalid_date: "Fecha no válida",
+        future_date: "La fecha no puede ser futura",
+        min_dosage: "La dosis mínima es {min}",
+        max_dosage: "La dosis máxima es {max}",
+        invalid_unit: "Unidad no válida",
+      },
+    },
+    vet_visits: {
+      listing: {
+        title: "Gestión de Visitas al Veterinario",
+        addButton: "Agregar Visita",
+        noData: "No hay visitas al veterinario registradas",
+      },
+      formTitle: {
+        create: "Registrar nueva visita al veterinario",
+        edit: "Editar visita al veterinario",
+      },
+      formInstructions: "Complete la información de la visita al veterinario",
+      fields: {
+        date: "Fecha de la visita",
+        vet_name: "Nombre del veterinario",
+        clinic: "Clínica o consultorio",
+        reason: "Motivo de la visita",
+        diagnosis: "Diagnóstico",
+        treatment_given: "Tratamiento aplicado",
+        recommendations: "Recomendaciones",
+        next_visit: "Próxima cita",
+        image: "Documento adjunto",
+      },
+      steps: {
+        basic: {
+          title: "Información básica",
+          subtitle: "Datos de la visita y profesional",
+        },
+        medical: {
+          title: "Detalles médicos",
+          subtitle: "Diagnóstico y tratamiento aplicado",
+        },
+        follow_up: {
+          title: "Seguimiento",
+          subtitle: "Próxima cita y documentos",
+        },
+      },
+      validation: {
+        required: "{field} es requerido",
+        invalid_date: "Fecha no válida",
+        future_date: "La fecha no puede ser futura",
+        invalid_clinic: "Nombre de clínica no válido",
+        min_length_reason: "El motivo debe tener al menos 3 caracteres",
+        max_length_diagnosis:
+          "El diagnóstico no puede exceder los 500 caracteres",
+        max_file_size: "El archivo no debe superar 5 MB",
+      },
+    },
+    current_medications: {
+      listing: {
+        title: "Gestión de Medicamentos Actuales",
+        addButton: "Agregar Medicamento",
+        noData: "No hay medicamentos actuales registrados",
+      },
+      formTitle: {
+        create: "Registrar nuevo medicamento",
+        edit: "Editar medicamento",
+      },
+      formInstructions: "Complete la información del medicamento actual",
+      fields: {
+        name: "Nombre del medicamento",
+        dosage: "Dosis",
+        unit: "Unidad",
+        type_id: "Frecuencia",
+        route: "Vía de administración",
+        start_date: "Fecha de inicio",
+        end_date: "Fecha de fin",
+        notes: "Observaciones",
+        prescribed_by: "Recetado por",
+      },
+      steps: {
+        basic: {
+          title: "Información básica",
+          subtitle: "Nombre, dosis y vía",
+        },
+        prescription: {
+          title: "Receta",
+          subtitle: "Frecuencia y profesional",
+        },
+        schedule: {
+          title: "Duración",
+          subtitle: "Inicio y fin del tratamiento",
+        },
+      },
+      validation: {
+        required: "{field} es requerido",
+        invalid_date: "Fecha no válida",
+        future_date: "La fecha no puede ser futura",
+        min_dosage: "La dosis mínima es {min}",
+        max_dosage: "La dosis máxima es {max}",
+        end_before_start:
+          "La fecha de fin no puede ser anterior a la de inicio",
+      },
+    },
+    pet_diets: {
+      listing: {
+        title: "Gestión de Dietas de Mascota",
+        addButton: "Agregar Dieta",
+        noData: "No hay dietas registradas para esta mascota",
+      },
+      formTitle: {
+        create: "Registrar nueva dieta",
+        edit: "Editar dieta",
+      },
+      formInstructions: "Complete la información sobre la dieta de la mascota",
+      fields: {
+        name: "Nombre de la dieta",
+        pet_id: "Mascota",
+        food_type: "Tipo de alimento",
+        brand: "Marca",
+        portion_size: "Tamaño de porción",
+        unit: "Unidad",
+        type_id: "Frecuencia",
+        special_instructions: "Instrucciones especiales",
+      },
+      steps: {
+        basic: {
+          title: "Información básica",
+          subtitle: "Tipo, marca y porción",
+        },
+        schedule: {
+          title: "Frecuencia",
+          subtitle: "Con qué frecuencia se administra",
+        },
+        details: {
+          title: "Detalles adicionales",
+          subtitle: "Instrucciones especiales",
+        },
+      },
+      validation: {
+        required: "{field} es requerido",
+        invalid_number: "El valor debe ser un número válido",
+        min_portion: "El tamaño mínimo de porción es {min}",
+        max_portion: "El tamaño máximo de porción es {max}",
+        future_date: "La fecha no puede ser futura",
       },
     },
   },

@@ -696,7 +696,8 @@ export default {
       this.currentFinance = null;
       this.currentBudget = null;
       this.currentWarehouse = null;
-      this.$emit("close-all-dialogs", "ChatTask");
+      //this.$emit("close-all-dialogs", "ChatTask");
+      this.$emit("close-all-dialogs", `Chat${this.currentTaskIntent}`);
       //this.initialize();
     },
     toggleDictado() {
@@ -2080,7 +2081,8 @@ export default {
       this.chatMessages = [];
       // Emitir evento para cerrar el diálogo (ajusta según tu implementación)
       this.$emit("close-dialog");
-      this.$emit("close-all-dialogs", "ChatTask");
+      //this.$emit("close-all-dialogs", "ChatTask");
+      this.$emit("close-all-dialogs", `Chat${this.currentTaskIntent}`);
     },
     showSuggestedTasks(tasks) {
       this.isTyping = true;

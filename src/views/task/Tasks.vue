@@ -442,8 +442,19 @@
 <script>
 import LocalStorageService from "@/LocalStorageService";
 import { handleRequest } from "@/utils/api"; // Ruta al archivo
+<<<<<<< Updated upstream
 import _ from 'lodash';
 export default {
+=======
+import _ from "lodash";
+import { shallowRef } from "vue";
+
+
+export default {
+  components: {
+  
+  },
+>>>>>>> Stashed changes
   data: () => ({
     snackbar: false,
     sb_type: '',

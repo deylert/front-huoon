@@ -13,7 +13,12 @@
 
     </v-row>
   </v-snackbar>
+<<<<<<< Updated upstream
   <v-card class="mx-auto pa-3" flat style="background: transparent;">
+=======
+  
+  <v-card class="mx-auto pa-3 " elevation="2" flat style="background: transparent">
+>>>>>>> Stashed changes
     <div class="d-flex align-center justify-space-between" min-wdth="600">
       <!-- Título con imagen -->
       <v-img src="#" max-height="100" max-width="174" class="justify-center" style="display: block; border: 1px;"
@@ -22,6 +27,7 @@
       <!-- Espaciador -->
       <v-spacer></v-spacer>
 
+<<<<<<< Updated upstream
       <!-- Menú desplegable activado por avatar con campanita -->
       <div class="d-flex align-center">
         <v-text-field :loading="loading" :placeholder="'Bienvenido(a) ' + this.user + '. ¿En qué podemos ayudarte?'"
@@ -46,6 +52,99 @@
       <v-btn icon variant="text" class="mr-2" style="color: #FFC0CB; border: 2px solid #FFF;">
           <v-badge color="#FFC0CB" :content="cantHome" overlap>
             <v-icon size="x-large" style="color: #FFC0CB;" icon="mdi-home-outline" @click="openMenu"></v-icon>
+=======
+   
+
+      <v-btn icon class="text-none" variant="text">
+        <v-badge color="#E53935" :content="cantHome" dot>
+          <v-icon color="#00796B" icon="mdi-home" @click="openMenu"></v-icon>
+        </v-badge>
+
+        <!-- Menú desplegable -->
+        <v-menu
+          v-model="menu"
+          :close-on-content-click="false"
+          offset-y
+          max-height="300"
+          min-width="auto"
+          content-class="rounded-menu"
+        >
+          <template v-slot:activator="{ props }">
+            <!-- Este div vacío es necesario para activar el menú -->
+            <div v-bind="props"></div>
+          </template>
+
+          <!-- Contenido del menú con scroll -->
+          <v-list style="max-height: 300px; overflow-y: auto">
+            <v-list-item
+              v-for="(home, index) in homes"
+              :key="index"
+              @click="selectHome(home)"
+              :class="{ 'selected-home': home.id === this.home_id }"
+            >
+              <v-row align="center" no-gutters>
+                <!-- Avatar con efecto de superposición y ampliación -->
+                <v-col cols="auto" class="pr-2">
+                  <div
+                    class="avatar-container"
+                    @mouseover="isHovered = home.id"
+                    @mouseleave="isHovered = null"
+                  >
+                    <v-avatar size="40" class="avatar">
+                      <v-img
+                        :src="`${this.$axios.defaults.baseURL}images/${home.image}`"
+                        alt="Avatar"
+                      ></v-img>
+                    </v-avatar>
+                  </div>
+                </v-col>
+
+                <!-- Nombre y rol con tooltip -->
+                <v-col style="min-width: 0">
+                  <v-tooltip location="top">
+                    <template v-slot:activator="{ props }">
+                      <v-list-item-title v-bind="props" class="text-truncate">{{
+                        home.name
+                      }}</v-list-item-title>
+                    </template>
+                    <span>{{ home.name }}</span>
+                  </v-tooltip>
+                  <v-tooltip location="top">
+                    <template v-slot:activator="{ props }">
+                      <v-list-item-subtitle v-bind="props" class="text-truncate">{{
+                        home.nameRole
+                      }}</v-list-item-subtitle>
+                    </template>
+                    <span>{{ home.nameRole }}</span>
+                  </v-tooltip>
+                </v-col>
+              </v-row>
+              <!-- Nueva fila para el sistema de estrellas con v-rating -->
+              <v-row no-gutters>
+                <!-- Sistema de estrellas -->
+                <v-col cols="auto" class="pl-2">
+                  <div class="star-rating">
+                    <v-rating
+                      :model-value="home.percent"
+                      color="orange-darken-2"
+                      density="compact"
+                      size="small"
+                      readonly
+                    ></v-rating>
+                  </div>
+                </v-col>
+              </v-row>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </v-btn>
+      <!-- Campanita de notificaciones -->
+      <v-btn icon class="text-none" variant="text">
+        <template v-if="countNoti">
+          <!-- Mostrar badge solo si hay notificaciones -->
+          <v-badge color="#E53935" :content="countNoti" dot>
+            <v-icon color="#00796B" icon="mdi-bell"></v-icon>
+>>>>>>> Stashed changes
           </v-badge>
 
           <!-- Menú desplegable -->

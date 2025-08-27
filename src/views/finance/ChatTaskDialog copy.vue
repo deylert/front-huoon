@@ -342,7 +342,7 @@
 <script>
 import LocalStorageService from "@/LocalStorageService";
 import { handleRequest } from "@/utils/api"; // Ruta al archivo
-import { VTimePicker } from "vuetify/labs/components";
+//import { VTimePicker } from "vuetify/labs/components";
 export default {
   name: "ChatTaskDialog",
   emits: ["update:modelValue", "completed"], // Agrega esta línea
@@ -355,9 +355,6 @@ export default {
       type: Object,
       default: () => ({}),
     },
-  },
-  components: {
-    "v-time-picker": VTimePicker,
   },
   data() {
     return {

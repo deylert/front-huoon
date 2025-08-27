@@ -596,14 +596,14 @@ import LocalStorageService from "@/LocalStorageService";
 import { handleRequest } from "@/utils/api"; // Ruta al archivo
 import _ from "lodash";
 import { shallowRef } from "vue";
-import { VTimePicker } from "vuetify/labs/components";
+//import { VTimePicker } from "vuetify/labs/components";
 import SuggestedTasksList from "@/components/suggested/SuggestedTasksList.vue";
 import { defineAsyncComponent, markRaw } from "vue";
 
 export default {
   components: {
     SuggestedTasksList: markRaw(SuggestedTasksList),
-    "v-time-picker": VTimePicker,
+    //"v-time-picker": VTimePicker,
   },
   data: () => ({
     selected: shallowRef([2]),

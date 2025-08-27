@@ -436,7 +436,7 @@
                     <v-select v-model="editedItem.end_time" :items="timeSlots" :label="$t('taskForm.fields.endTime')"
                       variant="underlined"></v-select>
                   </v-col>
-
+                  
                 <v-col cols="12" md="12">
                   <v-text-field v-model="editedItem.geo_location" :label="$t('taskForm.fields.location')"
                     variant="underlined"></v-text-field>
@@ -596,11 +596,14 @@ import LocalStorageService from "@/LocalStorageService";
 import { handleRequest } from "@/utils/api"; // Ruta al archivo
 import _ from "lodash";
 import { shallowRef } from "vue";
+import { VTimePicker } from "vuetify/labs/components";
 import SuggestedTasksList from "@/components/suggested/SuggestedTasksList.vue";
 import { defineAsyncComponent, markRaw } from "vue";
+
 export default {
   components: {
     SuggestedTasksList: markRaw(SuggestedTasksList),
+    "v-time-picker": VTimePicker,
   },
   data: () => ({
     selected: shallowRef([2]),
@@ -689,6 +692,7 @@ export default {
       geo_location: "",
       people: [],
     },
+
     defaultItem: {
       id: "",
       title: "",
@@ -711,6 +715,7 @@ export default {
       geo_location: "",
       people: [],
     },
+
     originalItem: {
       id: "",
       title: "",
@@ -732,6 +737,7 @@ export default {
       geo_location: "",
       people: [],
     },
+
     tab: "tab-1",
     tabs: [
       { text: "General", value: "general", icon: "mdi-file-document-outline" },
@@ -739,6 +745,7 @@ export default {
       { text: "Módulo", value: "modulo", icon: "mdi-view-dashboard-outline" },
       //{ text: 'Estado', value: 'estado', icon: 'mdi-progress-check' },
     ],
+
     menu: false,
     menu2: false,
     input: null,
@@ -751,6 +758,7 @@ export default {
       (v) => (v && v.length >= 3) || "El campo debe tener al menos de 3 caracteres",
     ],
     selectRules: [(v) => !!v || "Seleccionar al menos un elemento"],
+
     sections: [
       { label: "General", value: "general", icon: "mdi-file-document-outline" },
       { label: "Personas", value: "personas", icon: "mdi-account-group-outline" },
@@ -836,6 +844,7 @@ export default {
         { title: "Asignación", subtitle: "Selecciona responsables y participantes" },
         { title: "Programación", subtitle: "Elige fecha y hora de la tarea" },
       ];
+
       return this.$t("steps") || defaultSteps;
     },
     filteredTasks() {
@@ -844,14 +853,18 @@ export default {
     if (!this.searchDate || this.searchDate.trim() === '') {
       return true;
     }
+
     const search = this.searchDate.trim();
+
     // Intentar interpretar como búsqueda de fecha parcial
     if (this.isValidDatePartial(search)) {
       // Formato esperado en task.start_date: 'YYYY-MM-DD'
       const taskDate = task.start_date; // ej: '2025-04-15'
+
       // Convertir búsqueda dd[-mm[-yyyy]] a patrón comparable con YYYY-MM-DD
       const parts = search.split('-');
       let pattern = '';
+
       if (parts.length === 1) {
         // Solo día: '15' → buscar cualquier fecha que termine en '-15' o '-15'
         const day = parts[0].padStart(2, '0');
@@ -872,15 +885,18 @@ export default {
           pattern = search; // fallback
         }
       }
+
       // Verificar si la fecha de la tarea incluye el patrón
       if (pattern && taskDate.includes(pattern)) {
         return true;
       }
     }
+
     // Búsqueda de texto general en otros campos (opcional)
     const matchesText = Object.values(task).some(val =>
       String(val).toLowerCase().includes(search.toLowerCase())
     );
+
     return matchesText;
   });
 },
@@ -910,12 +926,14 @@ export default {
             })),
           };
         });
+
         // Enviar al endpoint de creación múltiple
         const result = await handleRequest({
           endpoint: "task-bulk",
           method: "POST",
           data: { tasks: tasksToCreate },
         });
+
         if (result.success) {
           this.showAlert("success", result.message, 3000);
           this.initialize();
@@ -951,21 +969,26 @@ export default {
     isValidDatePartial(dateStr) {
   const parts = dateStr.split('-');
   if (parts.length > 3) return false;
+
   const day = parts[0];
   const month = parts[1];
   const year = parts[2];
+
   // Validar día (1-31)
   if (!/^\d{1,2}$/.test(day) || parseInt(day) < 1 || parseInt(day) > 31) {
     return false;
   }
+
   // Si hay mes, validar (1-12)
   if (month && (!/^\d{1,2}$/.test(month) || parseInt(month) < 1 || parseInt(month) > 12)) {
     return false;
   }
+
   // Si hay año, validar longitud (4 dígitos)
   if (year && !/^\d{4}$/.test(year)) {
     return false;
   }
+
   return true;
 },
    isValidDate(dateStr) {
@@ -998,12 +1021,15 @@ export default {
     formatIntuitiveDate(dateString) {
       console.log("formatIntuitiveDate", dateString);
       if (!dateString) return "Sin fecha";
+
       // 1. Parsear la fecha de entrada (formato YYYY-MM-DD)
       const [year, month, day] = dateString.split("-");
       const inputDate = new Date(year, month - 1, day); // Mes es 0-based
+
       // 2. Obtener fecha actual (sin horas/minutos/segundos)
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+
       // 3. Normalizar ambas fechas a UTC para evitar problemas de zona horaria
       const inputUTC = Date.UTC(
         inputDate.getFullYear(),
@@ -1011,8 +1037,10 @@ export default {
         inputDate.getDate()
       );
       const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+
       // 4. Calcular diferencia en días
       const diffDays = Math.floor((inputUTC - todayUTC) / (1000 * 60 * 60 * 24));
+
       // 5. Determinar el texto a mostrar
       switch (diffDays) {
         case 0:
@@ -1039,8 +1067,10 @@ export default {
       };
       return colorMap[type] || "grey-lighten-1"; // Color por defecto
     },
+
     formatTime(timeString) {
       if (!timeString) return "";
+
       const [hours, minutes] = timeString.split(":");
       return `${hours}:${minutes}`;
     },
@@ -1061,12 +1091,14 @@ export default {
       this.data = {};
       this.data.id = task.id;
       this.data.status_id = newStatusId;
+
       try {
         const result = await handleRequest({
           endpoint: "task-update",
           method: "POST",
           data: this.data,
         });
+
         // Manejo de la respuesta según el resultado
         if (result.success) {
           this.showAlert("success", result.message, 3000);
@@ -1094,12 +1126,15 @@ export default {
         return !assignedPerson || assignedPerson.roleId === roleId;
       });
     },
+
     isPersonSelected(personId, roleId) {
       return this.editedItem.people.some((p) => p.id === personId && p.roleId === roleId);
     },
+
     getRoleIcon(roleId) {
       const role = this.roles.find((r) => r.id === roleId);
       if (!role) return "mdi-account";
+
       switch (role.name.toLowerCase()) {
         case "responsable":
           return "mdi-star";
@@ -1109,12 +1144,15 @@ export default {
           return "mdi-account";
       }
     },
+
     updateSelection(role, selectedIds) {
       console.log("Selection changed:", { role, selectedIds });
+
       // Eliminar personas de este rol que ya no están seleccionadas
       this.editedItem.people = this.editedItem.people.filter(
         (p) => p.roleId !== role.id || selectedIds.includes(p.id)
       );
+
       // Agregar nuevas selecciones
       selectedIds.forEach((personId) => {
         if (
@@ -1132,6 +1170,7 @@ export default {
           }
         }
       });
+
       console.log("Updated people:", this.editedItem.people);
     },
     initializeSelections() {
@@ -1144,6 +1183,7 @@ export default {
         const responsableRole = this.roles.find((role) => role.name === "Responsable");
         // Buscar la persona correspondiente al person_id (asumiendo que tienes acceso a las personas)
         const person = this.people.find((p) => p.id === this.person_id); // Asegúrate de tener this.people disponible
+
         if (responsableRole && person) {
           // Agregar la persona con el rol de Responsable y toda la estructura requerida
           this.editedItem.people.push({
@@ -1155,6 +1195,7 @@ export default {
           });
         }
       }
+
       // Inicializar selectedItems para cada rol
       this.roles.forEach((role) => {
         this.selectedItems[role.id] = this.editedItem.people
@@ -1171,11 +1212,13 @@ export default {
         this.save();
       }
     },
+
     /*isPersonSelected(personId) {
       return this.editedItem.people.some((p) => p.person_id === personId);
     },*/
     togglePersonSelection(personId) {
       const index = this.editedItem.people.findIndex((p) => p.person_id === personId);
+
       if (index === -1) {
         // Añadir persona seleccionada
         this.editedItem.people.push({
@@ -1188,6 +1231,7 @@ export default {
           this.editedItem.people.splice(index, 1);
         }
       }
+
       console.log("this.editedItem.people", this.editedItem.people);
       this.$emit("update:selected-people", this.editedItem.people);
     },
@@ -1201,6 +1245,7 @@ export default {
           method: "POST",
           data: this.data,
         });
+
         if (result.success) {
           // Si la solicitud es exitosa, asignamos las sucursales
           this.categories = result.data?.taskcategories || [];
@@ -1225,6 +1270,7 @@ export default {
         // Asignar a originalItem y editedItem solo las personas seleccionadas
         this.originalItem = _.cloneDeep(item);
         this.editedItem = _.cloneDeep(item);
+
         this.people = this.people.filter((person) => {
           // Verificar si la persona no está en editedItem.people
           return !this.editedItem.people.some(
@@ -1248,6 +1294,7 @@ export default {
       this.data.home_id = this.home_id;
       this.data.task_id = this.task_id;
       const selectedRole = this.roles.find((role) => role.id === this.role_id);
+
       // Agregar el nombre del rol a this.data
       if (selectedRole) {
         this.data.roleName = selectedRole.nameRol;
@@ -1260,6 +1307,7 @@ export default {
           method: "POST",
           data: this.data,
         });
+
         // Manejo de la respuesta según el resultado
         if (result.success) {
           this.showAlert("success", result.message, 3000);
@@ -1284,19 +1332,23 @@ export default {
       const now = new Date();
       const currentHour = now.getHours();
       const currentMinute = now.getMinutes();
+
       // Redondear a los 5 minutos más cercanos
       const roundedMinute = Math.ceil(currentMinute / 5) * 5;
       const nearestTime = new Date();
       nearestTime.setMinutes(roundedMinute, 0, 0);
+
       // Si pasamos de 60 minutos, ajustar hora
       if (roundedMinute >= 60) {
         nearestTime.setHours(currentHour + 1);
         nearestTime.setMinutes(0);
       }
+
       const formattedNearestTime =
         String(nearestTime.getHours()).padStart(2, "0") +
         ":" +
         String(nearestTime.getMinutes()).padStart(2, "0");
+
       // Generar todos los slots
       const allSlots = [];
       for (let hour = 0; hour < 24; hour++) {
@@ -1306,11 +1358,14 @@ export default {
           allSlots.push(`${formattedHour}:${formattedMinute}`);
         }
       }
+
       // Ordenar los slots comenzando desde el más cercano
       const index = allSlots.indexOf(formattedNearestTime);
       const orderedSlots = [...allSlots.slice(index), ...allSlots.slice(0, index)];
+
       // Establecer el valor por defecto en editedItem
       this.editedItem.start_time = formattedNearestTime;
+
       return orderedSlots;
     },
     isImage(icon) {
@@ -1338,6 +1393,7 @@ export default {
     const month = String(value.getMonth() + 1).padStart(2, '0');
     const day = String(value.getDate()).padStart(2, '0');
     this.input = `${year}-${month}-${day}`;
+
       this.editedItem.start_date = this.input;
       this.menu = false;
     },
@@ -1346,6 +1402,7 @@ export default {
       const month = String(value.getMonth() + 1).padStart(2, '0');
       const day = String(value.getDate()).padStart(2, '0');
       this.input2 = `${year}-${month}-${day}`;
+
       this.editedItem.end_date = this.input2;
       this.menu2 = false;
     },
@@ -1379,6 +1436,7 @@ export default {
           method: "POST",
           data: this.data,
         });
+
         if (result.success) {
           // Si la solicitud es exitosa, asignamos las sucursales
           this.categories = result.data?.taskcategories || [];
@@ -1442,10 +1500,12 @@ export default {
       if (this.selectedPerson && this.selectedRole) {
         const person = this.people.find((p) => p.id === this.selectedPerson);
         const role = this.roles.find((r) => r.id === this.selectedRole);
+
         if (!person || !role) {
           console.error("Persona o rol no encontrado.");
           return;
         }
+
         // Crear un nuevo objeto con los datos actuales
         const newPerson = {
           id: person.id,
@@ -1458,6 +1518,7 @@ export default {
         const existingPersonIndex = this.editedItem.people.findIndex(
           (p) => p.id === newPerson.id
         );
+
         if (existingPersonIndex === -1) {
           // No existe, por lo tanto, se agrega uno nuevo
           this.editedItem.people.push(newPerson);
@@ -1466,6 +1527,7 @@ export default {
           this.editedItem.people.splice(existingPersonIndex, 1, newPerson); // Actualiza el elemento en el array
         }
       }
+
       // Reiniciar selección y cerrar diálogo
       this.closeAssignedPeople();
     },
@@ -1488,6 +1550,7 @@ export default {
       const year = today.getFullYear();
       const month = String(today.getMonth() + 1).padStart(2, "0"); // Meses son 0-11
       const day = String(today.getDate()).padStart(2, "0");
+
       const formattedDate = `${year}-${month}-${day}`; // Formato "YYYY-MM-DD"
       //this.data.start_date = formattedDate;
       try {
@@ -1497,6 +1560,7 @@ export default {
           method: "POST",
           data: this.data,
         });
+
         if (result.success) {
           // Si la solicitud es exitosa, asignamos las sucursales
           this.tasks = (result.data?.tasks || []).filter(task => 
@@ -1590,6 +1654,7 @@ export default {
             }
             return obj;
           }, {});
+
         // Agregar campos adicionales si es necesario
         if (Object.keys(updatedFields).length > 0) {
           updatedFields.home_id = this.editedItem.home_id;
@@ -1603,9 +1668,11 @@ export default {
             ? this.editedItem.estimated_time
             : 0;
           updatedFields.type = this.editedItem.type ? this.editedItem.type : "Meta";
+
           if (this.file) {
             updatedFields.attachments = this.editedItem.attachments;
           }
+
           // Crear el objeto FormData
           const formData = new FormData();
           for (let key in updatedFields) {
@@ -1620,12 +1687,14 @@ export default {
               formData.append(key, updatedFields[key]);
             }
           }
+
           try {
             const result = await handleRequest({
               endpoint: "task",
               method: "POST",
               data: formData,
             });
+
             // Manejo de la respuesta según el resultado
             if (result.success) {
               this.loading = false;
@@ -1675,6 +1744,7 @@ export default {
           "type",
           "module"
         ];
+
         let updatedFields = Object.keys(this.editedItem)
           .filter(
             (key) =>
@@ -1715,12 +1785,14 @@ export default {
               formData.append(key, updatedFields[key]);
             }
           }
+
           try {
             const result = await handleRequest({
               endpoint: "task-update",
               method: "POST",
               data: formData,
             });
+
             // Manejo de la respuesta según el resultado
             if (result.success) {
               this.loading = false;
@@ -1760,9 +1832,11 @@ export default {
       this.editedIndex = 1;
       // Filtrar las personas que tengan 'select' igual a 1
       //const selectedPeople = item.people.filter(person => person.select === 1);
+
       // Asignar a originalItem y editedItem solo las personas seleccionadas
       this.originalItem = _.cloneDeep(item);
       this.editedItem = _.cloneDeep(item);
+
       // Asignamos las personas seleccionadas a las propiedades 'people' de los dos objetos
       //this.originalItem.people = _.cloneDeep(selectedPeople); // Aseguramos una copia profunda
       //this.editedItem.people = _.cloneDeep(selectedPeople); // Aseguramos una copia profunda
@@ -1770,6 +1844,7 @@ export default {
       // Crear la imagen y configurar el src
       const img = new Image();
       img.src = `${this.$axios.defaults.baseURL}images/${item.attachments}`; // Se asume que item.image_url es la URL de la imagen
+
       // Usar una función asíncrona para manejar la carga de la imagen
       img.onload = async () => {
         try {
@@ -1788,6 +1863,7 @@ export default {
           method: "POST",
           data: this.data,
         });
+
         if (result.success) {
           // Si la solicitud es exitosa, asignamos las sucursales
           this.categories = result.data?.taskcategories || [];
@@ -1837,6 +1913,7 @@ export default {
           method: "POST",
           data: request,
         });
+
         // Manejo de la respuesta según el resultado
         if (result.success) {
           this.showAlert("success", result.message, 3000);
@@ -1858,14 +1935,17 @@ export default {
     },
     showAlert(sb_type, sb_message, sb_timeout) {
       this.sb_type = sb_type;
+
       if (sb_type == "success") {
         this.sb_title = "Éxito";
         this.sb_icon = "mdi-check-circle";
       }
+
       if (sb_type == "error") {
         this.sb_title = "Error";
         this.sb_icon = "mdi-check-circle";
       }
+
       if (sb_type == "warning") {
         this.sb_title = "Advertencia";
         this.sb_icon = "mdi-alert-circle";
@@ -1919,6 +1999,7 @@ export default {
   position: relative;
   overflow: hidden;
 }
+
 .icono-concavo::after {
   content: "";
   position: absolute;
@@ -1929,6 +2010,7 @@ export default {
   border-radius: 8px;
   background: transparent;
 }
+
 .date-display {
   font-size: 0.75rem; /* Equivale a text-caption */
   line-height: 1.1;
@@ -1937,6 +2019,7 @@ export default {
   word-break: break-word;
   white-space: normal;
 }
+
 /* Estilos para la hora */
 .time-display {
   font-size: 0.625rem;
@@ -1946,6 +2029,7 @@ export default {
 .smooth-hover {
   transition: all 0.5s ease;
 }
+
 .smooth-hover:hover {
   transform: translateY(-1px);
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12) !important;
@@ -1961,15 +2045,18 @@ export default {
   border: 2px solid #000;
   /* Aquí se define el borde */
 }
+
 .avatar-row {
   display: flex;
   flex-wrap: nowrap;
   justify-content: start;
 }
+
 .avatar-col {
   margin-right: -10px;
   /* Reduce the space between avatars */
 }
+
 .avatar-item {
   margin-right: -5px;
   /* Cambia el color del borde según desees */
@@ -1981,12 +2068,14 @@ export default {
   /* Optional: reduce the space even further between avatars */
   /* Optional: reduce the space even further between avatars */
 }
+
 .text-secondary {
   color: #6c757d;
   /* Color gris claro */
   font-size: 0.85rem;
   /* Tamaño de texto más pequeño */
 }
+
 .custom-tooltip {
   background-color: #f5f5f5 !important;
   /* Fondo claro */
@@ -1999,10 +2088,12 @@ export default {
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   /* Sombra suave */
 }
+
 .avatar-item.hover-expand:hover {
   transform: scale(1.5);
   box-shadow: 0 0 0 rgba(0, 0, 0, 0.3);
 }
+
 .selected-tab {
   background-color: #03626c;
   /* Fondo del tab seleccionado */
@@ -2011,6 +2102,7 @@ export default {
   border-radius: 4px;
   /* Esquinas redondeadas, opcional */
 }
+
 .people-scroll-container {
   width: 100%;
   overflow-x: auto;
@@ -2019,14 +2111,17 @@ export default {
   scrollbar-width: thin;
   /* Para navegadores modernos */
 }
+
 /* Estilo para la barra de scroll en WebKit */
 .people-scroll-container::-webkit-scrollbar {
   height: 6px;
 }
+
 .people-scroll-container::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.2);
   border-radius: 3px;
 }
+
 .people-scroll-wrapper {
   display: inline-flex;
   gap: 12px;
@@ -2034,6 +2129,7 @@ export default {
   padding: 4px 8px;
   /* Padding para que no peguen a los bordes */
 }
+
 .person-card {
   cursor: pointer;
   transition: all 0.3s ease;
@@ -2046,30 +2142,36 @@ export default {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
   /* Sombra sutil por defecto */
 }
+
 .person-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1) !important;
 }
+
 .selected-person {
   border: 2px solid #03626c;
   background-color: rgba(3, 98, 108, 0.08) !important;
   /* Color más suave */
 }
+
 .current-user {
   border-left: 3px solid #1976d2;
   /* Indicador lateral para el usuario actual */
 }
+
 .person-info {
   max-width: calc(220px - 60px);
   /* 220px (card) - 40px (avatar) - 20px (márgenes) */
   overflow: hidden;
 }
+
 .text-truncate {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   display: block;
 }
+
 /* Mejor contraste para los subtítulos */
 .v-card-subtitle {
   color: rgba(0, 0, 0, 0.7) !important;
@@ -2078,22 +2180,26 @@ export default {
   color: #7e57c2;
   /* purple text input */
 }
+
 /* Estilo base para la tarjeta */
 .v-card {
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
 }
+
 /* Efecto hover más pronunciado */
 .v-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1) !important;
 }
+
 /* Estilo para el tiempo de la reunión */
 .meeting-time {
   min-width: 60px;
   padding-top: 2px; /* Alineación vertical */
 }
+
 /* Estilo para la sección de próximas tareas */
 .next-meetings {
   background-color: rgba(245, 245, 245, 0.7);
@@ -2101,13 +2207,16 @@ export default {
   padding: 8px;
   transition: background-color 0.3s ease;
 }
+
 .next-meetings:hover {
   background-color: rgba(245, 245, 245, 1);
 }
+
 /* Estilo para los avatares de participantes */
 .v-avatar {
   transition: transform 0.2s ease;
 }
+
 .v-avatar:hover {
   transform: scale(1.1);
   z-index: 2;

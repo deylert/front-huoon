@@ -11,54 +11,17 @@
       </v-col>
     </v-row>
   </v-snackbar>
-  <v-container >
-
-
-
-    <v-card elevation="4" rounded="lg" style="max-height: 100vh; min-height: 40vh; overflow-y: auto">
+  <v-container class="pa-4">
+    <v-card class="pa-4" elevation="4" rounded="lg" style="max-height: 100vh; min-height: 40vh; overflow-y: auto">
       <!-- Encabezado con foto y datos -->
       <v-card-text>
-
-           <!-- Columna ícono + texto título: ocupando un ancho fijo o proporcional -->
-          <v-col cols="12" sm="9" md="9" class="d-flex align-center">
-            <v-avatar size="48" class="me-3" color="grey-lighten-4" variant="tonal">
-              <v-icon color="green-darken-2">mdi-cash</v-icon>
-            </v-avatar>
-            <div>
-              <div class="text-body-2 font-weight-bold mb-1">
-                Presupuestos
-              </div>
-              <div class="text-body-2 text-grey-darken-1">
-              Resumen de los presupuestos
-              </div>
-            </div>
-          </v-col>
-
-
-             <v-divider />
-          <v-card-actions class="pa-3 bg-grey-lighten-5 tools-bar">
-            <v-btn
-              v-for="tool in tools"
-              :key="tool.name"
-              @click="tool.action"
-              size="small"
-              color="primary"
-              variant="text"
-              prepend-icon="mdi-plus"
-              class="text-capitalize"
-            >
-              {{ tool.name }}
-            </v-btn>
-          </v-card-actions>
-
-
-        <!-- Encabezado
+        <!-- Encabezado -->
         <v-row justify="space-between" align="center" class="mb-6">
           <h2 class="text-body-2 font-weight-bold">{{ $t("viewTitles.budget") }}</h2>
           <v-btn icon color="deep-purple-accent-4" variant="flat" class="elevation-3" @click="showAdd">
             <v-icon>mdi-plus</v-icon>
           </v-btn>
-        </v-row> -->
+        </v-row>
         <template v-if="budgets.length > 0">
           <!-- Tarjetas de presupuestos -->
           <v-card v-for="(budget, index) in budgets" :key="index" class="mb-3 rounded-lg pa-2" elevation="2">
@@ -197,6 +160,7 @@
                       
                           <v-icon left size="small" :icon="detail.icon"></v-icon>
                           <span class="ml-1 text-body-2">- {{ detail.text }}</span>
+
                       <span>{{ detail.fullLabel }}: {{ detail.fullText }}</span>
                     </v-tooltip>
                   </div>
@@ -371,6 +335,7 @@
                     </v-locale-provider>
                   </v-menu>
                 </v-col>
+
                 <v-col cols="12" sm="6">
                   <v-menu
                     v-model="endDateMenu"
@@ -468,6 +433,7 @@ import LocalStorageService from "@/LocalStorageService";
 import { handleRequest } from "@/utils/api";
 import _ from "lodash";
 import { shallowRef } from "vue";
+
 export default {
   data: () => ({
     selected: shallowRef([2]),
@@ -523,17 +489,7 @@ export default {
       currency: "",
       type_id: null,
     },
-    messages:[],
-    tools:[
-      {
-        name: "Crear Presupuestos",
-        action: () =>
-          this.messages.push({
-            text: "📝 ¿Cuál es la tarea que deseas crear?",
-            from: "bot",
-          }),
-      }],
-      
+
     defaultItem: {
       id: "",
       category_id: null,
@@ -547,6 +503,7 @@ export default {
       currency: "",
       type_id: null,
     },
+
     editedIndex: -1,
     search: "",
     selectRules: [(v) => !!v || "Seleccionar al menos un elemento"],
@@ -565,6 +522,7 @@ export default {
         this.$t("budget.validationMessages.description.maxLength"),
     ],
   }),
+
   computed: {
     formTitle() {
       return this.editedIndex === -1
@@ -605,10 +563,12 @@ export default {
       ];
     },
   },
+
   mounted() {
     this.home_id = JSON.parse(LocalStorageService.getItem("home_id"));
     this.initialize();
   },
+
   methods: {
     getCurrencyColor(currency) {
     const colorMap = {
@@ -701,16 +661,19 @@ export default {
       const [year, month, day] = dateString.split("-");
       return `${day}-${month}-${year}`;
     },
+
     updateStartDate(val) {
       this.startDateInput = val;
       this.editedItem.start_date = this.startDateFormatted;
       this.startDateMenu = false;
     },
+
     updateEndDate(val) {
       this.endDateInput = val;
       this.editedItem.end_date = this.endDateFormatted;
       this.endDateMenu = false;
     },
+
     async showAdd() {
       this.editedIndex = -1;
       try {
@@ -718,6 +681,7 @@ export default {
           endpoint: "category-budgets",
           method: "POST",
         });
+
         if (result.success) {
           this.categories = result.data.categories || [];
           this.types = result.data.types || [];
@@ -737,6 +701,7 @@ export default {
         this.dialog = true;
       }
     },
+
     close() {
       this.step = 0;
       this.dialog = false;
@@ -746,6 +711,7 @@ export default {
       });
       this.editedIndex = -1;
     },
+
     async initialize() {
       try {
         this.data = {};
@@ -756,6 +722,7 @@ export default {
           method: "POST",
           data: this.data
         });
+
         if (result.success) {
           this.budgets = result.data.budgets || [];
         } else {
@@ -772,6 +739,7 @@ export default {
         this.loading = false;
       }
     },
+
     nextStep() {
       if (this.step < this.steps.length - 1) {
         this.step++;
@@ -781,6 +749,7 @@ export default {
         this.save();
       }
     },
+
     async save() {
       this.loading = true;
       if (this.editedIndex === -1) {
@@ -797,6 +766,7 @@ export default {
           "currency",
           "type_id"
         ];
+
         let updatedFields = Object.keys(this.editedItem)
           .filter(
             (key) =>
@@ -807,7 +777,9 @@ export default {
             obj[key] = this.editedItem[key];
             return obj;
           }, {});
+
         updatedFields.home_id = this.home_id;
+
         if (Object.keys(updatedFields).length > 0) {
           try {
             const result = await handleRequest({
@@ -815,6 +787,7 @@ export default {
               method: "POST",
               data: updatedFields,
             });
+
             if (result.success) {
               this.showAlert("success", result.message, 3000);
               this.initialize();
@@ -839,6 +812,7 @@ export default {
           "currency",
           "type_id"
         ];
+
         let updatedFields = Object.keys(this.editedItem)
           .filter(
             (key) =>
@@ -849,6 +823,7 @@ export default {
             obj[key] = this.editedItem[key];
             return obj;
           }, {});
+
         if (Object.keys(updatedFields).length > 0) {
           updatedFields.id = this.editedItem.id;
           try {
@@ -857,6 +832,7 @@ export default {
               method: "POST",
               data: updatedFields,
             });
+
             if (result.success) {
               this.showAlert("success", result.message, 3000);
               this.initialize();
@@ -875,6 +851,7 @@ export default {
       this.loading = false;
       this.close();
     },
+
     async editItem(item) {
       this.editedIndex = 1;
       this.editedItem = Object.assign({}, this.originalItem);
@@ -882,11 +859,13 @@ export default {
       this.editedItem = Object.assign({}, item);
       this.startDateInput = item.start_date;
       this.endDateInput = item.end_date;
+
       try {
         const result = await handleRequest({
           endpoint: "category-budgets",
           method: "POST",
         });
+
         if (result.success) {
           this.categories = result.data.categories || [];
           this.types = result.data.types || [];
@@ -906,11 +885,13 @@ export default {
         this.dialog = true;
       }
     },
+
     deleteItem(item) {
       this.editedIndex = 1;
       this.editedItem.id = item.id;
       this.dialogDelete = true;
     },
+
     closeDelete() {
       this.dialogDelete = false;
       this.$nextTick(() => {
@@ -918,6 +899,7 @@ export default {
         this.originalItem = Object.assign({}, this.defaultItem);
       });
     },
+
     async deleteItemConfirm() {
       this.loading = true;
       try {
@@ -929,6 +911,7 @@ export default {
           method: "POST",
           data: request,
         });
+
         if (result.success) {
           this.showAlert("success", result.message, 3000);
           this.initialize();
@@ -946,16 +929,20 @@ export default {
         this.closeDelete();
       }
     },
+
     showAlert(sb_type, sb_message, sb_timeout) {
       this.sb_type = sb_type;
+
       if (sb_type == "success") {
         this.sb_title = "Éxito";
         this.sb_icon = "mdi-check-circle";
       }
+
       if (sb_type == "error") {
         this.sb_title = "Error";
         this.sb_icon = "mdi-check-circle";
       }
+
       if (sb_type == "warning") {
         this.sb_title = "Advertencia";
         this.sb_icon = "mdi-alert-circle";
@@ -964,6 +951,7 @@ export default {
       this.sb_timeout = sb_timeout;
       this.snackbar = true;
     },
+
     compactBudgetData(budget) {
       return [
         {
@@ -1003,6 +991,7 @@ export default {
         },
       ].filter((item) => item.value !== "N/R");
     },
+
     compactDetails(budget) {
       return [
         {
@@ -1023,6 +1012,7 @@ export default {
         },
       ].filter((detail) => detail.text !== "-");
     },
+
     truncateText(text, length = 15) {
       if (!text) return null;
       return text.length > length ? text.substring(0, length) + "..." : text;
@@ -1030,7 +1020,9 @@ export default {
   },
 };
 </script>
+
 <style scoped>
+
 .icono-concavo {
   width: 48px;
   height: 48px;
@@ -1044,22 +1036,27 @@ export default {
   font-weight: 600;
   text-transform: uppercase;
 }
+
 .icono-concavo:hover {
   transform: scale(1.05);
   box-shadow: inset 0 2px 6px rgba(0,0,0,0.15), 
               0 2px 8px rgba(0,0,0,0.1);
 }
+
 .date {
   padding: 4px 8px;
   border-radius: 4px;
 }
+
 .v-card {
   transition: all 0.2s ease;
 }
+
 .v-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1) !important;
 }
+
 .fullscreen-dialog {
   height: 100vh !important;
   max-height: 100vh !important;
@@ -1067,30 +1064,36 @@ export default {
   margin: 0 !important;
   padding: 0 !important;
 }
+
 .text-truncate {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 /* Estilos para los chips */
 .v-chip {
   margin-right: 4px;
   margin-bottom: 4px;
 }
+
 /* Estilos para la línea de tiempo */
 .v-timeline-item {
   padding-bottom: 16px;
 }
+
 /* Estilos para los campos del formulario */
 .v-text-field,
 .v-select,
 .v-textarea {
   margin-bottom: 12px;
 }
+
 /* Estilos para los botones de acción */
 .v-btn--icon {
   transition: all 0.2s ease;
 }
+
 .v-btn--icon:hover {
   transform: scale(1.1);
 }

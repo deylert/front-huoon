@@ -41,13 +41,11 @@
 
           <!-- Columna de la tarjeta de sugerencia -->
           <v-col cols="12" sm="3" md="3">
-            <v-card
-              class="pa-2 d-flex align-center signo-card"
+            <v-card class="pa-2 d-flex align-center signo-card"
               elevation="1"
               rounded="lg"
               @click="dialogAlerta = true"
-              style="cursor: pointer"
-            >
+              style="cursor: pointer">
               <v-avatar size="40" class="me-3" color="purple-lighten-4" variant="tonal">
                 <v-icon color="purple">mdi-lightbulb-on-outline</v-icon>
               </v-avatar>
@@ -98,287 +96,10 @@
           </v-menu>
         </v-row>
 
-        <v-menu offset-y location="right">
-          <template #activator="{ props }">
-            <v-btn
-              v-bind="props"
-              icon
-              size="large"
-              color="purple"
-              class="ma-4"
-              elevation="6"
-              style="position: fixed; top: 40px; right: 260px"
-            >
-              <v-icon size="32">mdi-plus</v-icon>
-            </v-btn>
-          </template>
-
-          <v-list rounded="lg">
-            <v-list-item @click="this.showAddFinance()">
-              <v-list-item-title class="text-green">
-                <v-icon start color="green">mdi-plus</v-icon>
-                {{ $t("finances.titles.new.finance") }}
-              </v-list-item-title>
-            </v-list-item>
-            <v-list-item @click="showAddBuget()">
-              <v-list-item-title class="text-red">
-                <v-icon start color="red">mdi-minus</v-icon>
-                Agregar Presupuesto
-              </v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
-        <v-menu offset-y location="right">
-          <template #activator="{ props }">
-            <v-btn
-              v-bind="props"
-              icon
-              size="large"
-              color="purple"
-              class="ma-4"
-              elevation="6"
-              style="position: fixed; top: 40px; right: 260px"
-            >
-              <v-icon size="32">mdi-plus</v-icon>
-            </v-btn>
-          </template>
-
-          <v-list rounded="lg">
-            <v-list-item @click="this.showAddFinance()">
-              <v-list-item-title class="text-green">
-                <v-icon start color="green">mdi-plus</v-icon>
-                {{ $t("finances.titles.new.finance") }}
-              </v-list-item-title>
-            </v-list-item>
-            <v-list-item @click="showAddBuget()">
-              <v-list-item-title class="text-red">
-                <v-icon start color="red">mdi-minus</v-icon>
-                Agregar Presupuesto
-              </v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
-
-        <v-card elevation="1" border class="mb-2 pa-1" rounded="lg">
-          <v-btn
-            v-for="tool in tools"
-            :key="tool.name"
-            @click="tool.action"
-            color="teal"
-            variant="text"
-            :prepend-icon="tool.icon"
-            class="text-capitalize text-subtitle-2"
-          >
-            {{ tool.name }}
-          </v-btn>
-        </v-card>
-
-        <!-- todo 712-->
-
-        <v-row dense>
-          <v-col cols="12" sm="12" md="12">
-            <v-card class="mx-auto" elevation="1" rounded="lg" border flat>
-              <v-list-item height="60">
-                <template v-slot:prepend>
-                  <v-avatar size="40" color="teal">
-                    <v-icon icon="mdi-calendar"></v-icon>
-                  </v-avatar>
-                </template>
-
-                <template v-slot:title> Día {{ todayDay }} de {{ lastDayOfMonth }} </template>
-                <template v-slot:subtitle> {{ fullDate }} </template>
-                <template v-slot:append>
-                  <v-chip class="ma-2" color="teal" label rounded="lg">
-                    <v-icon icon="mdi-emoticon" start></v-icon>
-                    <div class="text-subtitle-2">Excelente!!</div>
-                  </v-chip>
-                </template>
-              </v-list-item>
-
-              <v-divider></v-divider>
-
-              <v-card-text class="text-medium-emphasis pa-2">
-                <v-sheet max-width="2150" rounded="lg">
-  <div class="pa-4">
-    <!-- Título: Presupuesto del mes -->
-    <div class="text-subtitle-2 font-weight-bold">
-      Presupuesto del mes de {{ fullMonth }}
-    </div>
-
-    <!-- Disponible (restante) -->
-    <div class="d-flex justify-space-between mt-2">
-      <div class="text-caption grey--text"></div>
-      <div class="text-caption font-weight-medium">
-        <v-chip color="teal-darken-2" label rounded="lg" variant="text">
-          <v-icon icon="mdi-trending-up"></v-icon>
-          <span class="text-subtitle-2">{{ budget.remaining }} CLP disponibles</span>
-        </v-chip>
-      </div>
-    </div>
-
-    <!-- Barra de progreso -->
-   <v-progress-linear
-  :model-value="currentUsageAsNumber"
-  :max="100"
-  :color="progressColor"
-  :bg-color="progressBgColor"
-  :buffer-value="projectedUsage"
-  buffer-opacity="3"
-  height="16"
-  rounded
-  class="mt-2"
-  style="height: 16px !important;"
->
-  <template v-slot:default>
-    <span class="text-white text-caption font-weight-bold">
-      {{ currentUsageAsNumber }}%
-    </span>
-  </template>
-</v-progress-linear>
-
-    <!-- Consumido -->
-    <div class="mt-2">
-      <div class="text-subtitle-2 grey--text">
-        <v-chip color="red-darken-4" label rounded="lg" variant="text">
-          <v-icon icon="mdi-trending-down"></v-icon>
-          <span class="text-subtitle-2">{{ budget.used }} CLP consumidos</span>
-        </v-chip>
-      </div>
-    </div>
-  </div>
-</v-sheet>
-
-                <v-alert
-                  color="warning"
-                  icon="mdi-alert-circle"
-                  variant="outlined"
-                  theme="dark"
-                  border
-                  density="compact"
-                  class="py-1 px-4"
-                >
-                  <div class="text-body2 text-black">
-                    Alerta si estoy gastando más rápido de lo esperado.
-                  </div>
-                </v-alert>
-              </v-card-text>
-            </v-card>
-          </v-col>
-
-          <v-col cols="12" md="6" class="d-flex">
-            <v-card class="mx-auto flex-grow-1" elevation="1" rounded="lg" border flat>
-              <v-card-title class="d-flex align-center justify-space-between">
-                <div class="mr-6 text-subtitle-2">Gastos por categorías</div>
-                <v-select
-                  v-model="selectedGroup"
-                  :items="['Transactions', 'Other']"
-                  density="compact"
-                  max-width="200"
-                  variant="solo-filled"
-                  flat
-                  hide-details
-                  single-line
-                />
-              </v-card-title>
-
-              <v-pie
-                :key="selectedGroup"
-                :items="currentItems"
-                :legend="{ position: $vuetify.display.mdAndUp ? 'right' : 'bottom' }"
-                :tooltip="{ subtitleFormat: '[value]%' }"
-                gap="4"
-                inner-cut="70"
-                item-key="id"
-                rounded="1"
-                animation
-                hide-slice
-                reveal
-                size="200"
-              >
-                <!-- Centro del gráfico -->
-                <template v-slot:center>
-                  <div class="text-center">
-                    <div class="text-h3 font-weight-bold">130</div>
-                    <div class="opacity-70 mt-1 mb-n1">Total</div>
-                  </div>
-                </template>
-
-                <!-- Leyenda personalizada -->
-                <template v-slot:legend="{ items, toggle, isActive }">
-                  <v-list
-                    class="py-0 mb-n5 mb-md-0 bg-transparent"
-                    density="compact"
-                    width="250"
-                  >
-                    <v-list-item
-                      v-for="item in items"
-                      :key="item.key"
-                      :class="['my-1', { 'opacity-40': !isActive(item) }]"
-                      :title="item.title"
-                      rounded="lg"
-                      link
-                      @click="toggle(item)"
-                    >
-                      <template v-slot:prepend>
-                        <v-avatar :color="item.color" :size="16" />
-                      </template>
-                      <template v-slot:append>
-                        <div class="font-weight-bold">{{ item.value }}%</div>
-                      </template>
-                    </v-list-item>
-                  </v-list>
-                </template>
-              </v-pie>
-            </v-card>
-          </v-col>
-
-          <v-col cols="12" md="6" class="d-flex">
-              <IncomeSpentChart
-                  :incomeData="customIncomeData"
-                  :spentData="customSpentData"
-                  :year="2025"
-                />
-          </v-col>
-
-          <v-alert
-            color="warning"
-            icon="mdi-alert-circle"
-            variant="outlined"
-            theme="dark"
-            border
-            density="compact"
-            class="py-1 px-4"
-          >
-            <div class="text-body2 text-black">
-              Comparación rápida: “Este mes gastaste 15% más en supermercado que el
-              anterior”..
-            </div>
-          </v-alert>
-        </v-row>
-
-        <br />
-
-        <div class="h-0">
-          <svg height="0" version="1.1" width="0" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern
-                id="pattern-0"
-                height="20"
-                patternTransform="rotate(145) scale(.2)"
-                patternUnits="userSpaceOnUse"
-                width="20"
-              >
-                <path
-                  d="M0 10h20zm0 20h20zm0 20h20zm0 20h20z"
-                  fill="none"
-                  stroke="rgb(var(--v-theme-surface))"
-                  stroke-width="3"
-                />
-              </pattern>
-            </defs>
-          </svg>
+        <v-divider class="my-4" />
+        <div class="text-body-2 font-weight-medium mb-2">
+          {{ $t("summary.title") }} {{ formattedCurrentMonth }}
         </div>
-        <!--
         <v-row dense>
           <v-col cols="12" sm="3" md="3">
             <v-card
@@ -457,12 +178,7 @@
           </v-col>
 
           <v-col cols="12" sm="3" md="3">
-            <v-card
-              class="pa-3 d-flex align-center"
-              elevation="1"
-              rounded="lg"
-              @click="showAddIncomeSpent()"
-            >
+            <v-card class="pa-3 d-flex align-center" elevation="1" rounded="lg" @click="showAddIncomeSpent()">
               <v-avatar
                 size="40"
                 class="me-3"
@@ -518,15 +234,14 @@
                     ({{ budget.currentUsage }}%)</span
                   >
                 </div>
-
                 <div class="text-caption text-grey-darken-1">
-                  vs <strong>${{ formatCurrency(budget.lastUsage) }} </strong>
+                  vs <strong>${{ formatCurrency(budget.lastUsage) }}</strong>
                   {{ $t("finances.comparison.lastMonth") }}
                 </div>
               </div>
             </v-card>
           </v-col>
-        </v-row>-->
+        </v-row>
 
         <v-divider class="my-4" />
 
@@ -732,7 +447,9 @@
                           <v-avatar size="24">
                             <template v-if="isImage(item.raw.icon)">
                               <img
-                                :src="`${this.$axios.defaults.baseURL}images/${item.raw.icon}`"
+                                :src="`${this.$axios.defaults.baseURL}images/${
+                                  item.raw.icon
+                                }`"
                                 alt="icon"
                               />
                             </template>
@@ -1069,11 +786,13 @@
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn @click="closeDialogBugets">Cerrar</v-btn>
+        <v-btn @click="closeDialogBugets"
+          >Cerrar</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <v-dialog v-model="dialogIncomeSpent" fullscreen transition="dialog-bottom-transition">
+   <v-dialog v-model="dialogIncomeSpent" fullscreen transition="dialog-bottom-transition">
     <v-card>
       <v-card-text>
         <!-- Aquí pasamos el 'selectedWorker' al componente dentro del diálogo -->
@@ -1082,7 +801,9 @@
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn @click="closeDialogIncomeSpent">Cerrar</v-btn>
+        <v-btn @click="closeDialogIncomeSpent"
+          >Cerrar</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -1217,7 +938,9 @@
                                 v-bind="props"
                               >
                                 <v-img
-                                  :src="`${this.$axios.defaults.baseURL}images/${person.image}`"
+                                  :src="`${this.$axios.defaults.baseURL}images/${
+                                    person.image
+                                  }`"
                                   alt="avatar"
                                 />
                               </v-avatar>
@@ -1279,29 +1002,29 @@
       <v-card-title class="text-body-2">Alertas para Hoy</v-card-title>
       <v-card-text>
         <v-list v-if="suggestions.length">
-          <v-list-item v-for="(alerta, i) in suggestions" :key="i">
-            <template v-slot:prepend>
-              <v-icon color="deep-orange" icon="mdi-alert"></v-icon>
-            </template>
-
-            <v-list-item-title class="text-subtitle-2">
-              {{ alerta.title }}
-            </v-list-item-title>
-            <v-list-item-subtitle class="text-caption text-truncate">
-              {{ alerta.description }}
-              <v-tooltip
-                activator="parent"
-                location="bottom"
-                max-width="350px"
-                class="custom-tooltip"
-              >
-                <span style="white-space: normal; word-break: break-word">
-                  {{ alerta.description }}
-                </span>
-              </v-tooltip>
-            </v-list-item-subtitle>
-          </v-list-item>
-        </v-list>
+        <v-list-item v-for="(alerta, i) in suggestions" :key="i">
+          <template v-slot:prepend>
+            <v-icon color="deep-orange" icon="mdi-alert"></v-icon>
+          </template>
+          
+          <v-list-item-title class="text-subtitle-2">
+            {{ alerta.title }}
+          </v-list-item-title>
+                   <v-list-item-subtitle class="text-caption text-truncate">
+  {{ alerta.description }}
+  <v-tooltip
+    activator="parent"
+    location="bottom"
+    max-width="350px"
+    class="custom-tooltip"
+  >
+    <span style="white-space: normal; word-break: break-word">
+      {{ alerta.description }}
+    </span>
+  </v-tooltip>
+</v-list-item-subtitle>
+        </v-list-item>
+      </v-list>
         <div v-else class="text-caption text-grey">No hay alertas para hoy.</div>
       </v-card-text>
       <v-card-actions>
@@ -1322,7 +1045,6 @@ import Budget from "./Budget.vue";
 import ChatTask from "../chat/ChatTask.vue";
 import SuggestionsList from "../suggestion/SuggestionsList.vue";
 import IncomeSpent from "./IncomeSpent.vue";
-import IncomeSpentChart from "./IncomeSpentChart.vue";
 export default {
   components: {
     Income,
@@ -1330,42 +1052,10 @@ export default {
     Budget,
     ChatTask,
     SuggestionsList,
-    IncomeSpent,
-    IncomeSpentChart,
+    IncomeSpent
   },
   data() {
     return {
-      tools: [
-        {
-          name: this.$t("finances.fields.income"),
-          icon: "mdi-trending-up",
-           action: () => this.showIncome(),
-        },
-        {
-          name: this.$t("finances.fields.spent"),
-          icon: "mdi-trending-down",
-          action: () => this.showSpent(),
-        },
-        {
-          name: this.$t("finances.sections.balance"),
-          icon: "mdi-cash",
-          action: () => this.showAddIncomeSpent(),
-        },
-        {
-          name: this.$t("finances.sections.budget"),
-          icon: "mdi-cash",
-          action: () => this.showAddBuget(),
-        },
-      ],
-      customIncomeData: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      customSpentData: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      budget1: 100000,
-      spent1: 80000,
-      currency: "CLP",
-      locale: "es-CL",
-      timeZone: "America/Santiago",
-      now: new Date(),
-      selectedGroup: "Transactions",
       dialogAlerta: false,
       dialogChatTask: false,
       dialogIncomeSpent: false,
@@ -1430,6 +1120,7 @@ export default {
           due_time: "18:00",
           status: "revisado",
         },
+
         // 🔮 Sugerencias generadas por IA
         {
           id: 4,
@@ -1452,6 +1143,7 @@ export default {
           source: "ia",
         },
       ],
+
       filtrosActivos: false,
       filtroDesde: "",
       filtroHasta: "",
@@ -1633,81 +1325,6 @@ export default {
     };
   },
   computed: {
-    currentUsageAsNumber() {
-      const str = this.budget?.currentUsage || '0';
-      const cleaned = str.replace(/\./g, ''); // elimina puntos de miles
-      const num = parseFloat(cleaned);
-      return isNaN(num) ? 0 : num;
-    },
-    progressColor() {
-      const usage = this.currentUsageAsNumber;
-      if (usage >= 100) return 'red-darken-2';
-      if (usage >= 80) return 'orange-darken-2';
-      return 'teal-darken-2';
-    },
-    progressBgColor() {
-      return this.currentUsageAsNumber >= 100 ? 'red-darken-4' : 'teal-darken-2';
-    },
-    projectedUsage() {
-      const usage = this.currentUsageAsNumber;
-      return Math.min(100, usage * 1.2);
-    },
-     todayDay() {
-      return this.now.getDate(); // Forma simple y segura
-    },
-
-    // Último día del mes actual
-    lastDayOfMonth() {
-      const year = this.now.getFullYear();
-      const month = this.now.getMonth();
-      // Día 0 del próximo mes = último día del mes actual
-      const lastDay = new Date(year, month + 1, 0);
-      return lastDay.getDate();
-    },
-
-    // Fecha formateada: "lunes, 5 de abril de 2025"
-    fullDate() {
-       const locale = this.$i18n.locale.value;
-    const dateLocale = { es: 'es-ES', en: 'en-US', pt: 'pt-PT' }[locale] || 'es-ES';
-    return this.now.toLocaleDateString(dateLocale, {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-    },
-    fullMonth() {
-       const locale = this.$i18n.locale.value;
-    const dateLocale = { es: 'es-ES', en: 'en-US', pt: 'pt-PT' }[locale] || 'es-ES';
-    return this.now.toLocaleDateString(dateLocale, {
-      year: 'numeric',
-      month: 'long',
-    });
-    },
-    currentItems() {
-      if (this.selectedGroup === "Transactions") {
-        return [
-          {
-            id: 1,
-            title: "House & Bills",
-            value: 40,
-            color: "rgba(var(--v-theme-on-surface), .2)",
-            pattern: "url(#pattern-0)",
-          },
-          { id: 2, title: "Transportation", value: 25, color: "rgba(255, 151, 215, .4)" },
-          { id: 3, title: "Entertainment", value: 20, color: "rgba(255, 151, 215, .6)" },
-          { id: 4, title: "Food", value: 10, color: "rgba(255, 151, 215, .8)" },
-          { id: 5, title: "Other", value: 5, color: "rgba(255, 151, 215, 1)" },
-        ];
-      } else {
-        return [
-          { id: 1, title: "OSS Donations", value: 37, color: "#767119" },
-          { id: 2, title: "Travel", value: 22, color: "#9e850d" },
-          { id: 3, title: "Investment", value: 20, color: "#cb9700" },
-          { id: 4, title: "Books", value: 11, color: "#ffa600" },
-        ];
-      }
-    },
     selectedSuggestedTasksCount() {
       return this.suggestedTasks?.filter((task) => task.selected).length || 0;
     },
@@ -1785,23 +1402,6 @@ export default {
     this.initialize();
   },
   methods: {
-     /*handleGenerateDemo() {
-      // Lógica para generar datos demo
-      console.log('Generando datos demo...');
-      this.customIncomeData = Array.from({ length: 12 }, () => 
-        Math.floor(Math.random() * 20000) + 10000
-      );
-      this.customSpentData = Array.from({ length: 12 }, () => 
-        Math.floor(Math.random() * 15000) + 5000
-      );
-    },*/
-    fmt(n) {
-      return new Intl.NumberFormat(this.locale, {
-        style: "currency",
-        currency: this.currency,
-        maximumFractionDigits: this.currency === "CLP" ? 0 : 2,
-      }).format(n || 0);
-    },
     handleCloseDialog() {
       // Lógica adicional al cerrar el diálogo si es necesaria
       console.log("Diálogo cerrado");
@@ -1818,11 +1418,13 @@ export default {
       const rawPeople = peopleProxy
         ? peopleProxy.__v_raw || JSON.parse(JSON.stringify(peopleProxy))
         : [];
+
       // 2. Validar que taskPeople sea un array
       if (!Array.isArray(taskPeople)) {
         //console.error('taskPeople no es un array válido:', taskPeople);
         return [];
       }
+
       // 3. Recorrer y enriquecer los datos
       return taskPeople.map((person) => {
         // 3.1. Verificar que tenga person_id
@@ -1830,13 +1432,16 @@ export default {
           //console.warn('Persona sin person_id:', person);
           return person;
         }
+
         // 3.2. Buscar en los datos reales
         const fullPersonData = rawPeople.find((p) => p.id === Number(person.person_id));
+
         // 3.3. Mostrar información de debug si no se encuentra
         /*if (!fullPersonData) {
       console.warn(`No se encontró persona con ID ${person.person_id}`);
       console.log('IDs disponibles:', rawPeople.map(p => p.id));
     }*/
+
         // 3.4. Retornar objeto enriquecido
         return {
           ...person,
@@ -1850,19 +1455,24 @@ export default {
       // Asume formato HH:mm
       return timeString;
     },
+
     formatDuration(duration) {
       if (!duration) return "";
+
       // Si es un número (horas)
       if (typeof duration === "number") {
         return `${duration} ${duration === 1 ? "hora" : "horas"}`;
       }
+
       // Si es un string con formato de tiempo
       if (typeof duration === "string") {
         // Puedes añadir lógica para formatear strings como "2 hours" o "120 mins"
         return duration;
       }
+
       return "Duración no especificada";
     },
+
     // Método para debug (puedes eliminarlo después)
     logTaskPeople(task) {
       console.log("People data for task:", task.people);
@@ -1873,14 +1483,17 @@ export default {
         ? `${this.$axios.defaults.baseURL}images/${person.image}`
         : require("@/assets/default-avatar.png");
     },
+
     async sendSuggestedTasksToAPI() {
       try {
         this.loading = true;
+
         // Filtrar y formatear las tareas seleccionadas
         const tasksToCreate = this.suggestedTasks
           .filter((task) => task.selected)
           .map((task) => {
             const { selected, statusDialog, ...cleanTask } = task;
+
             // Convertir campos numéricos
             return {
               ...cleanTask,
@@ -1899,12 +1512,14 @@ export default {
                 : [],
             };
           });
+
         // Enviar al endpoint que maneja la creación múltiple
         const result = await handleRequest({
           endpoint: "task-bulk",
           method: "POST",
           data: { tasks: tasksToCreate },
         });
+
         if (result.success) {
           this.showAlert(
             "success",
@@ -1925,16 +1540,20 @@ export default {
     },
     convertEstimatedTime(time) {
       if (!time) return 0;
+
       // Si ya es un número, devolverlo
       if (typeof time === "number") return time;
+
       // Si es string con formato "X horas"
       const match = time.toString().match(/(\d+)\s*horas?/i);
       if (match) return parseInt(match[1], 10);
+
       // Si es string con formato "HH:mm"
       const timeParts = time.toString().split(":");
       if (timeParts.length === 2) {
         return parseInt(timeParts[0], 10) + parseInt(timeParts[1], 10) / 60;
       }
+
       // Intentar convertir a número
       return Number(time) || 0;
     },
@@ -1963,6 +1582,7 @@ export default {
       this.$nextTick(() => {
         const taskData =
           typeof task.taskData === "string" ? JSON.parse(task.taskData) : task.taskData;
+
         this.currentTask = _.cloneDeep(taskData);
         this.dialogChatTask = true;
       });
@@ -2014,6 +1634,7 @@ export default {
           }
           return obj;
         }, {});
+
       // Agregar campos adicionales si es necesario
       if (Object.keys(updatedFields).length > 0) {
         updatedFields.home_id = this.home_id;
@@ -2029,6 +1650,7 @@ export default {
         updatedFields.type = this.editedItemTask.type
           ? this.editedItemTask.type
           : "Tarea";
+
         // Crear el objeto FormData
         const formData = new FormData();
         for (let key in updatedFields) {
@@ -2043,12 +1665,14 @@ export default {
             formData.append(key, updatedFields[key]);
           }
         }
+
         try {
           const result = await handleRequest({
             endpoint: "task",
             method: "POST",
             data: formData,
           });
+
           // Manejo de la respuesta según el resultado
           if (result.success) {
             this.loading = false;
@@ -2060,6 +1684,7 @@ export default {
               // Aquí puedes manejar las sugerencias de tareas
               // Por ejemplo, mostrarlas en un diálogo o procesarlas automáticamente
               console.log("Tareas sugeridas:", result.data.suggestedTasks);
+
               this.suggestedTasks = result.data.suggestedTasks.map((task) => ({
                 ...task,
                 people: this.enrichPeopleData(task.people || []),
@@ -2102,6 +1727,7 @@ export default {
       this.editedItem.date = this.dateInput;
       this.dateMenu = false;
     },
+
     // Método para convertir string a Date (solo cuando sea necesario)
     parseDateString(dateString) {
       if (!dateString) return null;
@@ -2140,28 +1766,25 @@ export default {
       };
     },*/
     formatNumber(value) {
-      console.log("value: ", value)
-      // Si el valor es null o NaN, devolver 0.00
-      if (value == null || isNaN(value)) {
-        value = 0;
+      // Si el valor es menor que 1000, devuelve el valor original con dos decimales
+      if (value < 1000) {
+        return (Math.round((value + Number.EPSILON) * 100) / 100).toLocaleString(
+          "en-US",
+          { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        );
       }
-  // Validación: si no es un número válido, devolver 0.00
-  if (value == null || isNaN(value)) {
-    value = 0;
-  }
 
-  // Asegurarnos de que sea un número
-  const numberValue = Number(value);
+      // Primero, redondea el valor a dos decimales
+      value = Math.round((value + Number.EPSILON) * 100) / 100;
 
-  // Redondear a 2 decimales usando técnica segura
-  const roundedValue = Math.round((numberValue + Number.EPSILON) * 100) / 100;
+      // Convierte el valor a cadena con formato de número local (en-US)
+      let formattedValue = value.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
 
-  // Aplicar formato
-  return roundedValue.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-},
+      return formattedValue;
+    },
 
     formatCurrency(value) {
       // Primero reemplaza los puntos (separadores de miles) si existen
@@ -2265,9 +1888,6 @@ export default {
           this.statusuggestions = result.data?.statusuggestions || [];
           this.movent = result.data?.movementsCard || {};
           this.budget = result.data?.budgetCard || [];
-          this.customIncomeData = result.data?.financeData.customIncomeData || Array(12).fill(0);
-          this.customSpentData = result.data?.financeData.customSpentData || Array(12).fill(0);
-          console.log("customIncomeData:", this.customIncomeData);
           console.log("movent:", this.movent);
         } else {
           // Si no hay datos, asignamos un array vacío
@@ -2560,17 +2180,25 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
+
+.text-green {
+  color: #2e7d32;
+}
+
 .text-red {
   color: #c62828;
 }
+
 .text-blue {
   color: #1565c0;
 }
+
 /* Estilos para el texto en tareas seleccionadas */
 .selected-task {
   background-color: #03626c;
 }
+
 .selected-task .date-time-text,
 .selected-task .font-weight-semibold,
 .selected-task .text-caption,
@@ -2578,26 +2206,32 @@ export default {
 .selected-task .v-icon {
   color: white !important;
 }
+
 .selected-task .text-caption {
   opacity: 0.9;
 }
+
 /* Opcional: para mantener consistencia en el hover */
 .selected-task:hover .date-time-text {
   opacity: 0.95;
 }
+
 .avatar-border {
   border: 2px solid #000;
   /* Aquí se define el borde */
 }
+
 .avatar-row {
   display: flex;
   flex-wrap: nowrap;
   justify-content: start;
 }
+
 .avatar-col {
   margin-right: -10px;
   /* Reduce the space between avatars */
 }
+
 .avatar-item {
   margin-right: -5px;
   /* Cambia el color del borde según desees */
@@ -2609,34 +2243,18 @@ export default {
   /* Optional: reduce the space even further between avatars */
   /* Optional: reduce the space even further between avatars */
 }
+
 .hover-expand {
   transition: transform 0.2s;
 }
+
 .hover-expand:hover {
   transform: scale(1.2);
   z-index: 2;
 }
+
 /* Estilo para el texto de duración */
 .text-caption.text-grey-darken-1 {
   font-size: 0.7rem;
-}
-.dot-wrapper {
-  position: absolute;
-  top: -28px; /* sube el texto */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.dot-label {
-  font-size: 12px;
-  font-weight: bold;
-  color: black;
-  margin-bottom: 4px;
-}
-.dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background-color: red;
 }
 </style>

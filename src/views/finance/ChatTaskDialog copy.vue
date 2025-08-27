@@ -19,7 +19,7 @@
       </v-col>
     </v-row>
   </v-snackbar>
-
+  
   <v-dialog
     :model-value="internalDialog"
     @update:model-value="(val) => (internalDialog = val)"
@@ -342,6 +342,7 @@
 <script>
 import LocalStorageService from "@/LocalStorageService";
 import { handleRequest } from "@/utils/api"; // Ruta al archivo
+import { VTimePicker } from "vuetify/labs/components";
 export default {
   name: "ChatTaskDialog",
   emits: ["update:modelValue", "completed"], // Agrega esta línea
@@ -355,7 +356,9 @@ export default {
       default: () => ({}),
     },
   },
- 
+  components: {
+    "v-time-picker": VTimePicker,
+  },
   data() {
     return {
       confirmButtonShown: false,
@@ -439,6 +442,7 @@ export default {
   methods: {
     handleAction(action) {
       console.log("Handling action:", action, "at step:", this.step);
+
       if (this.step === 8) {
         // Asegúrate que coincida con tu paso de confirmación
         if (action === this.$t("general.yes")) {
@@ -447,6 +451,7 @@ export default {
             this.sendBotMessage(this.$t("chat.mustSelectParticipants"));
             return;
           }
+
           // Mostrar confirmación
           const participantCount = this.taskData.people.length;
           this.sendUserMessage(
@@ -454,11 +459,14 @@ export default {
               count: participantCount,
             })
           );
+
           // Forzar renderizado
           this.$forceUpdate();
+
           // Avanzar y procesar
           this.step = 9;
           console.log("Avanzando a paso 9");
+
           // Llamar directamente al caso de finalización
           this.sendBotMessage(this.$t("chat.completed"));
           setTimeout(() => {
@@ -480,6 +488,7 @@ export default {
       this.taskData.people = this.taskData.people.filter(
         (p) => p.roleId !== role.id || selectedIds.includes(p.id)
       );
+
       // Añadir nuevas selecciones
       selectedIds.forEach((personId) => {
         if (
@@ -497,21 +506,26 @@ export default {
           }
         }
       });
+
       // Forzar actualización de la UI
       this.$forceUpdate();
     },
+
     filteredPeople(roleId) {
       return this.people.filter((person) => {
         const assignedPerson = this.taskData.people.find((p) => p.id === person.id);
         return !assignedPerson || assignedPerson.roleId === roleId;
       });
     },
+
     isPersonSelected(personId, roleId) {
       return this.taskData.people.some((p) => p.id === personId && p.roleId === roleId);
     },
+
     getRoleIcon(roleId) {
       const role = this.roles.find((r) => r.id === roleId);
       if (!role) return "mdi-account";
+
       switch (role.name.toLowerCase()) {
         case "responsable":
           return "mdi-star";
@@ -524,6 +538,7 @@ export default {
     onTimeSelected(value) {
       this.timePickerValue = value.length > 5 ? value.substring(0, 5) : value;
     },
+
     onTimeConfirmed(time) {
       this.taskData.start_time = time;
       this.processStep(time); // o avanzar al siguiente paso
@@ -533,8 +548,10 @@ export default {
       const [year, month, day] = dateString.split("-");
       return new Date(year, month - 1, day);
     },
+
     updateDate(value) {
       let formattedDate = "";
+
       if (typeof value === "string") {
         formattedDate = value;
       } else if (value instanceof Date) {
@@ -543,6 +560,7 @@ export default {
         const day = String(value.getDate()).padStart(2, "0");
         formattedDate = `${year}-${month}-${day}`;
       }
+
       //if (this.taskData.start_date !== formattedDate) {
       this.dateInput = formattedDate;
       this.taskData.start_date = formattedDate;
@@ -550,6 +568,7 @@ export default {
       this.processStep(formattedDate);
       //}
     },
+
     handleDateConfirmed() {
       if (!this.dateInput) return;
       this.taskData.start_date = this.dateInput;
@@ -567,6 +586,7 @@ export default {
           method: "POST",
           data: this.data,
         });
+
         if (result.success) {
           // Asignación de datos
           this.categories = result.data?.taskcategories || [];
@@ -576,6 +596,7 @@ export default {
           this.people = result.data?.taskpeople || [];
           this.roles = result.data?.taskroles || [];
           this.typetasks = result.data?.tasktype || [];
+
           // Inicializar valores por defecto
           this.setDefaultValues();
         } else {
@@ -599,12 +620,14 @@ export default {
         this.taskData.priority_id = normalPriority.id;
         this.selectedPriorityId = normalPriority.id;
       }
+
       // Recurrencia por defecto (Diaria)
       const dailyRecurrence = this.recurrences.find((r) => r.recurrenceName === "Diaria");
       if (dailyRecurrence) {
         this.taskData.recurrence = dailyRecurrence.name;
         this.selectedRecurrence = dailyRecurrence.name;
       }
+
       // Fecha y hora por defecto
       const today = new Date().toISOString().split("T")[0];
       this.taskData.start_date = this.suggestion?.date || today;
@@ -618,6 +641,7 @@ export default {
       this.people = [];
       this.roles = [];
       this.typetasks = [];
+
       // Resetear taskData con valores básicos
       this.taskData = {
         type: "",
@@ -638,6 +662,7 @@ export default {
         this.taskData.start_date ||
         this.suggestion?.date ||
         new Date().toISOString().split("T")[0];
+
       this.taskData = {
         ...this.taskData, // Mantener valores ya establecidos (como recurrencia)
         type: "",
@@ -649,6 +674,7 @@ export default {
         geo_location: "",
         people: this.getInitialPeopleSelection(),
       };
+
       this.dateInput = initialDate;
     },
     getInitialPeopleSelection() {
@@ -656,10 +682,12 @@ export default {
       if (this.taskData.people?.length > 0) {
         return [...this.taskData.people];
       }
+
       // Añadir usuario actual como responsable si existe
       if (this.person_id && this.people?.length > 0) {
         const person = this.people.find((p) => p.id === this.person_id);
         const responsableRole = this.roles?.find((r) => r.name === "Responsable");
+
         if (person && responsableRole) {
           return [
             {
@@ -672,6 +700,7 @@ export default {
           ];
         }
       }
+
       return [];
     },
     initializeSelections() {
@@ -681,10 +710,12 @@ export default {
           .filter((p) => p.roleId === role.id)
           .map((p) => p.id);
       });
+
       // Asegurar que el usuario actual esté incluido si no lo está
       if (this.person_id && !this.taskData.people.some((p) => p.id === this.person_id)) {
         const responsableRole = this.roles.find((r) => r.name === "Responsable");
         const person = this.people.find((p) => p.id === this.person_id);
+
         if (responsableRole && person) {
           this.taskData.people.push({
             id: person.id,
@@ -703,7 +734,9 @@ export default {
     },
     handleEditableInput(msg) {
       if (!msg.model?.trim()) return;
+
       this.sendUserMessage(msg.model);
+
       // Procesar el paso actual con el valor del campo editable
       this.processStep(msg.model);
     },
@@ -715,12 +748,14 @@ export default {
         this.handleUserInput(); // Disparar el envío automático
       });
     },
+
     handleRecurrenceSelection(option) {
       this.taskData.recurrence = option.name;
       this.selectedRecurrence = option.name;
       this.sendUserMessage(option.name);
       this.processStep(option.name); // Avanzar automáticamente
     },
+
     handleOptionSelection(value) {
       this.taskData.type = value;
       this.sendUserMessage(value);
@@ -730,6 +765,7 @@ export default {
     handleUserInput() {
       // Para pasos con inputs editables
       const currentMessage = this.messages[this.messages.length - 1];
+
       if (
         currentMessage?.type === "editable-text" ||
         currentMessage?.type === "editable-textarea"
@@ -740,21 +776,26 @@ export default {
         //currentMessage.model = ""; // Limpiar después de enviar
         return;
       }
+
       // Para input normal
       if (!this.input.trim()) return;
+
       this.sendUserMessage(this.input.trim());
       this.processStep(this.input.trim());
       this.input = "";
     },
     handleTitleInput() {
       if (!this.taskData.title?.trim()) return;
+
       this.sendUserMessage(this.taskData.title);
       this.processStep(this.taskData.title);
       //this.step++; // Avanzar al siguiente paso
       //this.prepareNextStep();
     },
+
     handleDescriptionInput() {
       if (!this.taskData.description?.trim()) return;
+
       this.sendUserMessage(this.taskData.description);
       this.processStep(this.taskData.description);
       //this.step++; // Avanzar al siguiente paso
@@ -764,19 +805,23 @@ export default {
       const now = new Date();
       const currentHour = now.getHours();
       const currentMinute = now.getMinutes();
+
       // Redondear a los 5 minutos más cercanos
       const roundedMinute = Math.ceil(currentMinute / 5) * 5;
       const nearestTime = new Date();
       nearestTime.setMinutes(roundedMinute, 0, 0);
+
       // Si pasamos de 60 minutos, ajustar hora
       if (roundedMinute >= 60) {
         nearestTime.setHours(currentHour + 1);
         nearestTime.setMinutes(0);
       }
+
       const formattedNearestTime =
         String(nearestTime.getHours()).padStart(2, "0") +
         ":" +
         String(nearestTime.getMinutes()).padStart(2, "0");
+
       // Generar todos los slots
       const allSlots = [];
       for (let hour = 0; hour < 24; hour++) {
@@ -786,11 +831,14 @@ export default {
           allSlots.push(`${formattedHour}:${formattedMinute}`);
         }
       }
+
       // Ordenar los slots comenzando desde el más cercano
       const index = allSlots.indexOf(formattedNearestTime);
       const orderedSlots = [...allSlots.slice(index), ...allSlots.slice(0, index)];
+
       // Establecer el valor por defecto en taskData
       this.taskData.start_time = formattedNearestTime;
+
       return orderedSlots;
     },
     startChat() {
@@ -868,8 +916,10 @@ export default {
           this.taskData.estimated_time = response;
           break;
       }
+
       // Avanzar al siguiente paso
       this.step++;
+
       // Preparar la UI para el siguiente paso
       this.prepareNextStep();
     },
@@ -883,6 +933,7 @@ export default {
             //model: this.taskData.title,
           });
           break;
+
         case 2: // DESCRIPCIÓN
           this.messages.push({
             from: "bot",
@@ -891,6 +942,7 @@ export default {
             //model: this.taskData.description,
           });
           break;
+
         case 3: // PRIORIDAD
           this.messages.push({
             from: "bot",
@@ -903,18 +955,21 @@ export default {
             })),
           });
           break;
+
         case 4: // FECHA
           this.messages.push({
             from: "bot",
             type: "date-picker",
           });
           break;
+
         case 5: // HORA
           this.messages.push({
             from: "bot",
             type: "time-picker",
           });
           break;
+
         case 6: // RECURRENCIA
           this.messages.push({
             from: "bot",
@@ -925,15 +980,18 @@ export default {
             })),
           });
           break;
+
         case 7: // TIEMPO ESTIMADO
           this.sendBotMessage(this.$t("chat.askEstimatedTime"));
           break;
+
         case 8: // PERSONAS
           this.messages.push({
             from: "bot",
             type: "people-selector",
           });
           break;
+
         case 9: // FINALIZACIÓN
           this.sendBotMessage(this.$t("chat.completed"));
           setTimeout(() => {
@@ -945,18 +1003,22 @@ export default {
           }, 1500);
           break;
       }
+
       this.scrollToBottom();
     },
     showAlert(sb_type, sb_message, sb_timeout) {
       this.sb_type = sb_type;
+
       if (sb_type == "success") {
         this.sb_title = "Éxito";
         this.sb_icon = "mdi-check-circle";
       }
+
       if (sb_type == "error") {
         this.sb_title = "Error";
         this.sb_icon = "mdi-check-circle";
       }
+
       if (sb_type == "warning") {
         this.sb_title = "Advertencia";
         this.sb_icon = "mdi-alert-circle";
@@ -968,10 +1030,12 @@ export default {
   },
 };
 </script>
+
 <style scoped>
 .v-input__append {
   margin-left: 8px;
 }
+
 .chat-bubble .v-btn--icon {
   margin: 0;
 }
@@ -982,6 +1046,7 @@ export default {
   margin-top: 16px;
   border-left: 3px solid #03626c;
 }
+
 .confirmation-buttons .v-btn {
   text-transform: uppercase;
   font-weight: 500;

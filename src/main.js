@@ -10,6 +10,7 @@ import { createVuetify } from 'vuetify';
 import { createI18n } from "vue-i18n";
 import { en, es, pt } from 'vuetify/locale'
 // Composables
+import vuetify from './plugins/vuetify'  // ✅ Usa la instancia ya configurada
 import { createApp } from "vue";
 import snotify from "vue3-snotify";
 import "vue3-snotify/style";
@@ -23,6 +24,7 @@ import { registerPlugins } from "@/plugins";
 import spanish from "./langs/spanish";
 import english from "./langs/english";
 import portuguese from "./langs/portuguese";
+
 // Función para obtener el locale inicial
 const getInitialLocale = () => {
   let savedLocale = LocalStorageService.getItem('userLocale');
@@ -31,7 +33,7 @@ const getInitialLocale = () => {
   if (savedLocale) {
     savedLocale = savedLocale.toString().trim().replace(/^"(.*)"$/, '$1');
   }
-  
+
   if (savedLocale && ['es', 'en', 'pt'].includes(savedLocale)) {
     return savedLocale;
   } else if (['es', 'en', 'pt'].includes(browserLang)) {
@@ -54,22 +56,15 @@ const i18n = createI18n({
     pt: portuguese.messages,
   },
 });
-
-const vuetify = createVuetify({
-  locale: {
-    locale: userLocale, // Sincronizado con i18n
-    fallback: 'es',
-    messages: { en, es, pt }, // Importa los locales de Vuetify
-  },
-});
 const app = createApp(App);
 
 // Agregar axios a la instancia global de Vue
 app.config.globalProperties.$axios = axios;
 
+//Configuración de plugins
 app.use(snotify);
 
 registerPlugins(app);
-app.use(vuetify)  // Usa la instancia de Vuetify
+app.use(vuetify);  // ✅ Usa la instancia desde plugins/vuetify.js
 app.use(i18n);
 app.mount("#app");

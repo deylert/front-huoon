@@ -24,8 +24,9 @@
     <v-row no-gutters class="ma-0">
       <v-col cols="12" class="px-0 mb-6">
         <v-card
-          class="pt-4"
-          elevation="2"
+          class="pt-4 rounded-lg"
+          elevation="1"
+
           style="max-height: 600px; display: flex; flex-direction: column"
         >
           <!-- Chat Body -->
@@ -151,15 +152,16 @@
 
       <v-col cols="12" class="pa-0">
         <v-row>
+
           <template v-for="(card, index) in cards" :key="index">
             <v-col cols="12" sm="6" md="3" v-if="!card.menu">
               <v-card
-                elevation="2"
+                elevation="1"
                 density="comfortable"
                 @click="$router.push(card.to)"
                 class="rounded-lg"
               >
-                <v-card-item class="pa-3">
+                <v-card-item class="pa-2">
                   <template v-slot:prepend>
                     <div class="icono-concavo">
                       <v-icon
@@ -184,11 +186,12 @@
                     </div>
                   </div>
 
-                  <v-card-subtitle class="pt-0">
+                  <v-card-subtitle>
                     <span class="text-body-2">
+
                       {{ $t(`menu.${card.name}.description`) || card.description }}
                     </span>
-                    <v-tooltip activator="parent" location="bottom" max-width="350px">
+                    <v-tooltip activator="parent" location="bottom">
                       <span style="white-space: normal; word-break: break-word">
                         {{ card.description }}
                       </span>
@@ -198,60 +201,18 @@
               </v-card>
             </v-col>
 
-            <v-col cols="12" sm="6" md="3" v-else>
-              <!-- Tarjetas con menú desplegable -->
-              <v-menu>
-                <template v-slot:activator="{ props }">
-                  <v-card v-bind="props" class="menu-card">
-                    <div class="dynamic-circle" v-if="getDynamicValue(card.to) > 0">
-                      {{ getDynamicValue(card.to) }}
-                    </div>
-                    <v-card-item class="pa-2">
-                      <template v-slot:prepend>
-                        <div
-                          class="icono-concavo"
-                          :class="card.color"
-                          style="margin-inline-end: 8px; padding: 8px"
-                        >
-                          <v-icon :icon="card.icon" size="large"></v-icon>
-                        </div>
-                      </template>
-                      <v-card-title class="text-body-2">{{
-                        $t(`menu.${card.to.replace("/", "")}.title`) || card.title
-                      }}</v-card-title>
-                      <template v-slot:append>
-                        <v-icon icon="mdi-chevron-down" size="small"></v-icon>
-                      </template>
-                    </v-card-item>
-                  </v-card>
-                </template>
 
-                <v-list density="compact">
-                  <v-list-item
-                    v-for="(item, i) in card.items"
-                    :key="i"
-                    @click="$router.push(item.to)"
-                  >
-                    <template v-slot:prepend>
-                      <v-icon :icon="item.icon" size="small"></v-icon>
-                    </template>
-                    <v-list-item-title class="text-body-2">{{
-                      item.title
-                    }}</v-list-item-title>
-                  </v-list-item>
-                </v-list>
-              </v-menu>
-            </v-col>
           </template>
         </v-row>
       </v-col>
 
-      <v-col
+       <v-col
         cols="12"
         class="ma-0 pa-0 pt-6"
         style="max-height: 60vh; min-height: 40vh; overflow-y: auto"
       >
-        <template v-if="tasks.length === 0">
+
+        <template v-if="tasks.length === 0 && loading_task!=true" >
           <v-col cols="12" class="text-center py-8 pa-0">
             <v-icon size="64" color="grey-lighten-1">mdi-check-circle-outline</v-icon>
             <div class="text-body-2 text-grey mt-4">
@@ -262,40 +223,51 @@
 
         <template v-else>
           <div style="padding: 1px">
+
+
+
             <v-card
               v-for="meeting in tasks"
               :key="meeting.id"
-              class="rounded-lg mb-6"
+              class="rounded-lg"
               density="comfortable"
-              elevation="2"
+              elevation="1"
             >
-              <v-card-item class="pa-2">
+              <v-card-item class="">
+
+
+
                 <!-- Icono/Color lateral -->
+
                 <template v-slot:prepend>
                   <div
-                    class="icono-concavo d-flex flex-column justify-center align-center"
+                    class="icono-concavo-card-task d-flex flex-column justify-center align-center"
                     :class="`bg-${getTypeColor(meeting.module || meeting.type)}`"
                   >
+
+
                     <div class="date-display text-center">
                       {{ formatIntuitiveDate(meeting.start_date) }}
                     </div>
                     <div v-if="meeting.start_time" class="time-display text-center">
                       {{ formatTime(meeting.start_time) }}
                     </div>
+
+
                   </div>
                 </template>
-
-                <!-- Contenido principal - Modificado para ajuste automático -->
+     <!-- Contenido principal - Modificado para ajuste automático -->
                 <div class="d-flex align-start px-1" style="width: 100%; flex-wrap: wrap">
                   <!-- Información de la tarea - Ahora con texto multilínea -->
                   <div
                     class="flex-grow-1"
                     style="min-width: 60%; max-width: 60%; word-break: break-word"
                   >
-                    <v-card-title class="text-body-2 pb-1" style="white-space: normal">
+
+                    <v-card-title class="text-body-2 " style="white-space: normal">
                       {{ meeting.title }}
                     </v-card-title>
-                    <v-card-subtitle class="text-body-2 text-grey-darken-1 pt-0">
+                    <v-card-subtitle class="">
                       <div style="white-space: normal">{{ meeting.description }}</div>
                     </v-card-subtitle>
                   </div>
@@ -351,7 +323,7 @@
                         class="text-grey-darken-1 text-body-2"
                         style="white-space: normal"
                       >
-                        {{ meeting.moduleName || meeting.typeName }}
+                        {{ meeting.moduleName || meeting.typeName }} 
                       </span>
                     </div>
                   </div>
@@ -375,35 +347,37 @@
                   </div>
 
                   <!-- Estado - Con ajuste automático -->
-                  <div style="min-width: 10%; max-width: 10%; align-self: center">
-                    <v-dialog v-model="meeting.statusDialog" width="400">
+                  <div style="min-width: 12%; max-width: 12%; align-self: center">
+                    <v-dialog v-model="meeting.statusDialog" width="500">
                       <template v-slot:activator="{ props }">
                         <v-btn
+
                           v-bind="props"
                           :color="
                             '#' +
                             (getStatusById(meeting.status_id)?.colorStatus || 'grey')
                           "
-                          variant="text"
+                        variant="outlined"
                           size="small"
                           class="text-body-2"
                           :prepend-icon="
                             getStatusById(meeting.status_id)?.iconStatus ||
                             'mdi-help-circle'
                           "
-                          style="white-space: normal; height: auto; min-height: 36px"
+
                         >
                           {{
                             getStatusById(meeting.status_id)?.nameStatus || "Desconocido"
                           }}
+
                         </v-btn>
                       </template>
                       <v-card>
-                        <v-card-title class="pa-4 text-center">
+                        <v-card-title class="pa-4 text-center text-subtitle-2">
                           {{ $t("taskForm.updateStatus") }}
                         </v-card-title>
                         <v-divider></v-divider>
-                        <v-card-text class="pa-0">
+                        <v-card-text class="pa-4 text-center text-subtitle-2">
                           <v-row class="px-2 pb-1" dense>
                             <v-col
                               cols="12"
@@ -414,7 +388,7 @@
                               <v-card
                                 @click="changeTaskStatus(meeting, statusOption.id)"
                                 :class="[
-                                  'status-option mx-1',
+                                  'mx-1',
                                   {
                                     'current-status':
                                       meeting.status_id === statusOption.id,
@@ -425,13 +399,13 @@
                                     ? {
                                         'background-color': `#${statusOption.colorStatus}`,
                                         'border-color': `#${statusOption.colorStatus}`,
-                                        color: 'white',
+                                      
                                       }
                                     : {
                                         'border-color': '#9e9e9e',
                                       }
                                 "
-                                variant="outlined"
+                                vvariant="outlined"
                                 :elevation="meeting.status_id === statusOption.id ? 2 : 0"
                                 style="border-radius: 12px; cursor: pointer"
                               >
@@ -448,12 +422,13 @@
                                       class="mr-3"
                                     ></v-icon>
                                     <v-card-title
+                                   class="pa-4 text-center text-subtitle-2"
                                       :style="{
                                         color:
                                           meeting.status_id === statusOption.id
                                             ? 'white'
                                             : 'inherit',
-                                        'font-size': '1rem',
+                                   
                                       }"
                                     >
                                       {{ statusOption.nameStatus }}
@@ -474,8 +449,8 @@
                         <v-card-actions>
                           <v-spacer></v-spacer>
                           <v-btn
-                            variant="flat"
-                            color="#03626C"
+                            variant="outline"
+                            color="default"
                             @click="meeting.statusDialog = false"
                           >
                             {{ $t("buttons.cancel") }}
@@ -487,9 +462,9 @@
                 </div>
               </v-card-item>
             </v-card>
-          </div>
-        </template>
-      </v-col>
+            </div>
+            </template>
+          </v-col>
     </v-row>
   </v-container>
   <v-dialog v-model="dialogChatTask" fullscreen transition="dialog-bottom-transition">
@@ -665,6 +640,7 @@ export default {
         mantenedores: false,
       },
       loading: false,
+      loading_task: true,
       taskStatus: [
         {
           name: "Tareas",
@@ -2057,20 +2033,33 @@ export default {
 }
 
 .icono-concavo {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
-  margin-right: 2px;
+  border-radius: 8px;
+ 
   color: white;
   /* Mantenemos solo el efecto cóncavo en el ícono 
   box-shadow: inset;*/
   position: relative;
   overflow: hidden;
 }
-
+.icono-concavo-card-task {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+ 
+  color: white;
+  /* Mantenemos solo el efecto cóncavo en el ícono 
+  box-shadow: inset;*/
+  position: relative;
+  overflow: hidden;
+}
 .icono-concavo::after {
   content: "";
   position: absolute;
@@ -2081,75 +2070,62 @@ export default {
   border-radius: 8px;
   background: transparent;
 }
-
 .date-display {
-  font-size: 0.75rem; /* Equivale a text-caption */
+  font-size: 0.85rem; /* Equivale a text-caption */
   line-height: 1.1;
   font-weight: 500;
   text-align: center;
   word-break: break-word;
   white-space: normal;
 }
-
 /* Estilos para la hora */
 .time-display {
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   line-height: 1;
   margin-top: 2px;
 }
-
 .v-icon {
   font-size: 28px;
 }
-
 .status-option {
   transition: background-color 0.3s ease;
 }
-
 .status-option:hover {
   background-color: rgba(0, 0, 0, 0.05) !important;
 }
-
 .current-status {
   border-left: 4px solid;
   border-left-color: inherit;
 }
-
 .v-card-title {
   font-weight: 600;
 }
-
 .menu-card {
   cursor: pointer;
   transition: all 0.3s ease;
   border-radius: 10px;
   height: 100%;
 }
-
 .menu-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
-
 .v-card-title {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
 /* Estilo para el menú desplegable */
 .v-menu__content {
   border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
-
 .title-container {
   position: relative;
   display: flex;
   align-items: center;
   gap: 8px; /* Espacio entre título y círculo */
 }
-
 .dynamic-circle {
   width: 24px;
   height: 24px;
@@ -2164,7 +2140,6 @@ export default {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   flex-shrink: 0; /* Evita que se reduzca el tamaño */
 }
-
 .dynamic-circle.primary {
   background-color: #03626c; /* Color primario */
 }
@@ -2174,7 +2149,6 @@ export default {
   display: flex;
   flex-direction: column;
 }
-
 .chat-body {
   flex: 1;
   overflow-y: auto;
@@ -2182,33 +2156,27 @@ export default {
   scrollbar-width: thin;
   scrollbar-color: #ddd transparent;
 }
-
 .chat-body::-webkit-scrollbar {
   width: 6px;
 }
-
 .chat-body::-webkit-scrollbar-thumb {
   background-color: #ccc;
   border-radius: 8px;
 }
-
 .chat-bubble {
   max-width: 100%;
   word-break: break-word;
   font-size: 15px;
   line-height: 1.4;
 }
-
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;
 }
-
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
 }
-
 .tools-bar {
   overflow-x: auto;
   white-space: nowrap;

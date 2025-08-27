@@ -21,7 +21,7 @@
     </v-row>
   </v-snackbar>
   
-  <v-card class="mx-auto pa-3" flat style="background: transparent">
+  <v-card class="mx-auto pa-3 " elevation="2" flat style="background: transparent">
     <div class="d-flex align-center justify-space-between" min-wdth="600">
       <!-- Icono a la izquierda -->
       <div class="d-flex align-center">
@@ -40,27 +40,7 @@
       <!-- Espaciador -->
       <v-spacer></v-spacer>
 
-      <!-- Menú desplegable activado por avatar con campanita 
-      <div class="d-flex align-center">
-        <v-text-field :loading="loading" :placeholder="'Bienvenido(a) ' + this.user + '. ¿En qué podemos ayudarte?'"
-          density="compact" variant="outlined" hide-details single-line rounded @keydown.enter="onClick"
-          class="custom-text-field" style="width: 100%; min-width: 50vh;" clearable>
-
-          <template v-slot:prepend-inner>
-            <v-avatar size="24" class="mr-2" @click="onClick">
-              <v-img src="@/assets/logo-verde.png" alt="Avatar" />
-            </v-avatar>
-          </template>
-        </v-text-field>-->
-      <!--<v-btn icon variant="text" class="mr-2" style="color: #FFC0CB; border: 2px solid #FFF;">
-          <v-badge color="#FFC0CB" :content="this.cantHome" overlap>
-            <v-icon size="x-large" style="color: #FFC0CB;" icon="mdi-home-outline" @click="openDialog"></v-icon>
-          </v-badge>
-        </v-btn>
-
-
-      </div>-->
-
+       
       <v-btn icon class="text-none" variant="text">
         <v-badge color="#E53935" :content="cantHome" dot>
           <v-icon color="#00796B" icon="mdi-home" @click="openMenu"></v-icon>

@@ -8,6 +8,7 @@
 import "@mdi/font/css/materialdesignicons.css";
 import "vuetify/styles";
 import { createVuetify } from "vuetify";
+import { VPie } from 'vuetify/labs/VPie'
 
 // Composables
 //import { createVuetify } from "vuetify";
@@ -25,7 +26,7 @@ export default createVuetify({
     },
   },
   components: {
-  
+  VPie
   },
 });
 
